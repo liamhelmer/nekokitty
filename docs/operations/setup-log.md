@@ -810,8 +810,8 @@ Current official repository:
 Downloaded by revision-pinned resumable HTTPS and checked locally. The optional
 986,833,312-byte multimodal projector was not downloaded: the existing LiteRT
 artifact already provides the evaluated audio/vision path, while this GGUF is a
-  text-only GPU/runtime fallback. Its completed Jetson benchmark is recorded
-  below and in `docs/research/2026-07-13-local-benchmarks.md`.
+text-only GPU/runtime fallback. Its completed Jetson benchmark is recorded below
+and in `docs/research/2026-07-13-local-benchmarks.md`.
 
 ## 2026-07-13 — Git/GitHub project state
 
@@ -827,6 +827,21 @@ An accidental empty nested clone at `./nekokitty` was moved without deletion to
 `/home/neko/repos/nekokitty-empty-clone-backup-20260713`. `.gitignore` excludes
 weights, engines, caches, private media/transcripts, credentials, runtime state,
 and ordinary build products. Model files remain outside the repository.
+
+The repository had no base/default branch, so a draft pull request was impossible
+for the initial publication. Repository-local Git identity was set to `Liam
+Helmer <62965078+liamhelmer@users.noreply.github.com>`; no global Git setting was
+changed. After full tests, service/package/artifact checks, Markdown-link audit,
+`git diff --check`, and a secret-signature scan passed, the intentional 39-file
+bootstrap commit was pushed directly to the private `main` branch:
+
+```text
+3a0c37fabfb5e6bbc4aa36eb0015e8b64ff91601
+Bootstrap Neko local inference stack
+```
+
+GitHub now reports `main` as the default branch. Future work should use a topic
+branch and draft pull request unless another explicit exception applies.
 
 ## 2026-07-13 — digest-pinned llama.cpp/CUDA alternate profile
 
