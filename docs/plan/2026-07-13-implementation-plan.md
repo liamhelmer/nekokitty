@@ -37,8 +37,15 @@ front OAK metric person tracks + 360 range/presence + rear confirmation
   -> deterministic dwell/approach/cooldown state machine
   -> one approved greeting event through the same interaction policy
 
-hard electrical cart power switch
-  -> whole system off
+normal off/offline control
+  -> orderly Linux shutdown -> hardware-supervised delayed converter cutoff
+
+DC-rated service/emergency disconnect
+  -> immediate whole-system electrical isolation when safety requires it
+
+full 48 V-class LiFePO4 bank output (exact four-battery topology pending audit)
+  -> separately protected, full-pack-fed 19 V converter -> Jetson
+  -> separately protected, full-pack-fed 24 V converter -> fused accessories
 
 manual driver / future independent safety controller
   -> the assistant has no motion-control path in revision one
@@ -78,22 +85,32 @@ Provisional installed range: **US$280–445** before Canadian tax/shipping.
   sealed/gasketed baffle.
 - Dayton TT25-8 body shaker on a lightweight body panel, not the passenger seat
   or chassis, with the SMRK-2 mount.
-- Mean Well DDR-60G-12 or DDR-60L-12 only after measuring the cart pack; omit it
-  if a clean, isolated, fused 12 V rail has enough capacity.
+- Feed the KAB amplifier from a separately fused branch of the existing 24 V
+  accessory output only after its maximum tolerance, noise, switching transients,
+  current headroom, and grounding pass. Its documented input range ends at 24 V.
+  If that rail fails, select a dedicated lower-output converter from measured
+  pack limits; do not add a general 12 V rail preemptively.
 - DC fuse/disconnect, locking/shielded USB, rain/wind protection, strain relief,
   ferrites, and a fail-silent output path.
 
-Do not buy the DC/DC converter until nominal, fully charged, and minimum battery
-voltages are known. The transducer channel needs a limiter, band-pass/low-pass,
+Do not replace or extend either DC/DC branch until exact battery topology,
+full/rest/loaded voltage, configured BMS limits, controlled shutdown threshold,
+converter data, and DC protection are known. Both converter inputs must span
+the complete pack; a series-string
+midpoint is never an accessory supply. Keep the Jetson alone on its existing
+regulated 19 V branch. The transducer channel needs a limiter, band-pass/low-pass,
 maximum duration/duty cycle, gentle fades, and a watchdog. Measure a child-safe
 SPL and vibration limit; amplifier maximum is never the user volume maximum.
 
 ### Social perception
 
-Conditional value tier: **US$1,100–1,300 installed**.
+Conditional USB value tier: **US$1,100–1,300 installed**.
 
 - Front OAK-D W with OV9782 wide/global-shutter color sensor: on-device person
-  detection/tracking plus metric stereo XYZ.
+  detection/tracking plus metric stereo XYZ. Luxonis's USB ingress claims
+  conflict, so require written confirmation/certification for the exact
+  SKU/OV9782/cable assembly. Otherwise prefer the specified IP65 PoE/M12 variant
+  and a standards-compliant active injector.
 - RPLIDAR S2L: anonymous 360-degree range clusters and approach/dwell, only if a
   substantially clear, level 0.9–1.2 m scan plane exists.
 - Existing C922 at the rear: low-rate or event-triggered person confirmation in
@@ -101,9 +118,12 @@ Conditional value tier: **US$1,100–1,300 installed**.
 - Industrial powered USB hub, separately fused regulated sensor power, secured
   cabling, mounts, guards, and weather protection.
 
-Combined with audio, the expected pre-tax additional hardware range is about
-**US$1,380–1,730**, leaving pre-tax contingency below the owner's approximate
-US$2,000 combined added-system ceiling.
+Combined with audio, the USB path is about **US$1,380–1,730** before tax,
+shipping, and duty. If exact-SKU ingress evidence forces the PoE/M12 path, the
+preliminary combined range rises to about **US$1,593–1,983**, including a
+US$40–80 planning allowance for an active 24 V-input 802.3af injector. Confirm
+whether the owner's approximate US$2,000 ceiling includes tax, shipping, duty,
+and fabrication before ordering; the PoE path leaves almost no pre-tax margin.
 
 The lidar decision is a geometry gate. If riders, posts, or bodywork block most
 of a useful-height plane, substitute three exterior DFRobot C4001 24 GHz sectors
@@ -116,6 +136,15 @@ Three new perimeter OAK-D W cameras are technically cleaner semantic surround
 coverage but cost approximately US$1.7–1.9k before audio. Keep that as a later
 premium option. Three cameras clustered at the front do not provide 360 degrees
 because they cannot see through the roof, shell, posts, driver, or passengers.
+
+The roughly 4-by-8-ft roof is solar-panel surface, not free mounting area. Put
+optics below the structural perimeter/eaves without clipping their FOV; do not
+shade, drill, or bond to panels without their manufacturer's approval. The S2L
+still needs a level, substantially clear 0.9–1.2 m plane and must not be moved to
+roof height, where it would scan above much of the 5–10-year-old audience. All
+exposed components must pass rain, dust/mud, dirty-window, UV, condensation,
+vibration, and parked-in-sun thermal tests. Pressure washing remains prohibited
+until an exact assembled-system rating says otherwise.
 
 See [`docs/research/2026-07-13-audio-voice.md`](../research/2026-07-13-audio-voice.md)
 and [`docs/research/2026-07-13-perception-bom.md`](../research/2026-07-13-perception-bom.md)
@@ -164,10 +193,15 @@ separate; a voice “stop” is never represented as a vehicle e-stop.
 
 ### Stories
 
-Start with 60–100 human-reviewed CC0 or CC BY 4.0 short stories across English,
-French, and Spanish. Use Global Digital Library as the primary API source, then
-curated StoryWeaver and approved African Storybook titles. Store corpus data
-outside Git; commit provenance/rights manifests and tooling only.
+Start with a 30-work human-reviewed cat-only pilot: 16 works in the ages 5–7
+presentation lane, 14 in ages 8–10, and at least 18 centered on wild, extinct,
+or mythical cats. Expand toward 60–100 only after the rights, ingestion,
+narration, and safety workflow passes. Every enabled title must center a cat:
+domestic cats, wild felids, or a clearly reviewed fictional feline all fit;
+incidental keyword matches do not. Use Global Digital Library as the primary API
+source, then curated StoryWeaver, approved African Storybook, and individually
+dual-jurisdiction-cleared public-domain titles. Store corpus data outside Git;
+commit provenance/rights manifests and tooling only.
 
 Every story exposes a child-visible choice:
 
@@ -259,8 +293,10 @@ dependency-loss tests, and a combined soak—not merely `systemctl enable`.
   loopback unit enabled and warm-tested.
 - Audex exact-revision assets on NVMe; no runtime.
 - ZipDepth exact-revision assets, isolated export environment, faithful ONNX,
-  and board-built FP32/FP16 engines; numerical/runtime acceptance remains.
-- Complete the GGUF/llama.cpp GPU decision and actual reboot readiness check.
+  and board-built FP32/FP16 engines; deterministic numerical gates and model-only
+  timing pass, while real-camera and combined-workload acceptance remains.
+- Keep the measured 18.63-token/s GGUF/llama.cpp GPU path as an on-demand
+  alternate; complete actual reboot readiness and full-stack coexistence checks.
 
 Exit: package integrity, checksums, service health/restart, memory audit, and
 operations rollback are recorded.
@@ -269,11 +305,20 @@ operations rollback are recorded.
 
 - Dimensioned cart sketch/photos with every seat occupied; candidate camera,
   microphone, speaker, shaker, hub, and lidar/radar mounts.
-- Battery chemistry, nominal/full/minimum voltage, accessory rails, connectors,
-  fusing, continuous/peak budget, cable routes, and ignition behavior.
-- Operating weather/light/temperature, speed/noise, minimum child height, parked
-  vs moving conversation policy, interaction radius, and acceptable blind zones.
-- Final child age bands/content boundaries and privacy indicators/mutes.
+- Record all four battery labels and topology, BMS/solar/charger/disconnect,
+  full/rest/loaded voltage, configured BMS limits, controlled shutdown threshold,
+  both converter labels/input wiring, accessory rails, grounding, connectors,
+  protection, continuous/peak budget, cable routes,
+  and ignition behavior. Prove neither branch uses a battery midpoint.
+- Determine whether the present hard switch has an auxiliary/remote-enable path;
+  design normal orderly shutdown with measured hold-up while retaining an
+  immediate, qualified-and-verified DC-rated service/emergency disconnect.
+- Record solar-panel/controller models and structural attachment points; roof
+  height/posts/overhang, occupied sightlines, and shaded electronics-bay space.
+- Operating rain/washing/light/temperature/salt/dust, speed/noise, minimum child
+  height, parked vs moving conversation policy, interaction radius, and acceptable
+  blind zones.
+- Content boundaries within the fixed ages 5–10 audience and privacy indicators/mutes.
 
 Exit: lidar geometry passes or radar fallback is selected; DC/DC parts and
 enclosure class can be chosen without guessing.
@@ -331,6 +376,9 @@ without harming voice.
 - Test ten cold boots, USB reorder/unplug, network loss, storage-full behavior,
   process crashes, corrupt/missing assets, mute/privacy state, and fail-silent
   amplifier behavior.
+- Test normal switch-off through confirmed OS halt and delayed converter cutoff,
+  low-pack pre-shutdown, and separately the recovery path after unavoidable
+  immediate power loss.
 
 Exit: the offline minimum consistently starts and the total system remains below
 measured power/thermal/memory limits with documented recovery.
@@ -350,12 +398,40 @@ embedded.
 
 The next purchase cannot be finalized without:
 
-1. battery chemistry, nominal/full/minimum voltage and existing fused rails;
-2. dry-weather vs rain/overnight/wash requirement;
-3. cart dimensions and a candidate 0.9–1.2 m unobstructed lidar scan plane;
-4. minimum child age/height, story age bands, and parked/slow/moving interaction;
-5. whether near-360 anonymous awareness with front/rear visual confirmation is
+1. photos/make/model of all four battery labels and a wiring diagram showing
+   topology, BMS, shunt, main fuse/disconnect, charger/solar controller, and the
+   input of both converters;
+2. make/model, settings, protection, input range, isolation, and continuous/peak
+   rating of the 24 V and 19 V converters, plus full/rest/loaded pack and rail
+   measurements, configured BMS limits, and controlled shutdown threshold;
+   whether the current hard switch immediately cuts the pack
+   or exposes an auxiliary/remote-enable contact for orderly shutdown, plus its
+   make/model, DC ratings, topology, location, and intended disconnect duty;
+3. minimum/maximum/storage temperature, rain/overnight exposure, salt, and
+   whether cleaning means cloth, hose, or pressure washer;
+4. roof height/posts/overhang/body/occupied geometry, panel/controller models,
+   candidate structural mounts/electronics bay, and a 0.9–1.2 m unobstructed
+   lidar plane if one exists;
+5. minimum child height and parked/slow/moving interaction policy;
+6. whether near-360 anonymous awareness with front/rear visual confirmation is
    enough, or every side person must be visually classified;
-6. exact boundaries for scares, grief, religion/folklore, conflict, bathroom
+7. preferred 5–7 versus 8–10 story durations/language split and exact boundaries
+   for scares, grief, religion/folklore, conflict, bathroom
    humor, memory/retention, and who will review French/Spanish;
-7. whether version one cloud use should be owner pre-generation only.
+8. whether version one cloud use should be owner pre-generation only, whether an
+   adult is normally present, and whether an adult PIN/phone approval is
+   acceptable for any later live child-cloud session;
+9. target maximum SPL at 1 m, quiet hours, rear-speaker need, approval of `Neko
+   Neko`, and whether to record a consented adult source voice for revision one;
+10. who may save a favorite story variant, whether spoken attribution is
+    acceptable, and whether traditional/Indigenous/sacred stories must remain
+    original-only without explicit source and cultural-review approval;
+11. whether the approximate US$2,000 ceiling includes tax, shipping, duty, and
+    fabrication. The weather-preferred PoE path is provisionally near that limit.
+
+See the detailed electrical/environmental checklist in
+[`docs/research/2026-07-13-power-weather.md`](../research/2026-07-13-power-weather.md),
+the audio questions in
+[`docs/research/2026-07-13-audio-voice.md`](../research/2026-07-13-audio-voice.md),
+and the complete story-policy questions in
+[`docs/research/2026-07-13-stories-cloud.md`](../research/2026-07-13-stories-cloud.md).

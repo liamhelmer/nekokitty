@@ -144,6 +144,9 @@ Read these before changing the system:
 - [Stories and cloud](docs/research/2026-07-13-stories-cloud.md) — source inventory,
   per-item rights, secure ingestion, child remix policy, subscriptions/APIs, and
   staged cloud enhancement.
+- [Power, weather, and physical integration](docs/research/2026-07-13-power-weather.md)
+  — owner-supplied 48/24/19 V facts, unresolved battery topology, full-pack DC/DC
+  and protection gates, outdoor zones, solar-roof mounting, and acceptance tests.
 - [LiteRT upstream report](docs/research/2026-07-13-litert-upstream-report.md) —
   exact R39.2 reproduction comment and upstream URL.
 - [Setup log](docs/operations/setup-log.md) — every installation/attempt, exact
@@ -267,18 +270,39 @@ linked notes. Important conclusions:
   cloud text routing only when explicitly allowed.
 - The costed first audio path is XVF3800 hardware AEC/beamforming, a two-channel
   Class-D amp, weather-resistant voice speaker, and separately protected body
-  shaker. Current local candidates are Neko Neko/openWakeWord, Silero VAD,
+  shaker. Prefer the existing 24 V accessory distribution over introducing a
+  general 12 V rail, but use it only after converter tolerance/noise/protection
+  tests pass.
+  Current local candidates are Neko Neko/openWakeWord, Silero VAD,
   Nemotron 3.5 streaming ASR through sherpa-onnx with whisper.cpp fallback, and
   Supertonic 3 with Piper fallback.
 - The conditional value perception path is a front OAK-D W/OV9782, useful-height
-  RPLIDAR S2L, and the existing rear C922. Recommended perception is about
+  RPLIDAR S2L, and the existing rear C922. The USB perception path is about
   US$1,100–1,300 installed; with the US$280–445 audio path, the combined added
-  system is about US$1,380–1,745 before tax/shipping. If no clear lidar plane exists,
-  use distributed radar and camera confirmation rather than roof-height fiction.
-- Start stories with curated CC0/CC BY 4.0 Global Digital Library, StoryWeaver,
-  and approved African Storybook items. Original, deterministic substitutions,
-  and bounded remix are separate child-selected modes; whole generated scenes
-  are checked before TTS.
+  system is about US$1,380–1,730 before tax/shipping/duty. The outdoor-preferred
+  PoE/M12 path is provisionally about US$1,593–1,983 combined before those
+  additions. Confirm what the US$2,000 ceiling includes. If no clear lidar plane
+  exists, use distributed radar and camera confirmation rather than roof-height
+  fiction.
+  Luxonis's current product page calls the screw-lock USB OAK-D W IP66 while its
+  general ingress page contains a conflicting no-USB-rating statement. Require
+  written confirmation/certification for the exact SKU/OV9782/cable assembly;
+  otherwise use the specified IP65 PoE/M12 variant or independently validated
+  protection. Field-test every seal.
+- Start stories for ages 5–10 with a 30-work cat-only pilot: 16 works in a 5–7
+  presentation lane, 14 in 8–10, and at least 18 centered on wild, extinct, or
+  mythical cats. Use curated CC0/CC BY 4.0 Global Digital Library,
+  StoryWeaver, approved African Storybook, and individually cleared public-domain
+  items. Cats must be central, not incidental keyword hits. Original,
+  deterministic substitutions, and bounded remix are separate child-selected
+  modes; whole generated scenes are checked before TTS.
+- Power is now provisionally 48 V-class LiFePO4 with existing 24 V accessory and
+  19 V Jetson converters. The four-battery topology, BMS rules, full/loaded
+  voltage, converter labels, and protection remain unverified. Both lower-voltage
+  converters must span the complete bank; never power a load from a series-string
+  midpoint. The 4-by-8-ft solar roof and rain/dust/sun exposure make outdoor
+  ingress, condensation, UV, full-sun thermal soak, and non-panel structural
+  mounts hard gates.
 - Two initial Claude Code reviews hit HTTP 529 and a later broad review stalled at
   the configured provider. A fourth, smaller local-only safe-mode review completed.
   It identified CPU oversubscription, readiness, memory-bound, least-privilege, and
@@ -309,12 +333,17 @@ These are constraints, not yet final component choices:
 ## Open owner decisions
 
 The initial blockers are resolved in the owner-decisions record. Before buying
-hardware, the project still needs battery chemistry/nominal/full/minimum voltage
-and existing rails; cart dimensions and an occupied lidar sightline; intended
-weather/washing/temperature exposure; minimum child age/height and story age bands;
-parked/slow/moving interaction rules; and whether side anonymous awareness is
-enough. The roughly US$2,000 ceiling is treated as the combined added-system
-budget. The complete next-input list is in the current implementation plan.
+hardware, the project still needs exact battery labels/topology/BMS and measured
+full/rest/loaded voltage, configured BMS limits, and controlled shutdown
+threshold; both converter labels/wiring and DC protection;
+whether the current hard switch provides an orderly-shutdown control path;
+roof height/body/occupied geometry and a candidate useful-height lidar sightline;
+temperature range and washing method; minimum child height; parked/slow/moving
+interaction rules; and whether side anonymous awareness is enough. The audience
+is now fixed at ages 5–10 and the story theme at cats of all kinds. The roughly
+US$2,000 ceiling is treated as the combined added-system budget. The prioritized
+next-input list is in the implementation plan, with fuller specialist questions
+in the linked audio, perception, story, and power/weather notes.
 
 Headless mode is now persistent: `multi-user.target` is the default, display
 manager units are inactive, and no Xorg/GNOME/Firefox process is present.
@@ -397,3 +426,8 @@ For every future model or service, add:
   FP16 plans, and measured the FP16 plan at about 8.73 ms model-only. Exact
   deterministic PyTorch/FP32/FP16 numerical gates passed; real-camera and
   combined-workload evaluation remain pending.
+- 2026-07-13: Incorporated the 48 V-class/four-battery LiFePO4 description,
+  existing 24 V and 19 V converters, 4-by-8-ft solar roof, outdoor exposure,
+  ages 5–10 audience, and all-cat story theme. Added full-pack/protection,
+  graceful-shutdown, weather, geometry, 24 V accessory, sensor-ingress, and
+  30-work pilot gates without changing software, wiring, or hardware.

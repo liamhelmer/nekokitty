@@ -8,13 +8,23 @@ full-range speaker, and one body-mounted tactile transducer. Use the microphone
 array's playback path for all sound so its hardware acoustic echo canceller has
 the correct far-end reference.
 
-The exact listed hardware subtotal was **US$179.30** on 2026-07-13. A practical
-installed audio subsystem is expected to cost **US$280–445** before Canadian
-tax, depending on enclosure, wiring, shipping, and whether a spare microphone
-array is purchased. The owner's approximately US$2,000 ceiling applies to the
+The owner later confirmed an existing 24 V accessory converter and a separate
+19 V Jetson converter. The amplifier accepts 12–24 V, so the preferred design
+uses a separately protected 24 V accessory branch after electrical/noise tests
+instead of adding a general 12 V rail. The Jetson branch remains dedicated.
+
+The exact listed hardware subtotal excluding a not-yet-justified new DC/DC
+converter was **US$146.00** on 2026-07-13. A practical installed audio subsystem
+is expected to cost **US$280–445** before Canadian
+tax, depending on outdoor enclosure, protected distribution, wiring, shipping,
+and whether a spare microphone array is purchased. The owner's approximately
+US$2,000 ceiling applies to the
 combined added system. With the recommended OV9782 perception BOM's exact
 installed estimate, audio plus perception is approximately **US$1,378–1,728**,
-rounded to **US$1,380–1,730**, before Canadian tax/shipping.
+rounded to **US$1,380–1,730**, before Canadian tax/shipping, for the USB camera
+path. If outdoor evidence requires PoE/M12, the provisional combined range is
+**US$1,593–1,983** before tax, shipping, and duty; see the perception BOM for
+the estimate and confirm what the US$2,000 ceiling includes.
 
 The preferred initial offline software path is:
 
@@ -53,30 +63,33 @@ audio software or hardware was installed as part of this note.
 | [Dayton Audio KAB-215v2](https://www.parts-express.com/Dayton-Audio-KAB-215v2-2-x-15W-Class-D-Audio-Amplifier-Board-with-Bluetooth-5.0-325-500) | Two independent amplified output buses | US$25.98 | 12–24 VDC, 4–8 ohm load support, 2 x 15 W specified at 19 V into 8 ohms, approximately 90% efficiency. The listed 82.7 mA idle figure is with Bluetooth connected. Actual output at 12 V will differ from the headline rating. |
 | [Dayton Audio KAB-FC cable package](https://www.parts-express.com/Dayton-Audio-KAB-FC-Functional-Cables-Package-for-Bluetooth-Amplifier-Boards-325-110) | Power, speaker, and AUX harnesses | US$6.98 | The documented AUX/jumper arrangement allows Bluetooth to be disabled. Disable it for the deployed cart and verify after every configuration change. |
 | [Visaton FR 10 WP, 4 ohm, black](https://www.visaton.de/index.php/en/products/drivers/fullrange-systems/fr-10-wp-4-ohm-black) | Neko's voice, meows, cues, and stories | [US$28.16 at DigiKey](https://www.digikey.com/en/products/detail/visaton-gmbh-co-kg/fr-10-wp-4-ohm-black/9842332) | 4-inch full-range driver, 20 W rated/30 W maximum, 80 Hz–16 kHz, 85 dB at 1 W/1 m. Vendor describes saltwater, corrosion, and UV resistance. IP66 applies from the front only when installed with a correct gasket in a sealed enclosure. |
-| [Dayton Audio TT25-8 Puck](https://www.daytonaudio.com/product/1104/tt25-8-puck-tactile-transducer-mini-bass-shaker) | Body purr and gentle tactile cues | US$23.99 MSRP | 8 ohms, 15 W RMS/30 W maximum, 40 Hz resonance, approximately 20–80 Hz useful range. |
+| [Dayton Audio TT25-8 Puck](https://www.daytonaudio.com/product/1104/tt25-8-puck-tactile-transducer-mini-bass-shaker) | Body purr and gentle tactile cues | US$23.99 MSRP | 8 ohms, 15 W RMS/30 W maximum, 40 Hz resonance, approximately 20–80 Hz useful range. No outdoor ingress rating is documented; it requires a dry protected cavity or a suitably rated substitute. |
 | [Dayton Audio SMRK-2 mounting ring](https://www.daytonaudio.com/product/1656/smrk-2-surface-mounting-ring-kit-for-tt25-puck-mini-bass-shaker) | Serviceable transducer mounting | US$5.99 MSRP | Surface-mount ring for the TT25 puck. |
-| Mean Well [DDR-60G-12 or DDR-60L-12](https://www.meanwell.com/Upload/PDF/DDR-60/DDR-60-SPEC.PDF) | Isolated 12 V/5 A, 60 W audio supply | About US$33.30 | `DDR-60G-12` accepts 9–36 V; `DDR-60L-12` accepts 18–75 V. The G model was [US$33.30 at DigiKey](https://www.digikey.com/en/products/detail/mean-well-usa-inc/DDR-60G-12/8681213). Select only after measuring the cart battery's maximum fully charged voltage. |
+| Existing 24 V accessory output | Amplifier source after audit | Already installed | Verify full-pack input wiring, converter model/input range, output tolerance, isolation/grounding, ripple/transients, derating, protection, and current headroom. The KAB's documented range ends at 24 V, so a nominal label alone is insufficient. Keep lighting on a separate fused sub-branch and test its switching noise. |
+| Dedicated isolated regulator, only if tests require one | Contingency for a noisy/out-of-range accessory rail | Not selected | Select from measured pack full/loaded voltage, manufacturer/configured limits, and the required lower output. The current Mean Well [DDR-60 data sheet](https://www.meanwell.com/Upload/PDF/DDR-60/DDR-60-spec.pdf) illustrates the suffix risk: L variants accept 18–75 V, while G variants accept only 9–36 V. Do not order from the “48 V” label alone. |
 
 Exact arithmetic for one of each listed item:
 
 ```text
-54.90 + 25.98 + 6.98 + 28.16 + 23.99 + 5.99 + 33.30
-= US$179.30
+54.90 + 25.98 + 6.98 + 28.16 + 23.99 + 5.99
+= US$146.00
 ```
 
-Budget another **US$100–200 estimate** for a locking/shielded USB cable, DC-rated
-fuse and disconnect, wire, connectors, ferrites, splash enclosure, speaker
+Budget another **US$100–200 estimate** for a locking/shielded USB cable,
+correctly rated branch protection/disconnect, wire, connectors, ferrites,
+outdoor enclosure, speaker
 baffle and gasket, wind/rain protection, strain relief, vibration mounts, and
 fabrication. Seeed's enclosed [reSpeaker XVF3800 USB 4-Mic Array with
 Case](https://www.seeedstudio.com/ReSpeaker-XVF3800-USB-4-Mic-Array-With-Case-p-6490.html)
 was US$62.99 and is an optional bench unit or spare; the Flex version is the
 better final mechanical fit.
 
-Do not order the DC/DC converter until the owner supplies the cart battery's
-nominal voltage and measured fully charged maximum. The `DDR-60L-12` is suitable
-for many 36/48 V nominal packs but not a pack whose charged maximum exceeds 75
-V. If the cart already provides a clean, isolated, correctly fused 12 V rail
-with enough headroom, the separate converter may be unnecessary.
+Do not order another DC/DC converter until the four batteries' exact model,
+series/parallel topology, BMS rules/limits, measured fully charged/loaded
+voltages, controlled shutdown threshold, and
+both existing converter data sheets are recorded. Both converter inputs must be
+across the complete pack output, not a series-string midpoint. The detailed
+audit is in [`2026-07-13-power-weather.md`](2026-07-13-power-weather.md).
 
 ### Power planning
 
@@ -88,12 +101,19 @@ The following are **estimates**, not measurements:
 | Normal speech or gentle purr | 5–15 W |
 | Short loud combined peak | less than approximately 30–40 W |
 
-Seeed does not publish a complete Flex board consumption figure. Measure voltage
-and current at the audio supply during silence, ordinary speech, maximum allowed
-speech, purring, and combined output. Power-gate or put the external amplifier
+Seeed does not publish a complete Flex board consumption figure. Measure voltage,
+current, and ripple at the 24 V audio branch during silence, ordinary speech,
+maximum allowed speech, purring, combined output, light switching/dimming,
+traction operation, charge, key-on, and key-off. Power-gate or put the external
+amplifier
 in standby when quiet if its turn-on transient can be made inaudible. These
 figures exclude the Jetson, which remains in its existing 15 W power mode until
 the full system is characterized.
+
+At the final 24 V supply, establish separate measured RMS and peak voltage/power
+limits for the 4-ohm speaker channel and 8-ohm shaker channel. The audio scheduler
+and fixed DSP/limiter configuration must enforce both limits independently; a
+single master-volume cap is insufficient.
 
 ## Signal routing and audio format
 
@@ -138,16 +158,21 @@ gentle attack and release.
   placement minimizes roof/occupant shadowing and is more appropriate for
   all-around listening than a front-only mount.
 - Use the included 20 cm FPC to keep the microphone aperture separate from the
-  protected core electronics. Mount the core board, amplifier, and DC/DC unit
-  inside a ventilated splash enclosure.
+  protected core electronics. Mount the core board and amplifier inside a
+  shaded, UV-stable protected electronics enclosure whose ingress, condensation,
+  and thermal behavior is tested as an assembled system.
 - The bare Flex board is not weather-rated. Provide an acoustically open
-  aperture, roof rain lip, drainage path, and a replaceable open-cell windscreen
-  approximately 5–10 mm away from the microphone ports.
+  aperture below the solar-roof structure, roof rain lip, hydrophobic acoustic
+  treatment validated for frequency response, drainage path below electronics,
+  and a replaceable UV-stable open-cell windscreen approximately 5–10 mm away
+  from the microphone ports.
 - Isolate the entire microphone PCB on silicone M3 grommets. Do not cover or
   individually isolate microphone ports. Provide FPC and USB strain relief.
 - Keep the array roughly 0.5 m or more from the speaker, Jetson fan, DC/DC
   converter, and traction-power wiring where the cart geometry permits. Use
-  shielded/locking USB, short analog cable, star grounding, and ferrites as
+  shielded/locking USB, short analog cable, and a local star-return layout only
+  within the qualified installer's approved grounding/bonding scheme. It must
+  not create a chassis bond or shield-current path. Add ferrites only as
   indicated by measured noise.
 - Aim the speaker downward and outward from Neko's mouth area and baffle its
   direct path toward the roof microphone. The driver requires a sealed,
@@ -155,7 +180,10 @@ gentle attack and release.
 - Attach the purr transducer to a lightweight rigid cat body or belly panel, not
   the passenger seat or vehicle chassis. A passenger-facing or chassis-mounted
   shaker could surprise or distract the driver and would couple more strongly
-  into the microphones.
+  into the microphones. Place the unrated TT25 and terminals in a dry protected
+  cavity with strain relief, corrosion protection, drainage outside the cavity,
+  and measured thermal/vibration performance; otherwise select an appropriately
+  rated transducer.
 - Mechanical purr vibration is not ordinary acoustic echo and may survive AEC.
   Initially pause wake recognition during purrs, or use a separately measured
   purr threshold profile, until full-duplex tests demonstrate reliable results.
@@ -400,14 +428,19 @@ misses and false accepts, AEC behavior, process and total RAM, CPU/GPU use,
 input power, temperature, SPL, and subjective voice quality. Test amplifier and
 transducer temperatures at the maximum configured purr duty cycle. A measured
 volume cap suitable for nearby children is required; do not expose raw
-amplifier maximum to the language model or ordinary UI.
+amplifier maximum to the language model or ordinary UI. Verify independent RMS/
+peak limits, clipping behavior, and fail-silent shutdown for both the 4-ohm voice
+speaker and 8-ohm shaker at the final rail maximum.
 
 ## Remaining owner decisions
 
-1. Cart battery chemistry, nominal voltage, and measured fully charged maximum;
-   whether a clean fused 12 V accessory rail already exists.
-2. Exact roof, mouth, electronics-bay, and body-panel geometry; weather exposure
-   and available mounting distances.
+1. Exact make/model and series/parallel wiring of all four LiFePO4 batteries;
+   measured pack full/rest/loaded voltage, configured BMS limits, and controlled
+   shutdown threshold; both converter models/input wiring; protection, grounding,
+   and 24 V rail tolerance/noise measurements.
+2. Exact roof height/posts/overhang, mouth, shaded electronics-bay, structural
+   mounts, solar panel/controller, and body-panel geometry; temperature range,
+   rain/overnight exposure, washing method, and available mounting distances.
 3. Whether conversation is explicitly parked/slow-only and whether a physical
    push-to-talk button is acceptable while moving.
 4. Target maximum SPL at 1 m, quiet hours, and whether the rear arc must hear

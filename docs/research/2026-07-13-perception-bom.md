@@ -10,7 +10,11 @@ The best short-timeline/value design is:
 
 1. One **Luxonis OAK-D W with the OV9782 wide/global-shutter color sensor** at
    the front, doing person detection, tracking, and metric stereo depth on the
-   camera.
+   camera. Luxonis's current USB ingress claims conflict; use USB only after
+   written confirmation/certification for the exact camera/OV9782/cable assembly
+   and when that cable reaches the protected hub/Jetson. Otherwise prefer the
+   specified IP65 PoE/M12 variant and a standards-compliant active injector from
+   the 24 V accessory branch.
 2. One **Slamtec RPLIDAR S2L** as an anonymous 360-degree horizontal range and
    approach/dwell sensor, but only if Neko has a clear, useful-height scan plane.
 3. Reuse the existing **Logitech C922** at the rear for low-rate person
@@ -32,14 +36,23 @@ cart body or passengers will have large blind sectors. If a clear scan plane is
 not possible, use the distributed-radar fallback below rather than pretending
 the roof lidar provides 360-degree human coverage.
 
-The recommended OV9782 perception configuration is approximately
+The recommended USB/OV9782 perception configuration is approximately
 **US$1,098–1,283 installed before tax, shipping, and duty**, prudently rounded to
 US$1,100–1,300. Combined with the separate audio subsystem's US$280–445 range,
 the same arithmetic gives approximately **US$1,378–1,728**, rounded to
 **US$1,380–1,730**, against the owner's approximate US$2,000 combined added-system
 ceiling. The separate economy configuration can approach US$1,010 for perception
-only by using the base camera and reusing some infrastructure. Do not order a
-DC/DC converter until the cart battery voltage has been measured.
+only by using the base camera and reusing some infrastructure. The PoE/OV9782
+camera is currently US$150 more than USB; its observed M12/RJ45 cable adds
+[US$24.99](https://shop.luxonis.com/products/ethernet-cable-m12-rj45-3m-cable),
+and budget US$40–80 as an estimate for the active 24 V-input 802.3af injector.
+That makes the provisional PoE perception range **US$1,313–1,538** and the
+combined audio/perception range **US$1,593–1,983**, before tax, shipping, and
+duty. Use PoE when exact-SKU ingress evidence or the measured exterior route
+requires the more robust link, then re-cost the assembled system. Ask whether
+the US$2,000 ceiling includes tax, shipping, duty, and fabrication. Do not order
+or rewire power until the existing 24 V converter and full battery topology are
+audited.
 
 If no useful lidar mounting plane exists, the lowest-cost practical fallback is
 one OAK-D W plus three distributed 24 GHz presence/range modules. It costs less
@@ -48,8 +61,9 @@ but has materially weaker direction, multi-person, and false-positive behavior.
 No perception hardware was purchased while preparing this note. Subsequent
 software provisioning created the isolated ZipDepth export environment, faithful
 static ONNX, and board-built FP32 and FP16 TensorRT engines. They are experimental
-artifacts, not an accepted perception runtime: TensorRT numerical parity,
-camera-input geometry, performance/quality tests, and combined soak remain.
+artifacts, not an accepted perception runtime: deterministic TensorRT numerical
+parity and model-only timing pass; camera-input geometry, real-scene quality,
+end-to-end power/performance, and combined soak remain.
 
 ## Evidence labels and price scope
 
@@ -86,12 +100,13 @@ also leaves Orin memory and compute for ASR, TTS, and Gemma.
 
 | Item | Qty | Observed unit price | Planning power | Role and evidence |
 | --- | ---: | ---: | ---: | --- |
-| [OAK-D W](https://shop.luxonis.com/products/oak-d-w), OV9782 color option | 1 | US$479 | Up to about 5 W | Front person detection, persistent track, and metric XYZ on the RVC2 device. The [hardware page](https://docs.luxonis.com/hardware/products/OAK-D%20W) gives approximately 127–128 degrees horizontal and 80 degrees vertical FOV for the wide stereo/OV9782 sensors, an ideal depth range around 0.4–6 m, and USB operation. The base IMX378 configuration is US$429 but its RGB view is about 95 degrees horizontal. |
-| [RPLIDAR S2L](https://www.slamtec.com/en/s2) | 1 | [US$299](https://files.seeedstudio.com/Bazaar/product_pdf/101110081.pdf) | About 2 W running; 7.5 W start budget | Anonymous 360-degree range clusters. The [manufacturer specification](https://www.slamtec.com/en/s2/spec) gives 0.05–18 m on 90% reflectivity, 0.05–8 m on dark/10% reflectivity, 32,000 samples/s, 10 Hz, 0.1125-degree angular resolution, +/-30 mm range accuracy, IP65, 80 klux sunlight resistance, and Class 1 laser classification. The Seeed sheet, updated 2026-06-10, lists 400 mA working and 1.5 A startup at 5 V. |
+| [OAK-D W](https://shop.luxonis.com/products/oak-d-w), OV9782 color option | 1 | US$479 | Up to about 5 W | Front person detection, persistent track, and metric XYZ on the RVC2 device. The product page calls the current USB product IP66, but Luxonis's general ingress page contains a conflicting no-USB-rating statement and its linked certificate does not unambiguously cover every option. Require written confirmation/certificate for the exact SKU, OV9782 option, connector, and waterproof screw-lock cable. The [hardware page](https://docs.luxonis.com/hardware/products/OAK-D%20W) gives approximately 127 degrees horizontal and 79.5 degrees vertical FOV for the wide stereo pair. |
+| [OAK-D W PoE](https://shop.luxonis.com/products/oak-d-w-poe), OV9782 option | alternative | US$629 camera | About 4 W average, under 6.25 W | IP65 camera with locking M12 Ethernet, preferred when the measured exterior data run is longer than the exact USB assembly. Add the correctly mated M12 cable and a standards-compliant active 802.3af injector/switch; never feed passive 24 V into the camera. This replaces, rather than duplicates, the USB OAK line. |
+| [RPLIDAR S2L](https://www.slamtec.com/en/s2) | 1 | [US$299](https://files.seeedstudio.com/Bazaar/product_pdf/101110081.pdf) | Up to 3 W running; 7.5 W startup | Anonymous 360-degree range clusters. The manufacturer product page advertises IP65. The S2L v2.3 data sheet retrieved through the official [support page](https://www.slamtec.com/en/support) on 2026-07-13 (SHA-256 `3e0432252f0b55ece4ba792de6e2eccaaff4a880d6c8545884a73f063d745bd2`) gives 0.05–18 m on 90% reflectivity, 0.05–8 m on dark/10% reflectivity, 32,000 samples/s, 10 Hz, 0.12-degree angular resolution, typical +/-50 mm accuracy, Class 1 laser, 500 mA typical/600 mA maximum running current, and 1.5 A startup at 5 V. |
 | Existing Logitech C922 | 1 | US$0 incremental | Budget 2.5 W until measured | Rear person confirmation. It is already connected; no new camera is needed for the first build. Use low rate/event-triggered capture and an outdoor enclosure. |
 | [StarTech ST7300USBME](https://www.startech.com/en-us/usb-hubs/st7300usbme) or equivalent industrial powered USB hub | 1 | US$135.29 observed | Estimate 2–4 W loss/idle | Seven ports, 7–48 V DC input, 35 W downstream USB budget, ESD/surge protection, and locking terminal input. A less expensive powered hub is acceptable for bench work, but vibration and power transients make an industrial hub preferable on the cart. |
-| Regulated DC/DC, fuse, disconnect, wiring | 1 lot | US$60–120 estimate | Conversion loss included later | Exact part depends on battery nominal and maximum charged voltage. Use a separately fused sensor rail and retain USB current headroom for lidar startup. |
-| Weather pods, lidar guard, vibration mounts, strain relief | 1 lot | US$75–150 estimate | Negligible | Keep windows clear of the camera FOV and do not obstruct the lidar scan plane. A guard must not create repeated vertical bars through the 360-degree scan. |
+| Protected 24 V branch, local 5 V regulation/hub, disconnect, wiring | 1 lot | US$60–120 estimate | Conversion loss included later | Audit the existing full-pack-fed 24 V converter first. Use separately protected sensor distribution. At the S2L connector retain 4.9–5.2 V, no more than 150 mV ripple, and at least its documented 1.5 A startup capacity; a 3 A local design target gives integration margin. |
+| Rear-camera pod, lidar rain/splash guard, vibration mounts, strain relief | 1 lot | US$75–150 estimate | Negligible | The current exact USB OAK assembly need not be put behind a second optical window. Keep all guards clear of the camera FOV and lidar plane. Do not add an arbitrary transparent lidar cylinder; Slamtec says translucent-cover feasibility must be cleared with it. |
 | Cables, connectors, fabrication contingency | 1 lot | US$50–100 estimate | Negligible | Prefer short, secured USB runs; test every final cable rather than assuming nominal USB length is reliable. |
 
 Cost arithmetic:
@@ -116,22 +131,28 @@ The following is a design estimate, not a measurement:
 
 ```text
 OAK-D W                         <= 5 W vendor maximum
-RPLIDAR S2L                     ~= 2 W running, 7.5 W startup
+RPLIDAR S2L                     ~= 3 W running, 7.5 W startup
 C922                            <= 2.5 W USB planning allowance
 hub/DC conversion/cabling loss ~= 2..4 W
 ---------------------------------------------------------------
-steady sensor subsystem         ~= 11.5..13.5 W before host inference
+steady sensor subsystem         ~= 12.5..14.5 W before host inference
 ```
 
 Provide a **20 W continuous sensor rail with startup headroom**, or use the
-35 W-capable industrial hub. The Jetson's extra power for rear person detection
+35 W-capable industrial hub. Verify at least the S2L's documented 1.5 A startup
+at its connector plus the 4.9–5.2 V/ripple limits. A dedicated local 24-to-5 V
+regulator should be rated at least 3 A as design margin; do not require 3 A from
+a hub port when the verified device requirement is lower. The Jetson's extra
+power for rear person detection
 is not included. Measure it with the real pipeline. Event-triggered 5–10 FPS
 rear processing should be much cheaper than continuous full-resolution video.
 
 ### Placement and coverage
 
-**OAK-D W:** mount front-center, outside or immediately under the roof/cat face,
-clear of fascia and posts. Start at yaw 0 degrees and pitch 20–25 degrees down.
+**OAK-D W:** mount front-center, outside or immediately under the leading edge of
+the 4-by-8-ft solar roof/cat face, clear of fascia and posts. Project the optical
+face far enough that a rain/sun eyebrow does not clip its wide FOV. Do not attach
+through a solar panel. Start at yaw 0 degrees and pitch 20–25 degrees down.
 At about 1.9 m mounting height and an approximately 80-degree vertical FOV, that
 starting angle can retain some view above the horizon while placing the lower
 ray near the ground roughly 1 m ahead. Confirm it with real child and adult
@@ -141,7 +162,15 @@ targets; do not rely on this trigonometric starting point.
 cat-head/cowl feature or a protected short mast. Keep riders, body panels, and
 posts out of the horizon where possible. Record a static self-mask for unavoidable
 cart returns and a minimum range mask around the chassis. Do not put it at roof
-height merely because that makes the mechanical installation easy.
+height merely because that makes the mechanical installation easy; its nearly
+planar scan would pass above much of the 5–10-year-old audience. A rain cap and
+bottom splash/drain treatment must stay outside the plane, the optical band must
+remain cleanable, and bottom M3 screws must not exceed Slamtec's 4 mm limit.
+
+The S2L's documented operating range is -10–50 C. The OAK-D W documentation gives
+-20–50 C at full VPU utilization. Both belong below the roof edge with shade and
+airflow, not on a hot solar-panel surface or in an unventilated clear pod. Reject
+the mounting location if the representative parked-sun soak approaches its limit.
 
 **C922:** put it rear-center at yaw 180 degrees with a similar modest downward
 pitch, in a splash enclosure with drainage and a replaceable optical window.
@@ -439,7 +468,9 @@ cooldowns, privacy, and whether a greeting is allowed.
 Before ordering, measure the dimensions listed below and make cardboard FOV/
 scan-plane templates. Map the cart body and an occupied cart at 15-degree yaw
 increments. Verify that the S2L can actually occupy a useful-height clear
-horizon. Measure battery voltage at rest and fully charged.
+horizon. Record roof/post/overhang and solar cable geometry, battery topology and
+full/rest/loaded voltage, configured BMS limits, both converter labels, and
+maximum underside-roof temperature after a parked full-sun soak.
 
 ### Phase 1 — value-tier bench and cart prototype
 
@@ -456,8 +487,8 @@ both presence systems until the mounting survey resolves the choice.
 Test the final mounts with real adults and children, passengers in every seat,
 motor and accessories on/off, daylight and night, and stationary/slow manual
 operation. Tune self-masks, dwell, cooldown, and event-triggered C922 behavior.
-Then install weather protection, fused power, secured cabling, and boot health
-reporting.
+Then install the exact rated seals/guards, protected 24 V distribution, secured
+cabling, dirty-window health checks, and boot health reporting.
 
 ### Phase 3 — optional rear offload
 
@@ -467,8 +498,10 @@ replace it with an OAK-1 W or OAK-D W. Do not make this purchase preemptively.
 ### Phase 4 — optional relative depth and premium surround
 
 The fixed-shape TensorRT FP16 ZipDepth candidate is now built. Only after metric
-perception is accepted should it undergo full numerical, camera, performance,
-power, and combined-soak validation as an auxiliary signal. Upgrade to three
+perception is accepted should it undergo real-camera preprocessing/quality,
+end-to-end power/performance, and combined-soak validation as an auxiliary
+signal; its deterministic numerical and model-only timing gates already pass.
+Upgrade to three
 perimeter OAK-D W cameras only if tests show that side semantic classification
 is worth the approximately US$1.7–1.9k perception cost.
 
@@ -512,6 +545,10 @@ Orin power mode, and mounted geometry for every test.
   windows; confirm degraded health rather than confident nonsense.
 - Cart vibration, bumps, roof/body flex, wind, and the complete allowed manual
   speed range. Check that calibration and mounts remain fixed.
+- Parked full-sun soak beneath the active solar roof, cold start, hot restart,
+  condensation transitions, rain/road spray, and the approved cleaning method.
+  Pressure washing is excluded unless the complete installed assembly is rated
+  for it.
 - For radar, test interference with all three modules, passengers, traction
   electronics, DC/DC converters, fans, and RF-transparent body panels.
 
@@ -533,30 +570,39 @@ Orin power mode, and mounted geometry for every test.
 
 ## Measurements and owner answers still required
 
-1. Cart outer width/length, roof height, roof/cat-head geometry, windshield and
-   pillar locations, and intended sensor mounting surfaces.
+1. Cart outer width/length, roof height, roof overhang/cat-head geometry,
+   windshield and pillar locations, solar panel/controller/cable layout,
+   structural attachment points, and intended sensor mounting surfaces.
 2. Ground height and sightline of a possible 360-degree lidar mount; photos or a
    quick dimensioned sketch with an adult and child seated in every position.
-3. Minimum child height/age Neko should notice, desired interaction radius, and
+3. Minimum child height within the fixed 5–10-year-old audience, desired
+   interaction radius, and
    whether proactive interaction is permitted while the cart is moving or only
    parked/very slow.
-4. Battery chemistry, nominal voltage, measured fully charged maximum, minimum
-   operating voltage, existing fused 5/12 V rails, connector type, and available
-   continuous/peak watts.
-5. Weather requirement: fair-weather only, rain while operating, overnight
-   exposure, washing method, temperature range, salt/dust environment.
+4. All four battery make/models and topology/BMS; measured full/rest/loaded pack
+   voltage, configured BMS limits, and controlled shutdown threshold; both
+   converter models, full-pack input wiring, isolation,
+   protection, output tolerance/noise, connector type, and available continuous/
+   peak watts on the existing 24 V and 19 V branches.
+5. Minimum/maximum/storage temperature, rain while operating/parked, overnight
+   exposure, washing method, coastal salt, dust/mud, and maximum measured
+   underside-roof temperature in full sun.
 6. Whether a visible spinning lidar/guard at child-torso height is aesthetically
    and mechanically acceptable, and whether the cart layout can protect it from
    passengers and impacts.
 7. Acceptable blind sectors and whether “near-360 anonymous awareness with front/
    rear semantic confirmation” meets the experience, or whether every side
    person must be visually classified.
-8. Final USB cable lengths/routes and whether a powered hub can be mounted near
-   the sensors instead of running multiple long USB cables to the Jetson.
+8. Final cable lengths/routes and whether the exact locking USB assembly reaches
+   a protected hub/Jetson or the OAK should use PoE/M12; location for the hub or
+   active 24 V-input PoE injector.
 9. Expected operating light at night and whether visible/IR illumination is
    acceptable.
 10. Whether the existing C922 may become a permanent rear camera after a proper
     enclosure, or must remain a development-only device.
+11. Whether the approximate US$2,000 added-system ceiling includes tax, shipping,
+    duty, and fabrication; the provisional PoE audio/perception range reaches
+    US$1,983 before those additions.
 
 ## Source ledger
 
@@ -565,12 +611,20 @@ Primary manufacturer/project sources used in this cut:
 - Luxonis OAK-D W product and hardware documentation:
   <https://shop.luxonis.com/products/oak-d-w>,
   <https://docs.luxonis.com/hardware/products/OAK-D%20W>
+- Luxonis current ingress and PoE/M12 alternatives:
+  <https://docs.luxonis.com/hardware/platform/environmental-specifications/ip-rating>,
+  <https://shop.luxonis.com/products/oak-d-w-poe>,
+  <https://docs.luxonis.com/hardware/platform/deploy/powering-poe/>,
+  <https://shop.luxonis.com/products/ethernet-cable-m12-rj45-3m-cable>
 - Luxonis stereo-depth accuracy:
   <https://docs.luxonis.com/hardware/platform/depth/depth-accuracy/>
 - Luxonis object tracking:
   <https://docs.luxonis.com/software-v3/depthai/depthai-components/nodes/object_tracker>
 - Slamtec S2/S2L product and specifications:
-  <https://www.slamtec.com/en/s2>, <https://www.slamtec.com/en/s2/spec>
+  <https://www.slamtec.com/en/s2>, <https://www.slamtec.com/en/s2/spec>,
+  <https://www.slamtec.com/en/support>. The English v2.3 data sheet retrieved
+  through support had SHA-256
+  `3e0432252f0b55ece4ba792de6e2eccaaff4a880d6c8545884a73f063d745bd2`.
 - DFRobot C4001 product and documentation:
   <https://www.dfrobot.com/product-2793.html>,
   <https://wiki.dfrobot.com/sen0609/>

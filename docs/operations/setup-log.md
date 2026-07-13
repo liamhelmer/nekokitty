@@ -1006,6 +1006,76 @@ Rollback: stop any future ZipDepth unit, remove `engines`, `benchmarks`, and
 checkpoints unless their provenance is deliberately discarded. Removing CUDA or
 TensorRT is the separate, higher-risk APT rollback documented above.
 
+## 2026-07-13 — power, weather, geometry, and story constraint update
+
+The owner supplied the following new design facts; no system package, service,
+model, electrical wiring, or hardware was changed:
+
+- LiFePO4 traction system described as 48 V, four 270 Ah batteries;
+- existing DC/DC outputs at 24 V for lights/accessories and 19 V for the Jetson;
+- 24 V is preferred for new accessories over adding a general 12 V rail;
+- roof approximately 4 ft by 8 ft, with solar panels on top;
+- rain, dirt/dust, temperature, and direct sun are in scope;
+- target audience ages 5–10, with stories centered on cats of all kinds.
+
+The four-battery topology remains ambiguous and the converter labels/wiring have
+not been inspected. Documentation now explicitly prohibits midpoint accessory
+loads, retains the separate 19 V Jetson branch, treats 24 V as the accessory
+standard only after full-pack/protection/noise verification, and records the
+required electrical/thermal/ingress survey in
+`docs/research/2026-07-13-power-weather.md`.
+
+Because NVIDIA requires an orderly OS shutdown before power removal, the plan
+now distinguishes a normal off/offline control with hardware-delayed converter
+cutoff from an immediate DC-rated service/emergency disconnect. The present
+switch behavior has not been inspected; no shutdown controller was installed.
+
+Manufacturer-source research also refreshed the current OAK-D W ingress options,
+the PoE/M12 alternative, S2L startup/temperature limits, Jetson 9–20 V/3.5 A
+barrel input and 0–35 C developer-kit range, LiFePO4 fuse interrupt/voltage
+requirements, and candidate full-pack-to-24 V converters. The story plan now
+starts with a 30-work cat-only pilot split into 5–7 and 8–10 presentation lanes.
+No story blobs were downloaded.
+
+The current English S2L v2.3 data sheet was retrieved through Slamtec's official
+support page rather than depending on an unstable direct-download URL. It was
+not installed or committed. The reviewed file's SHA-256 is:
+
+```text
+3e0432252f0b55ece4ba792de6e2eccaaff4a880d6c8545884a73f063d745bd2
+```
+
+It documents the 4.9–5.2 V supply window, no more than 150 mV ripple, 500 mA
+typical/600 mA maximum running current, 1.5 A startup current, -10–50 C operation,
+-20–60 C storage, typical +/-50 mm range accuracy, and bottom M3 screw depth no
+greater than 4 mm. A 3 A local regulator is only integration margin, not a claim
+that the lidar requires 3 A.
+
+### Read-only validation after the update
+
+The installed `jetson-diagnostic` snapshot and direct service probes observed:
+
+- `multi-user.target` remained the default; GDM/display-manager was inactive,
+  and no Xorg, GNOME Shell, or Firefox process was present;
+- 5,415,284 KiB available of 7,665,092 KiB RAM, no swap, and 9% root-filesystem
+  use at the sample point;
+- hottest reported thermal zone 47.4 C, 15 W nvpmodel, 0% GR3D activity, and a
+  4.556 W instantaneous `VDD_IN` sample;
+- `neko-gemma.service` enabled and active with `READY` status, four CPU threads,
+  loopback listener `127.0.0.1:9379`, about 1.2 GiB current/1.3 GiB peak service
+  memory, and a successful `GET /v1/models` response.
+
+This was a live warm-state check, not the still-pending real cold-reboot
+acceptance. Unprivileged NvMap attribution remained unavailable.
+
+Both the system Python and pinned ZipDepth export environment passed all 29 unit
+tests. `git diff --check`, the internal relative-Markdown-link audit, and the
+secret-signature scan passed. Of 41 newly added or changed external documentation
+URLs, 37 returned HTTP 200; all three StoryWeaver pages and the DigiKey product
+page returned HTTP 403 to the automated client. Their URLs were retained because
+the block is bot protection rather than evidence of a missing page, and the
+StoryWeaver references were separately reviewed through browser results.
+
 ## Installed model/service status
 
 | Item | Disk state | Runnable | Configured/enabled |
