@@ -1,12 +1,37 @@
 # Social-perception hardware and 360-degree coverage — 2026-07-13
 
-## Recommendation
+> **Superseded for the one-week revision on 2026-07-13:** the active Canadian
+> purchase and integration decision is
+> [`2026-07-13-canadian-one-week-bom.md`](2026-07-13-canadian-one-week-bom.md).
+> Where this longer note recommends an OAK-D W, RPLIDAR S2L, existing C922, or
+> three C4001 sectors, that recommendation is historical research rather than the
+> current order. The active build uses **two opposing Reolink Duo 3V PoE cameras
+> and four C4001 sectors**. No lidar is purchased this week.
 
-For this revision, build a **social-presence system**, not a vehicle-safety
-system. Neko remains manually driven and perception must not command propulsion,
-steering, or braking.
+## Current one-week decision
 
-The best short-timeline/value design is:
+Mount one Reolink Duo 3V PoE below the front roof edge and one below the rear
+edge, with their 180-degree panoramas facing in opposite directions. Add **four**
+DFRobot C4001 sectors at nominal yaws 0, 90, 180, and 270 degrees. Radar provides
+anonymous presence/range hints; a camera-confirmed person is still required
+before a spoken greeting. Both cameras remain local-only on an isolated wired
+network with recording, microphones, speakers, sirens, P2P, cloud, UPnP, email,
+and FTP disabled.
+
+The owner-reported roof underside is about 7 ft (2.13 m). A roof-mounted 2D lidar has
+the wrong geometry: level rays pass above children, and tilting one scan plane
+does not create a downward surround cone. A child-height S2L is too exposed and
+occlusion-prone for this one-week people-carrying build. The preferred later
+lidar experiment is an **inverted hemispherical 3D lidar** under the roof, after
+delivery, ingress, optical-window, power, and cost gates pass.
+
+## Superseded earlier value-tier recommendation
+
+The following OAK/S2L/C922 design remains useful comparative research, but it is
+not the current one-week bill of materials. Neko remains manually driven and no
+perception path may command propulsion, steering, or braking.
+
+The earlier short-timeline/value design was:
 
 1. One **Luxonis OAK-D W with the OV9782 wide/global-shutter color sensor** at
    the front, doing person detection, tracking, and metric stereo depth on the
@@ -96,7 +121,10 @@ For the requested low-power build, a metric front camera plus a lower-bandwidth
 360-degree presence layer is more useful than three host-fed RGB streams. It
 also leaves Orin memory and compute for ASR, TTS, and Gemma.
 
-## Recommended value-tier bill of materials
+## Superseded OAK/S2L value-tier bill of materials
+
+This table and its US-dollar arithmetic are preserved for later comparison. They
+are not the current Canadian one-week purchase list.
 
 | Item | Qty | Observed unit price | Planning power | Role and evidence |
 | --- | ---: | ---: | ---: | --- |
@@ -183,10 +211,13 @@ Neko may make a soft generic meow for a sustained, approaching side cluster,
 but should reserve a spoken greeting or conversation for a camera-confirmed
 person.
 
-## No-clear-lidar-plane fallback: distributed low-cost radar
+## Superseded three-sector radar fallback research
 
-If the cart has no viable 360-degree scan plane, distribute three inexpensive
-wide-elevation radar modules around the exterior instead:
+This earlier fallback paired one OAK with three radar modules. It is retained for
+cost/capability history, but three nominal 100-degree sectors cover only 300
+degrees before beam roll-off. The current build instead uses four sectors on
+90-degree centers and two opposing Reolink panoramas, as specified in the
+superseding Canadian note.
 
 | Item | Qty | Unit price | Subtotal | Notes |
 | --- | ---: | ---: | ---: | --- |
@@ -407,9 +438,14 @@ US$880 before the controller, still have gaps/crosstalk, and cannot classify a
 person. Ultrasonic is suitable for future near-body confirmation, not primary
 social surround sensing.
 
-## Orin Nano 8 GB implications
+## Superseded Orin implications for the earlier OAK/S2L design
 
-The value design deliberately offloads front detection, stereo, and tracking to
+This section's `front_oak`, RVC2, lidar, and C922 details apply only to the
+historical design above. They are not current implementation guidance; the
+active Reolink H.264/event and four-C4001 path is defined in the
+[`2026-07-13 Canadian one-week BOM`](2026-07-13-canadian-one-week-bom.md).
+
+The earlier value design deliberately offloads front detection, stereo, and tracking to
 the OAK's RVC2 processor. Lidar clustering is a small CPU workload. The Orin
 should receive compact events such as:
 
@@ -465,45 +501,46 @@ cooldowns, privacy, and whether a greeting is allowed.
 
 ### Phase 0 — geometry and electrical survey
 
-Before ordering, measure the dimensions listed below and make cardboard FOV/
-scan-plane templates. Map the cart body and an occupied cart at 15-degree yaw
-increments. Verify that the S2L can actually occupy a useful-height clear
-horizon. Record roof/post/overhang and solar cable geometry, battery topology and
-full/rest/loaded voltage, configured BMS limits, both converter labels, and
-maximum underside-roof temperature after a parked full-sun soak.
+Before ordering, map the cart body and an occupied cart at 15-degree yaw
+increments. Record the front/rear panorama faces, seams, roof posts, four radar
+pods, protected electronics bay, solar cabling, full/rest/loaded series-string
+voltage, configured BMS limits, both converter labels, and maximum underside-roof
+temperature after a parked full-sun soak. The roof-height 2D-lidar geometry is
+already rejected for this revision; do not make S2L purchase depend on another
+survey.
 
 ### Phase 1 — value-tier bench and cart prototype
 
-Order one OAK-D W/OV9782 and, if geometry passes, one S2L. Reuse the C922. Build
-the bounded local event schema, deterministic social-state machine, sensor
-health checks, and no-frame logging. Bench-test each sensor before permanent
-mounting.
-
-If geometry fails, substitute three C4001 modules and an aggregator. Do not buy
-both presence systems until the mounting survey resolves the choice.
+Order the Reolink Duo 3V PoE two-pack and **four** C4001 modules only after the
+postal-code delivery and power/network gates in the superseding Canadian note
+pass. Bench one camera and one radar before fabrication. Prove local RTSP/ONVIF,
+H.264 substream decoding, local person-event behavior, four-UART aggregation,
+network isolation, the bounded local event schema, deterministic social-state
+machine, sensor health checks, and no-frame logging.
 
 ### Phase 2 — field validation and enclosure
 
 Test the final mounts with real adults and children, passengers in every seat,
 motor and accessories on/off, daylight and night, and stationary/slow manual
-operation. Tune self-masks, dwell, cooldown, and event-triggered C922 behavior.
+operation. Tune panorama seams, camera/radar association, dwell, and cooldown.
 Then install the exact rated seals/guards, protected 24 V distribution, secured
 cabling, dirty-window health checks, and boot health reporting.
 
-### Phase 3 — optional rear offload
+### Phase 3 — local camera inference hardening
 
-If C922 host inference raises latency, memory, power, or reboot-identity problems,
-replace it with an OAK-1 W or OAK-D W. Do not make this purchase preemptively.
+Validate camera-local person events as triggers, but retain a low-rate local
+TensorRT detector on H.264 substreams until the event API proves adequate. Do not
+continuously decode both 16 MP streams.
 
-### Phase 4 — optional relative depth and premium surround
+### Phase 4 — optional relative depth and later 3D lidar
 
 The fixed-shape TensorRT FP16 ZipDepth candidate is now built. Only after metric
 perception is accepted should it undergo real-camera preprocessing/quality,
 end-to-end power/performance, and combined-soak validation as an auxiliary
 signal; its deterministic numerical and model-only timing gates already pass.
-Upgrade to three
-perimeter OAK-D W cameras only if tests show that side semantic classification
-is worth the approximately US$1.7–1.9k perception cost.
+Evaluate an inverted hemispherical 3D lidar later if Canadian availability,
+weather integration, optical-window constraints, and landed cost improve. Do
+not substitute a roof-mounted 2D lidar.
 
 ## Acceptance tests
 
@@ -519,8 +556,8 @@ Orin power mode, and mounted geometry for every test.
 - Test adults, short children, seated/crouched people, groups, partial bodies,
   wheelchairs/strollers, pets, bicycles, plants/flags, and reflective/dark
   clothing.
-- Measure range error and dropout for OAK and lidar against a tape/laser range
-  reference. Verify the radar fallback's 1.2 m documented ranging floor.
+- Measure camera ground-plane estimates and all four radar sectors against a
+  tape/laser reference. Verify the C4001's 1.2 m documented ranging floor.
 - Test stationary dwell, perpendicular walking, approach/departure at several
   speeds, people crossing seams, and two people entering one sector.
 
@@ -541,7 +578,7 @@ Orin power mode, and mounted geometry for every test.
 
 - Direct sun into each lens, backlight, deep shade, dusk/night, headlamps, wet
   surfaces, and any rain/fog exposure intended for shipping.
-- Clean, dusty, fingerprinted, water-spotted, and partly blocked camera/lidar
+- Clean, dusty, fingerprinted, water-spotted, and partly blocked camera/radar
   windows; confirm degraded health rather than confident nonsense.
 - Cart vibration, bumps, roof/body flex, wind, and the complete allowed manual
   speed range. Check that calibration and mounts remain fixed.
@@ -549,7 +586,7 @@ Orin power mode, and mounted geometry for every test.
   condensation transitions, rain/road spray, and the approved cleaning method.
   Pressure washing is excluded unless the complete installed assembly is rated
   for it.
-- For radar, test interference with all three modules, passengers, traction
+- For radar, test interference with all four modules, passengers, traction
   electronics, DC/DC converters, fans, and RF-transparent body panels.
 
 ### Compute, power, restart, and privacy
@@ -562,8 +599,9 @@ Orin power mode, and mounted geometry for every test.
 - Run at least a two-hour combined perception + wake/ASR + TTS + Gemma soak.
   Record peak/steady DRAM, CPU/GPU load, total input watts, temperatures,
   throttling, dropped frames/events, and response latency.
-- Measure lidar startup current and validate the fuse/DC/DC/hub margin at minimum
-  battery voltage and maximum charged voltage.
+- Validate the two-camera PoE/network branch and four-radar/aggregator branch at
+  full and loaded series-string voltage and during all allowed simultaneous
+  workloads.
 - Packet-capture or firewall-audit the perception service to prove that frames
   do not leave the cart. Verify that ordinary logs contain metadata only and
   that diagnostic recordings expire as configured.
@@ -573,8 +611,8 @@ Orin power mode, and mounted geometry for every test.
 1. Cart outer width/length, roof height, roof overhang/cat-head geometry,
    windshield and pillar locations, solar panel/controller/cable layout,
    structural attachment points, and intended sensor mounting surfaces.
-2. Ground height and sightline of a possible 360-degree lidar mount; photos or a
-   quick dimensioned sketch with an adult and child seated in every position.
+2. Photos or a dimensioned sketch with an adult and child seated in every
+   position, showing both panorama seams and all four radar sightlines.
 3. Minimum child height within the fixed 5–10-year-old audience, desired
    interaction radius, and
    whether proactive interaction is permitted while the cart is moving or only
@@ -587,22 +625,18 @@ Orin power mode, and mounted geometry for every test.
 5. Minimum/maximum/storage temperature, rain while operating/parked, overnight
    exposure, washing method, coastal salt, dust/mud, and maximum measured
    underside-roof temperature in full sun.
-6. Whether a visible spinning lidar/guard at child-torso height is aesthetically
-   and mechanically acceptable, and whether the cart layout can protect it from
-   passengers and impacts.
+6. Whether an inverted hemispherical 3D lidar under the roof should be revisited
+   after revision one; a roof-mounted 2D lidar is not a current option.
 7. Acceptable blind sectors and whether “near-360 anonymous awareness with front/
    rear semantic confirmation” meets the experience, or whether every side
    person must be visually classified.
-8. Final cable lengths/routes and whether the exact locking USB assembly reaches
-   a protected hub/Jetson or the OAK should use PoE/M12; location for the hub or
-   active 24 V-input PoE injector.
+8. Final Ethernet/power cable lengths and routes, isolated switch location, and
+   the exact active-PoE or qualified 24-to-12 V camera topology.
 9. Expected operating light at night and whether visible/IR illumination is
    acceptable.
-10. Whether the existing C922 may become a permanent rear camera after a proper
-    enclosure, or must remain a development-only device.
-11. Whether the approximate US$2,000 added-system ceiling includes tax, shipping,
-    duty, and fabrication; the provisional PoE audio/perception range reaches
-    US$1,983 before those additions.
+10. Postal-code delivery confirmation and checkout totals for the Canadian
+    one-week bill; the active ceiling is CAD 2,000 landed, including tax and
+    shipping.
 
 ## Source ledger
 

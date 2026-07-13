@@ -40,19 +40,36 @@ not assumptions. Revisit them explicitly if Neko's use or hardware changes.
 - Near-360-degree social perception is desired. The initial idea was three
   wide-angle cameras near the front under the roof, but the owner is open to a
   more effective arrangement and to depth/radar alternatives.
-- There is no purchased 3-D camera or final sensor parts list. Short schedule,
-  low power, and an approximate USD 2,000 ceiling for the added system are hard
-  design pressures. Complexity or power that prevents shipping is unacceptable.
+- The roof underside is about 7 ft high, slopes lightly from a higher front to a
+  lower rear, and has open sides. Representative children are about 3.5–4.5 ft
+  tall. A level roof-mounted 2D lidar therefore scans over them; an inverted
+  hemispherical 3D lidar is geometrically viable.
+- There is no purchased 3-D camera or final sensor parts list. All added parts
+  must fit a **CAD 2,000 landed ceiling including tax and shipping**, excluding
+  already-owned Jetson/storage/C922 hardware, and must be obtainable within one
+  week. Hardware cost is the primary selection pressure.
+- The camera/lidar/radar, microphones, speakers/transducer, and Jetson together
+  must remain at or below **200 W running**. The current one-week design target
+  is materially lower; nameplate arithmetic must be confirmed by a simultaneous
+  measured load test.
+- The current purchase recommendation is two opposing outdoor 180-degree cameras
+  plus four inexpensive radar sectors, with no lidar in the one-week build. A
+  roof-inverted Unitree-class 3D lidar remains the first later lidar experiment.
+  No part has been ordered yet.
 - ZipDepth remains required for evaluation but is not accepted as metric range
   or a safety sensor. Sensor selection will use a costed prototype/premium ladder
   and measured blind-zone, latency, power, weather, and compute results.
+- The dated Canadian comparison, exact arithmetic, stock evidence, geometry and
+  purchase gates are in
+  [`docs/research/2026-07-13-canadian-one-week-bom.md`](../research/2026-07-13-canadian-one-week-bom.md).
 
 ## Power, roof, and operating environment
 
-- The traction bank is LiFePO4, described as 48 V and four 270 Ah batteries.
-  This wording does not yet establish whether the units are nominal-12.8 V
-  batteries in series, complete 48 V packs, or another arrangement; no total
-  energy/runtime calculation or protection choice may assume the topology.
+- The traction bank is LiFePO4, described as 48 V and made from four 270 Ah
+  batteries connected **in series**. Exact battery labels, nominal/charge limits,
+  BMS rules, interconnects and protection remain unverified. The project does not
+  need an overall cart energy/runtime calculation; it still needs those facts for
+  safe converter, fuse and shutdown design.
 - Two DC/DC circuits already exist from the array: a 24 V output for lights and
   accessories and a 19 V output for the Jetson. Both must be confirmed as
   full-pack-fed converter outputs, never loads from a series-string midpoint.
@@ -68,18 +85,20 @@ not assumptions. Revisit them explicitly if Neko's use or hardware changes.
 - The full electrical and weather integration decision, evidence requirements,
   and manufacturer-source ledger are in
   [`docs/research/2026-07-13-power-weather.md`](../research/2026-07-13-power-weather.md).
+- Speakers and the body transducer together must be rated at **100 W or less**.
+  The current one-speaker/one-puck recommendation totals 30 W RMS and is limited
+  to about 27 W combined program output.
 
 ## Interaction, voice, and stories
 
 - A response within a few seconds is acceptable.
-- Candidate wake phrases are “Neko Neko” and “Hello Kitty.” Trademark and false
-  activation considerations must be reviewed before shipping the latter;
-  “Neko Neko” is the default custom wake-word prototype.
+- **`Neko Neko` is the approved activation phrase.** “Hello Kitty” is retired
+  from the revision-one wake-word plan.
 - English is required. French and Spanish are desirable and must be evaluated
   with local ASR/TTS, not silently delegated to cloud-only services.
 - Neko's character is cute, motherly, slightly mischievous, and playful. The
-  owner has no source recordings yet but can create consented recordings for a
-  local custom voice.
+  owner is willing to create consented source recordings for a local custom
+  voice.
 - No story library exists. Build one from public-domain, Creative Commons, or
   otherwise expressly licensed sources whose exact narration and remix rights
   are recorded per item. Child-directed remixing may change names, settings, and
@@ -88,6 +107,13 @@ not assumptions. Revisit them explicitly if Neko's use or hardware changes.
   and 8–10 presentation lanes rather than treating that span as one reading
   level. The collection theme is cats of all kinds, including wild felids; a cat
   must be central to each enabled story rather than an incidental keyword hit.
+- Every story is at most five minutes. The default tone is light and explicitly
+  non-scary; suspense, threat and predation need conservative content flags and
+  an approved fallback rather than surprise improvisation.
+- For the prototype, the owner accepts LLM-based French and Spanish review rather
+  than fluent-human review. This is a lower-assurance validation state and must
+  be labelled as such in manifests and UI; it does not remove deterministic
+  safety checks or the local approved-story fallback.
 
 ## Offline/online and privacy
 
@@ -97,6 +123,10 @@ not assumptions. Revisit them explicitly if Neko's use or hardware changes.
 - Z.AI and Codex consumer subscriptions are available for development. They are
   not presumed to grant embedded runtime/API rights; use only separately
   documented supported APIs and credentials if online mode is later enabled.
+- An authorized-adult, text-only session may use separately billed API access.
+  This does not authorize raw audio/images, an embedded consumer-subscription
+  credential, or unattended live child-cloud interaction. Adult authentication,
+  visible state, redaction, provider and spend limits remain implementation gates.
 - Transcript text may leave the cart under policy. Images and audio may leave
   only after explicit human-in-the-loop consent. Default operation must keep raw
   camera/audio data local and avoid storing it.
@@ -118,20 +148,21 @@ not assumptions. Revisit them explicitly if Neko's use or hardware changes.
 
 ## Still open before hardware purchase or field use
 
-- Exact battery models/topology/BMS, full/rest/loaded voltage, configured BMS
+- Exact battery models/BMS, full/rest/loaded voltage, configured BMS
   limits and controlled shutdown threshold, both
   converter models and input wiring, protection/grounding, measured rail noise,
   sustained power/thermal budget, and enclosure airflow.
 - Exact minimum/maximum/storage temperature, rain/overnight exposure, washing
   method, salt exposure, and solar-panel/controller/mounting details.
+- Delivery province/postal-code ETA for the one-week parts order and the exact
+  24-to-12 V or active-PoE camera power/network topology.
 - Exact social distance/cooldown behavior, operation while moving, and treatment
   of children, groups, pets, and partial occlusion.
-- Final camera/radar/microphone/speaker/amplifier/transducer selection and mounting.
-- Story duration/language mix and content boundaries within the fixed 5–10
-  audience, owner controls, generated-history retention, and final cat-story
-  manifest.
-- Whether the approximate US$2,000 added-system ceiling includes tax, shipping,
-  duty, and fabrication; the weather-preferred PoE camera path nearly consumes
-  that full pre-tax hardware allowance.
+- Checkout-confirmed camera/radar/microphone/speaker/amplifier/transducer stock,
+  delivery, converter compatibility and final mounting.
+- Story language mix, finer content boundaries within the fixed light/non-scary
+  five-minute policy, owner controls, generated-history retention, and final
+  cat-story manifest.
 - Mic electrical kill, camera shutters, visible privacy indicators, raw-data log
-  policy, administration/update/recovery policy, and cloud API budget/provider.
+  policy, administration/update/recovery policy, adult-authentication method,
+  and cloud API budget/provider.

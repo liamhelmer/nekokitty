@@ -1,5 +1,12 @@
 # Power, weather, and physical integration update — 2026-07-13
 
+> **One-week scope update — 2026-07-13:** the active hardware and power budget is
+> in
+> [`2026-07-13-canadian-one-week-bom.md`](2026-07-13-canadian-one-week-bom.md).
+> Earlier OAK/S2L/XVF3800 component allocations and open-ended accessory sizing in
+> this note remain research references, but they do not override the current
+> two-Reolink/four-radar/XVF3000 build or its scoped 200 W ceiling.
+
 This note records the owner's latest physical constraints and converts them into
 purchase and field-test gates. It is a design record, not a certification of the
 cart's existing wiring. No electrical hardware was opened, measured, or changed
@@ -7,8 +14,10 @@ while preparing it.
 
 ## Owner-supplied facts
 
-- The traction bank is LiFePO4 and described as 48 V, using four batteries rated
-  270 Ah each.
+- The traction bank is LiFePO4 and described as 48 V, using four 270 Ah batteries
+  **in series**. The owner has resolved the topology; the individual labels,
+  series/BMS permission, physical wiring, configured limits, and protection have
+  not yet been inspected.
 - Two DC/DC branches already come from that array: one regulated to 24 V for
   lights and accessories and one regulated to 19 V for the Jetson.
 - New accessories should use 24 V where practical. A 12 V rail is acceptable
@@ -18,11 +27,33 @@ while preparing it.
 - Rain, dirt/dust, temperature exposure, and direct sun are all in scope.
 - The primary child audience is ages 5–10.
 
-“Four batteries, 48 V” is not enough to calculate energy or approve protection.
-It could mean four nominal-12.8 V units in series, multiple complete 48 V packs,
-or another manufacturer-approved arrangement. Amp-hours add in parallel but not
-in series. Record the exact label/model and wiring diagram before publishing a
-pack-energy or runtime estimate.
+The series topology is now an owner decision, not an open series/parallel
+question. It still does not approve protection or establish actual nominal/full/
+loaded voltage: record all four labels, manufacturer series/BMS rules, and the
+physical wiring before connecting new loads. **No overall traction-pack energy,
+cart-runtime, or endurance calculation is required or authorized for this
+revision.**
+
+## Current scoped power decision
+
+The Jetson, NVMe/cooling, two Reolink Duo 3V cameras, four C4001 radars and wired
+aggregator, microphone, local network/data electronics, limited amplifier,
+15 W RMS voice driver, and 15 W RMS body transducer must draw **no more than
+200 W while running**. The Canadian one-week plan allocates approximately 129 W
+simultaneously, including 35 W for the limited audio domain and 25 W for
+conversion/thermal contingency. Those are design allocations, not measurements.
+
+Measure the 19 V converter input and either the 24 V converter input with lights
+and all non-Neko accessories positively isolated/off, or a dedicated metered
+Neko 24 V sub-feed plus separately measured incremental converter loss, during
+the maximum approved simultaneous story/purr, wake/ASR, Gemma, camera, radar,
+network, and sampled ZipDepth workload. Lights are outside the scoped 200 W cap;
+test them simultaneously in a separate rail-sag/ripple/thermal/EMI test and do
+not use a guessed baseline subtraction. The Neko build fails if steady or allowed
+transient operation exceeds 200 W. A provisional 180 W software
+load-shedding threshold creates warning margin, but neither it nor the 200 W
+scope cap sizes conductors, fuses, converters, or disconnects; each circuit still
+uses its audited worst-case electrical requirements.
 
 ## Immediate electrical decision
 
@@ -95,6 +126,14 @@ making the shaded enclosure and hot-sun shutdown tests hard gates.
 
 ### How to use the 24 V branch
 
+For the active one-week build, the 24 V domain must support a qualified active
+PoE or 24-to-12 V path for the two Reolink cameras, regulated 5 V for four C4001
+modules and their wired aggregator, USB 5 V for the XVF3000, and a separately
+limited audio branch. Never feed passive 24 V into an 802.3af camera.
+
+The following table records compatibility work for the earlier component set;
+where it names OAK/S2L/XVF3800/KAB hardware, it is not the current purchase list:
+
 | Load | Proposed supply | Gate |
 | --- | --- | --- |
 | Dayton KAB-215v2 amplifier | Existing 24 V branch | The board's documented range ends at 24 V. Measure regulator tolerance, startup/turn-off behavior, ripple, and load-dump behavior at the amplifier terminals. If it can exceed the amplifier limit, use a dedicated lower regulated output instead. |
@@ -116,7 +155,11 @@ accepts 18–75 V DC and provides 4 kV DC input/output withstand, while the G
 family accepts only 9–36 V. That illustrates why the exact suffix and the pack's
 maximum charged voltage matter; it is not a recommendation to order that part.
 
-### Preliminary 24 V sizing and shortlist
+### Superseded preliminary 24 V sizing and shortlist
+
+This earlier generic accessory envelope predates the fixed one-week 129 W scoped
+allocation and 200 W measured ceiling. Retain it for converter comparison only;
+do not add it to the current allocation or use it for cart-runtime estimates.
 
 The following is a conservative **design envelope**, not measured consumption:
 
@@ -221,7 +264,7 @@ Use three physical zones:
 
 | Zone | Examples | Minimum design treatment |
 | --- | --- | --- |
-| Exposed optical/range surfaces | OAK camera, lidar window | Buy the exact ingress-rated configuration; use its specified mating cable/connector, downward cable exit or drip loop, replaceable sacrificial guard that does not enter the FOV, and accessible cleaning path. |
+| Exposed optical/range surfaces | Reolink cameras, C4001 pods; later 3D-lidar window | Buy or build the exact ingress-rated configuration; use specified mating cable/connectors, downward cable exits or drip loops, replaceable guards that do not enter the FOV/beam, and accessible cleaning paths. |
 | Acoustically exposed | microphone ports, speaker front | Rain lip, hydrophobic/acoustic vent solution validated for response, drainage below electronics, UV-stable windscreen, gasketed front-rated speaker baffle, and no upward-facing water pocket. |
 | Protected electronics bay | Jetson, amp, hub, converters, fuse distribution | UV-stable enclosure with an appropriate certified outdoor rating—start from IP66 and add a NEMA 4X/corrosion requirement where the exact exposure warrants it—plus protected cable glands/connectors, touch guards, condensation management, drainage outside the electrical volume, and a heat path proven in sun. |
 
@@ -232,7 +275,9 @@ pressure-washer safe, permanently submerged, or condensation-free. Until the
 washing method and temperature range are known, design for rain and road spray
 but explicitly prohibit pressure washing the electronics/sensor apertures.
 
-Current Luxonis documentation creates a procurement hold, not a blanket rating.
+The following Luxonis/S2L paragraphs are retained for later alternatives and do
+not describe the active one-week Reolink/C4001 order. Current Luxonis
+documentation creates a procurement hold, not a blanket rating.
 The [OAK-D W listing](https://shop.luxonis.com/products/oak-d-w) calls the current
 unit IP66, while Luxonis's
 [environmental page](https://docs.luxonis.com/hardware/platform/environmental-specifications/ip-rating)
@@ -270,12 +315,13 @@ coverage geometry. Because its top face is solar:
 - record roof height, post locations, cat-body occlusion, seated passenger
   envelopes, and panel/controller cable routes on the dimensioned survey.
 
-The current value perception concept remains one front OAK-D W, a rear camera,
-and a useful-height 360-degree range layer. The lidar still needs a clear,
-approximately 0.9–1.2 m level scan plane; the solar roof is not a reason to put
-it overhead where it scans above children. If bodywork, riders, or roof posts
-make that plane impractical, use distributed sealed radar/presence sectors and
-camera confirmation instead.
+The active value perception concept is one Reolink Duo 3V below the front roof
+edge, one below the rear edge, and four sealed C4001 radar pods around the roof
+quadrants. The roughly 7-ft roof geometry rejects a 2D lidar for this revision:
+level rays pass above children, while tilting produces one sloped plane rather
+than a downward surround cone. A later inverted hemispherical 3D lidar is
+geometrically valid, but remains gated by stock, ingress, optical-window, power,
+and landed cost.
 
 ## Thermal and environmental acceptance
 
@@ -285,8 +331,8 @@ spreader or a sealed air-to-air approach; add a replaceable filtered/pressurized
 air path only if testing shows passive cooling cannot hold margins. Exposed fins
 must be cleanable and must not become touch or snag hazards.
 
-Log enclosure ambient, Jetson thermal zones, converter case temperature, OAK
-telemetry, 24/19 V rails, and total branch current during:
+Log enclosure ambient, Jetson thermal zones, converter case temperature, camera/
+radar health, 24/19 V rails, and total branch current during:
 
 - cold start and hot restart;
 - midday sun with the solar system charging;
@@ -309,7 +355,7 @@ The following items still block final converter, fuse, enclosure, and mount
 orders:
 
 1. clear photos and make/model of all four battery labels, plus a simple wiring
-   diagram showing series/parallel links, BMS, shunt, main fuse/disconnect,
+   diagram verifying the owner-confirmed series links, BMS, shunt, main fuse/disconnect,
    charger, solar controller, and both converter inputs;
 2. make/model, settings, wiring, and fuse information for both DC/DC converters;
 3. measured full/rest/loaded pack voltage and both output rails, manufacturer/

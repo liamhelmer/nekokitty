@@ -1090,3 +1090,95 @@ StoryWeaver references were separately reviewed through browser results.
 This table must be updated after every installation. “Enabled” states systemd
 configuration only; “boot-validated” additionally requires a real reboot and
 health/readiness validation.
+
+## 2026-07-13 — Canadian one-week BOM and interaction-policy update
+
+This was a research and documentation update only. No part was ordered, installed,
+wired, configured, or powered; no package, model, service, firewall, camera,
+network, or system setting changed.
+
+The owner supplied or confirmed these controlling revision-one constraints:
+
+- the four 270 Ah LiFePO4 traction batteries are connected in series, while exact
+  labels, BMS rules, charge/loaded limits, interconnects, and protection remain
+  unverified;
+- added hardware must fit a CAD 2,000 landed cap including tax and shipping and
+  arrive within one week; existing Jetson, storage, and C922 are excluded;
+- the Jetson, cameras/radar, microphone, speaker, and transducer must remain at or
+  below 200 W running, and speaker plus transducer ratings at or below 100 W;
+- the roof underside is about 7 ft high with open sides, representative children
+  are about 3.5–4.5 ft tall, and the one-week build must tolerate outdoor exposure;
+- every story is no longer than five minutes and defaults to light/non-scary;
+  `Neko Neko` is approved and `Hello Kitty` retired;
+- LLM French/Spanish review is provisionally accepted only as a labelled lower-
+  assurance prototype state with deterministic checks and local fallback; and
+- optional cloud use is an authenticated-adult, text-only session through a
+  separately billed API, never an embedded consumer credential or unattended
+  child-cloud/media path.
+
+The new controlling purchase record is
+`docs/research/2026-07-13-canadian-one-week-bom.md`. It supersedes conflicting
+US-dollar OAK/lidar and overseas audio purchase recommendations while preserving
+their longer research and acceptance-test notes. `AGENTS.md` and
+`docs/decisions/2026-07-13-owner-decisions.md` carry the durable summary.
+
+The installed Vercel `find-skills` workflow was rerun for outdoor perception,
+lidar/camera selection, robotics hardware, and BOM/procurement support. No
+credible mature result covered this weather, geometry, Canadian-stock, and
+one-week purchasing problem closely enough to install; no new skill or package
+was added. The shared Codex/Claude Jetson skills and `find-skills` copies remain
+at the paths recorded earlier in this log.
+
+The revision-one recommendation is two opposing Reolink Duo 3V PoE outdoor
+180-degree cameras, four DFRobot C4001 radar sectors, and the Canadian-stocked
+Seeed reSpeaker USB four-mic/XVF3000, Soberton XPCB-12BT amplifier, Visaton FR 8
+WP speaker, and protected Dayton TT25-8 puck. A roof-level planar 2D lidar is
+deferred because it scans above the child-height band; an inverted hemispherical
+3D lidar remains a later experiment.
+
+Using the explicitly provisional British Columbia 5% GST plus 7% PST assumption,
+the researched complete addition is CAD 1,144.60–1,364.60 landed. Its conservative
+simultaneous planning allocation is 129 W, with a measured 200 W hard acceptance
+cap and provisional 180 W software load-shedding threshold. Checkout destination,
+stock, delivery date, exact camera power/network hardware, converter capacity,
+mount geometry, weather assembly, and simultaneous power testing remain gates.
+
+A final live distributor refresh found intraday inventory/price changes and the
+documentation was recalculated rather than retaining the earlier scrape: OAK-D W
+showed 32 units, the Soberton amplifier CAD 36.35/357 units, and the Visaton
+speaker CAD 43.95/708 units. The opaque CAD 35.11 Hammond enclosure was linked
+directly, and an out-of-stock 3 A fuse suffix was replaced with the in-stock
+`0287003.H`. The 32 V fuse and holder are candidates only downstream of a verified
+24 V rail, never on the 48 V pack side.
+
+The owner-invited Claude Code reviewer was also attempted in read-only `plan`
+mode using `/home/neko/.local/bin/claude` with only Read/Grep/Glob/WebSearch/
+WebFetch tools. It emitted a connector-precedence warning and returned no review
+after roughly two minutes, so it was interrupted rather than allowed to block the
+work. Its `SessionEnd` hook then failed because
+`/home/neko/.claude/helpers/hook-handler.cjs` is missing. It made no file or
+system changes. A second, smaller `--safe-mode` local-only audit also produced no
+result within one minute and was interrupted; safe mode avoided the broken hook
+but did not resolve the provider stall. The independent Codex/subagent audits
+continued normally.
+
+The final independent documentation audit found and corrected four issues: the
+shared 24 V lights would have polluted the scoped 200 W measurement, one current
+audio criterion still said 4 ohms instead of the selected 8 ohms, an OAK/RVC2
+implementation section needed an explicit historical label, and the procurement
+claim needed to remain conditional on checkout ETA. The accepted power test now
+isolates non-Neko 24 V loads or uses a dedicated metered Neko sub-feed plus
+measured incremental conversion loss; lights-on operation is a separate shared-
+rail interference test.
+
+Post-edit validation:
+
+- all 29 unit tests passed under system Python;
+- all 29 unit tests passed under the pinned ZipDepth export environment;
+- `git diff --check`, the internal relative-Markdown-link audit, the BOM
+  arithmetic reproduction, and a credential-signature scan passed;
+- all ten primary/vendor pages that permit automated checks returned HTTP 200;
+  RobotShop and DigiKey returned bot-protection HTTP 403, the Unitree/RoboSense
+  stores rate-limited at HTTP 429, and Best Buy/Mouser rejected or timed out in
+  `curl`; the latter distributor pages were independently opened through the
+  browser research path and supplied the recorded live stock/price evidence.

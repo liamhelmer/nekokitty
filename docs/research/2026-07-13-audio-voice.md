@@ -1,8 +1,35 @@
 # Neko audio and voice subsystem — research cut 2026-07-13
 
-## Recommendation
+> **Superseded for the one-week revision on 2026-07-13:** the active Canadian
+> purchase decision is
+> [`2026-07-13-canadian-one-week-bom.md`](2026-07-13-canadian-one-week-bom.md).
+> Where this note's overseas XVF3800/KAB/FR-10 purchase path conflicts, retain it
+> as long-term component research rather than the current order.
 
-Build the first cart audio system around a Seeed reSpeaker Flex XVF3800
+## Current one-week audio decision
+
+Use the locally stocked four-microphone **XVF3000** board for the schedule-first
+build. The current XVF3800 Circular-4 remains the preferred long-term array once
+Canadian delivery no longer controls the schedule. Bench and record the exact
+XVF3000 USB descriptors, playback-reference/AEC behavior, firmware, host-control
+support, and end-of-life risk before treating it as a drop-in XVF3800 equivalent.
+
+The current output path is the locally stocked Soberton XPCB-12BT amplifier, one
+15 W RMS Visaton FR 8 WP voice driver, and one 15 W RMS Dayton TT25-8 body
+transducer. The two drivers total **30 W RMS**. Allocate about **35 W** to the
+limited audio domain in the scoped system power budget; enforce approximately
+12–15 W RMS on voice and 10–12 W RMS on purr with independent fixed gain,
+limiters, and fail-silent behavior. The amplifier's 2 x 25 W nameplate is not an
+allowed output setting.
+
+`Neko Neko` is the fixed wake phrase for revision one. The owner is willing to
+source a consenting adult voice; the recording/release and voice-model rights
+gates below still apply. Route playback through the selected reSpeaker device so
+its echo canceller receives the far-end reference.
+
+## Superseded overseas recommendation
+
+The earlier design built the cart audio system around a Seeed reSpeaker Flex XVF3800
 Circular-4, a small two-channel Class-D amplifier, one weather-resistant
 full-range speaker, and one body-mounted tactile transducer. Use the microphone
 array's playback path for all sound so its hardware acoustic echo canceller has
@@ -26,10 +53,11 @@ path. If outdoor evidence requires PoE/M12, the provisional combined range is
 **US$1,593–1,983** before tax, shipping, and duty; see the perception BOM for
 the estimate and confirm what the US$2,000 ceiling includes.
 
-The preferred initial offline software path is:
+The software path remains applicable, with XVF3000 used for the one-week bench
+and XVF3800 retained as the long-term target:
 
 ```text
-XVF3800 hardware AEC/beamforming/AGC/noise reduction
+XVF3000 schedule path / XVF3800 long-term AEC and microphone processing
   -> openWakeWord: "Neko Neko"
   -> Silero VAD
   -> sherpa-onnx + Nemotron 3.5 ASR Streaming INT8
@@ -55,7 +83,10 @@ audio software or hardware was installed as part of this note.
 - **Acceptance target** means a proposed project requirement, not a vendor
   guarantee.
 
-## Recommended bill of materials
+## Superseded overseas bill of materials
+
+The following US-dollar parts table is historical. Do not use it as the current
+order list; use the Canadian one-week note linked above.
 
 | Component | Purpose | Observed price | Important facts |
 | --- | --- | ---: | --- |
@@ -93,6 +124,10 @@ audit is in [`2026-07-13-power-weather.md`](2026-07-13-power-weather.md).
 
 ### Power planning
 
+The table below describes the earlier XVF3800/KAB path. The active one-week path
+has 30 W RMS of installed drivers and a roughly 35 W scoped audio allocation,
+subject to measured per-channel limits.
+
 The following are **estimates**, not measurements:
 
 | State | Estimated audio-subsystem input power |
@@ -115,9 +150,11 @@ limits for the 4-ohm speaker channel and 8-ohm shaker channel. The audio schedul
 and fixed DSP/limiter configuration must enforce both limits independently; a
 single master-volume cap is insufficient.
 
-## Signal routing and audio format
+## Long-term XVF3800 signal-routing research
 
-Use the XVF3800 as both the Linux USB capture device and the USB playback device:
+This section is the long-term XVF3800 reference. Apply the same far-end-reference
+principle to the schedule-first XVF3000 only after its actual ALSA and AEC path is
+bench-verified. The earlier XVF3800 routing was:
 
 ```text
 Orin USB
@@ -152,7 +189,12 @@ behavior. The transducer bus needs a low-pass or band-pass filter, limiter,
 maximum duty cycle, and watchdog. Start a purr around 40–60 Hz at low level with
 gentle attack and release.
 
-## Mechanical placement
+## Long-term XVF3800 mechanical-placement research
+
+The principles below remain useful, but Flex-specific dimensions, FPC routing,
+and apertures do not automatically apply to the schedule-first XVF3000 board.
+Re-measure its actual PCB, microphones, USB/playback connectors, and weather
+treatment before fabrication.
 
 - Mount the circular microphone board horizontally near the roof center. Center
   placement minimizes roof/occupant shadowing and is more appropriate for
@@ -334,7 +376,8 @@ motherly/mischievous personality.
 
 ### Recording an original voice
 
-No voice recordings currently exist. If the owner chooses to make them:
+The owner is willing to source a voice, but no recording or release currently
+exists. When the consenting adult source is selected:
 
 - Use a consenting adult and do not imitate a celebrity, known performer, or
   child.
@@ -391,6 +434,11 @@ Revision one should never send raw microphone audio off the cart:
 - Under the owner's current policy, only final redacted text may be routed to an
   allowed remote model. Network loss must immediately and transparently fall
   back to local operation.
+- An authorized adult may enable a separately billed text-only API path after
+  authentication, a visible online-mode indicator, provider/destination
+  allowlisting, redaction, strict spend/rate limits, timeouts, audit events that
+  omit content, and immediate local fallback are implemented. This authorization
+  does not permit audio upload or embedding a consumer subscription credential.
 - A future raw-audio cloud feature must require a one-shot physical button or
   owner UI action, visible recording/upload indication, clear clip/scope review,
   and deletion policy. Spoken `yes` alone is inadequate consent, especially in
@@ -429,12 +477,13 @@ input power, temperature, SPL, and subjective voice quality. Test amplifier and
 transducer temperatures at the maximum configured purr duty cycle. A measured
 volume cap suitable for nearby children is required; do not expose raw
 amplifier maximum to the language model or ordinary UI. Verify independent RMS/
-peak limits, clipping behavior, and fail-silent shutdown for both the 4-ohm voice
+peak limits, clipping behavior, and fail-silent shutdown for both the 8-ohm voice
 speaker and 8-ohm shaker at the final rail maximum.
 
 ## Remaining owner decisions
 
-1. Exact make/model and series/parallel wiring of all four LiFePO4 batteries;
+1. Exact make/model and physical verification of the owner-confirmed four-battery
+   series string;
    measured pack full/rest/loaded voltage, configured BMS limits, and controlled
    shutdown threshold; both converter models/input wiring; protection, grounding,
    and 24 V rail tolerance/noise measurements.
@@ -446,10 +495,10 @@ speaker and 8-ohm shaker at the final rail maximum.
 4. Target maximum SPL at 1 m, quiet hours, and whether the rear arc must hear
    stories at full intelligibility. This determines whether to add a second
    speaker and amplifier channel.
-5. Approval to standardize on `Neko Neko` and retire `Hello Kitty` as a wake
-   phrase.
-6. Whether a Supertonic preset is sufficient for the first ship date or an
-   original adult voice and release should be recorded.
+5. Final `Neko Neko` wake-model training corpus and acceptance threshold; the
+   wake phrase itself is decided.
+6. Identity of the consenting adult voice source, recording schedule, written
+   release, and whether the first ship date uses that voice or a licensed preset.
 7. Desired consistency of the same character voice across EN/FR/ES, and whether
    accented French/Spanish is acceptable for revision one.
 8. Source and licensing policy for meows, purr loops, music, and story assets.
@@ -457,8 +506,8 @@ speaker and 8-ohm shaker at the final rail maximum.
    desired. The present recommendation is no off-cart audio.
 10. Acceptance of the proposed wake, latency, volume, purr-duty, and moving-cart
     test thresholds.
-11. Whether the short timeline justifies ordering a spare enclosed XVF3800 and
-    second Visaton speaker with the initial shipment.
+11. Whether the XVF3000 bench result is adequate for shipment or only a schedule
+    bridge while the preferred XVF3800 is obtained.
 
 ## Primary-source ledger
 
