@@ -1,0 +1,62 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*
+secrets*
+
+# Python, editors, and build products
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.idea/
+.vscode/
+build/
+dist/
+*.egg-info/
+
+# Models, generated inference artifacts, and caches
+models/
+checkpoints/
+*.safetensors
+*.gguf
+*.litertlm
+*.onnx
+*.engine
+*.plan
+*.pth
+*.pt
+*.bin
+*.xnnpack_cache*
+.cache/
+
+# Private or generated sensor/user data
+data/private/
+recordings/
+captures/
+transcripts/
+*.wav
+*.flac
+*.mp3
+*.mp4
+*.mkv
+*.jpg
+*.jpeg
+*.png
+
+# Runtime state and diagnostics
+*.log
+*.pid
+core
+core.*
+tmp/
+
+# OS noise
+.DS_Store
+Thumbs.db

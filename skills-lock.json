@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "skills": {
+    "jetson-diagnostic": {
+      "source": "NVIDIA/skills",
+      "ref": "main",
+      "sourceType": "github",
+      "skillPath": "skills/jetson-diagnostic/SKILL.md",
+      "computedHash": "052d611c20729a3290b5bac1a420790c3389b72e04d576348c40387cd41b2881"
+    }
+  }
+}

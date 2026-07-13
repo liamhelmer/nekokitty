@@ -1,0 +1,43 @@
+[Unit]
+Description=Neko bounded Gemma 4 E2B LiteRT service
+After=local-fs.target
+Wants=local-fs.target
+StartLimitIntervalSec=120s
+StartLimitBurst=3
+
+[Service]
+Type=notify
+NotifyAccess=main
+User=neko
+Group=neko
+WorkingDirectory=/home/neko/repos/nekokitty
+ExecStart=/home/neko/.local/share/uv/tools/litert-lm/bin/python /home/neko/repos/nekokitty/scripts/serve_gemma_litert.py --host 127.0.0.1 --port 9379 --max-num-tokens 2048 --cpu-thread-count 4
+Restart=on-failure
+RestartSec=5s
+TimeoutStartSec=90s
+TimeoutStopSec=20s
+KillSignal=SIGINT
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/neko/.litert-lm/models/gemma-4-e2b-it
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+IPAddressDeny=any
+IPAddressAllow=localhost
+LockPersonality=true
+MemoryDenyWriteExecute=false
+RestrictSUIDSGID=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+MemoryHigh=2G
+MemoryMax=2300M
+MemorySwapMax=0
+OOMScoreAdjust=500
+CPUWeight=40
+Nice=5
+TasksMax=128
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

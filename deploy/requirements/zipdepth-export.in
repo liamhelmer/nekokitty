@@ -1,0 +1,6 @@
+# Isolated CPU-only ONNX export environment for the pinned ZipDepth checkpoint.
+# Do not add CUDA PyTorch or reuse this as the production camera runtime.
+
+torch @ https://download-r2.pytorch.org/whl/cpu/torch-2.12.1%2Bcpu-cp312-cp312-manylinux_2_28_aarch64.whl#sha256=d1620bc7bcf8087f3e48821b5db994a03e32ddb083d58c000b8e032f8a6e2d15
+onnx==1.18.0
+numpy==1.26.2
