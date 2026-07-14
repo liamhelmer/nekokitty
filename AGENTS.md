@@ -48,8 +48,9 @@ selectable noncommercial laboratory profile, never a core boot dependency.
 System-wide changes must be documented with exact commands, versions, paths,
 validation, and rollback.
 
-The project is now the top-level Git repository on branch `main`, with private
-remote `https://github.com/liamhelmer/nekokitty.git`. An accidental empty nested
+The project is now the top-level Git repository with `main` as its default/base
+branch and private remote `https://github.com/liamhelmer/nekokitty.git`. Work is
+currently on `agent/power-weather-story-constraints`. An accidental empty nested
 clone was preserved outside the worktree at
 `/home/neko/repos/nekokitty-empty-clone-backup-20260713`. `CLAUDE.md` points
 Claude Code back to this file so assistants share one durable source of truth.
@@ -131,19 +132,30 @@ Read these before changing the system:
   online/offline voice pipeline, reusable components, persona/audio, stories,
   social behavior, boot design, safety/privacy, tests, and phased delivery.
 - [Current implementation plan](docs/plan/2026-07-13-implementation-plan.md) —
-  incorporated owner decisions, runtime profiles, costed hardware gates,
-  offline/online architecture, delivery phases, acceptance gates, and next inputs.
+  runtime profiles, offline/online architecture, delivery phases, and general
+  acceptance gates. Its earlier hardware purchase sections are superseded by the
+  Canadian one-week decision.
 - [Owner decisions](docs/decisions/2026-07-13-owner-decisions.md) — durable
   answers for licensing, model residency, headless/Git authority, manual-motion
   scope, character/languages/stories, offline-first behavior, and media privacy.
-- [Audio and voice](docs/research/2026-07-13-audio-voice.md) — current costed
-  hardware path, placement/power, wake/ASR/TTS candidates, voice rights, privacy,
-  and acceptance tests.
-- [Social perception BOM](docs/research/2026-07-13-perception-bom.md) — value,
-  radar fallback, and premium sensing tiers; geometry, power, privacy, and tests.
+- [Canadian one-week hardware decision](docs/research/2026-07-13-canadian-one-week-bom.md)
+  — controlling revision-one purchase recommendation, Canadian stock and landed
+  arithmetic, Reolink/radar/audio BOM, roof geometry, power allocation, and
+  checkout/acceptance gates. It supersedes earlier purchase recommendations
+  wherever they conflict.
+- [Audio and voice](docs/research/2026-07-13-audio-voice.md) — long-form component,
+  placement/power, wake/ASR/TTS, voice-rights, privacy, and acceptance research;
+  the Canadian one-week decision controls the immediate hardware purchase.
+- [Social perception BOM](docs/research/2026-07-13-perception-bom.md) — earlier
+  OAK/lidar/radar and premium-tier research, geometry, power, privacy, and tests;
+  the Canadian one-week decision controls revision-one procurement.
 - [Stories and cloud](docs/research/2026-07-13-stories-cloud.md) — source inventory,
   per-item rights, secure ingestion, child remix policy, subscriptions/APIs, and
   staged cloud enhancement.
+- [Power, weather, and physical integration](docs/research/2026-07-13-power-weather.md)
+  — supplied 24 V/3 A, 19 V/3 A, and 12–14 V/20 A recommendation boundary,
+  downstream rail allocation, historical full-pack research, outdoor zones,
+  solar-roof mounting, and acceptance tests.
 - [LiteRT upstream report](docs/research/2026-07-13-litert-upstream-report.md) —
   exact R39.2 reproduction comment and upstream URL.
 - [Setup log](docs/operations/setup-log.md) — every installation/attempt, exact
@@ -265,26 +277,84 @@ linked notes. Important conclusions:
 - Pipecat is the provisional voice orchestrator; use a deterministic intent/policy
   and social state layer, separate streaming ASR/TTS, curated meows/purrs, and
   cloud text routing only when explicitly allowed.
-- The costed first audio path is XVF3800 hardware AEC/beamforming, a two-channel
-  Class-D amp, weather-resistant voice speaker, and separately protected body
-  shaker. Current local candidates are Neko Neko/openWakeWord, Silero VAD,
+- The one-week audio purchase path uses the Canadian-stocked Seeed reSpeaker USB
+  four-mic/XVF3000 array, Soberton XPCB-12BT two-channel amplifier, Visaton FR 8
+  WP 15 W RMS voice speaker, and a protected Dayton TT25-8 15 W RMS body puck.
+  The older XVF3000 silicon is a schedule-first compromise; XVF3800 remains the
+  preferred later array. Run the 10–25 V amplifier from the supplied 12–14 V
+  accessory interface, not the already-loaded 24 V lighting interface. At this
+  lower supply, target about 7 W clean per 8-ohm channel at 12 V and treat
+  8–10 W as a 14 V bench target—not a guaranteed output—rather than promising
+  the 2 x 25 W nameplate. Enforce fixed attenuation and independent protection.
+  One voice speaker is sufficient. The two 15 W RMS drivers total 30 W, below
+  the owner's 100 W combined speaker/transducer rating cap.
+- **`Neko Neko` is approved** as the revision-one wake phrase; `Hello Kitty` is
+  retired. Current local software candidates remain openWakeWord, Silero VAD,
   Nemotron 3.5 streaming ASR through sherpa-onnx with whisper.cpp fallback, and
   Supertonic 3 with Piper fallback.
-- The conditional value perception path is a front OAK-D W/OV9782, useful-height
-  RPLIDAR S2L, and the existing rear C922. Recommended perception is about
-  US$1,100–1,300 installed; with the US$280–445 audio path, the combined added
-  system is about US$1,380–1,745 before tax/shipping. If no clear lidar plane exists,
-  use distributed radar and camera confirmation rather than roof-height fiction.
-- Start stories with curated CC0/CC BY 4.0 Global Digital Library, StoryWeaver,
-  and approved African Storybook items. Original, deterministic substitutions,
-  and bounded remix are separate child-selected modes; whole generated scenes
-  are checked before TTS.
+- Revision-one social perception is now two opposing outdoor Reolink Duo 3V
+  PoE-model 180-degree cameras powered through their 12 V inputs, a Brainboxes
+  SW-005 on the Jetson onboard Ethernet port, plus four DFRobot C4001 radar
+  sectors at nominal 90-degree spacing. Cameras provide local person semantics;
+  the bare radars provide anonymous, coarse presence/range hints and require
+  weather pods and camera confirmation before spoken greetings. Disable camera
+  recording/cloud/P2P/audio and isolate them on a wired network with no default
+  route. Optical/RF faces go outside the cart's post/slat obstruction plane.
+  Proactive greeting is parked-only, with a camera-confirmed approach/dwell in
+  the C4001's approximate 4–10 ft useful annulus. A level 2D lidar at the roughly
+  7 ft roof scans above 3.5–4.5 ft children, so lidar is deferred; an inverted
+  hemispherical 3D lidar is the later geometry-valid experiment.
+- The Canadian one-week BOM is provisionally **CAD 1,399.68–1,722.08 landed** at
+  an assumed British Columbia 5% GST plus 7% PST, leaving **CAD
+  277.92–600.32** of unquoted headroom below the owner's **CAD 2,000 landed** cap.
+  Checkout-confirmed tax, shipping, stock, itemized integration hardware, and
+  arrival within seven days are still gates. The conservative
+  simultaneous supplied-interface allocation is **135 W**; the complete Jetson,
+  perception, audio, and transducer build has a hard **200 W running** acceptance
+  cap, verified by measurement rather than nameplate arithmetic.
+- Start stories for ages 5–10 with a 30-work cat-only pilot: 16 works in a 5–7
+  presentation lane, 14 in 8–10, and at least 18 centered on wild, extinct, or
+  mythical cats. Use curated CC0/CC BY 4.0 Global Digital Library,
+  StoryWeaver, approved African Storybook, and individually cleared public-domain
+  items. Cats must be central, not incidental keyword hits. Original,
+  deterministic substitutions, and bounded remix are separate child-selected
+  modes; whole generated scenes are checked before TTS. Every story is at most
+  five minutes and defaults to light, explicitly non-scary treatment.
+  Age-appropriate conflict and reviewed folklore/religion are allowed; serious
+  grief and extreme bathroom humour are excluded. Prototype French/Spanish
+  review may use an LLM, but must be labelled lower-assurance; French is the
+  second language priority and Spanish the third. Both retain deterministic
+  checks plus an approved local fallback.
+- The owner defines three available power interfaces for this recommendation:
+  regulated **24 V up to 3 A**, regulated **19 V up to 3 A**, and **12–14 V up
+  to 20 A** for accessories. Upstream battery, converter, fuse, grounding, and
+  wiring design are owner-managed and are not prerequisites for recommending
+  Neko hardware. Keep the existing 1–2 A lights as the only baseline load on the
+  24 V interface; run the Jetson from 19 V; run new perception/audio loads from
+  12–14 V. Add a RECOM `REC30K-2412SZ` for regulated nominal-12 V camera power
+  and an `R-78B5.0-2.0` for the 5 V radar/aggregator domain. Its data sheet lists
+  2 A typical inrush and 10 ms typical startup under stated nominal-input test
+  conditions—not a maximum at 12–14 V—so cold-start testing remains mandatory.
+  Powering both modules from 12–14 V avoids the limited 24 V lighting headroom.
+  The SW-005 and Soberton also accept 12–14 V directly. The 4-by-8-ft solar roof
+  and 0–40 C/no-salt/rain/dust/sun exposure
+  still make ingress, condensation, UV, full-sun thermal soak, and non-panel
+  structural mounts hard gates. The Jetson developer kit is rated only 0–35 C;
+  the owner approves orderly worker shedding and shutdown at 35 C.
+- Optional online enhancement is limited to an authenticated-adult, text-only
+  session through separately billed API access. It does not authorize raw media,
+  consumer-subscription credentials, or unattended child-cloud interaction;
+  use a keyed or locked-compartment local control; remote activation needs an
+  authenticated expiring admin channel, visible cart-side state and local revoke.
+  Provider allowlisting, redaction and spend limits remain gates.
 - Two initial Claude Code reviews hit HTTP 529 and a later broad review stalled at
   the configured provider. A fourth, smaller local-only safe-mode review completed.
   It identified CPU oversubscription, readiness, memory-bound, least-privilege, and
   local-API robustness gaps; the first three were addressed in the deployed unit,
   while dedicated-user and authenticated/supervisor-only access remain explicit
-  hardening gates. Exact attempts and findings are in the setup log.
+  hardening gates. A later read-only hardware-note audit also stalled and exposed
+  a broken local `SessionEnd` hook path; it made no edits. Exact attempts and
+  findings are in the setup log.
 
 ## Provisional architecture constraints
 
@@ -308,13 +378,21 @@ These are constraints, not yet final component choices:
 
 ## Open owner decisions
 
-The initial blockers are resolved in the owner-decisions record. Before buying
-hardware, the project still needs battery chemistry/nominal/full/minimum voltage
-and existing rails; cart dimensions and an occupied lidar sightline; intended
-weather/washing/temperature exposure; minimum child age/height and story age bands;
-parked/slow/moving interaction rules; and whether side anonymous awareness is
-enough. The roughly US$2,000 ceiling is treated as the combined added-system
-budget. The complete next-input list is in the current implementation plan.
+The electrical source boundary is resolved for recommendation purposes: use the
+owner-provided 24 V/3 A, 19 V/3 A, and 12–14 V/20 A interfaces and do not require
+battery or upstream wiring evidence. Before ordering, the project still needs
+checkout-confirmed seven-day arrival to the known BC V9G 1L8 destination and
+final stock for every BOM line. Field use still needs complete empty/occupied
+front/rear/side geometry, protected electronics space, storage/overnight exposure,
+a simultaneous under-200 W power test at the supplied interfaces, and accepted
+blind zones/cooldowns. Parked-only greeting, <=10-ft interaction, 0–40 C/no
+salt/cloth cleaning, one speaker, and orderly shutdown at 35 C are decided. Story
+questions are now limited to age-lane language mix, retention/owner controls, and
+the final manifest. Online mode still needs the exact keyed/local and authenticated
+remote implementation, separately billed provider/budget, redaction/indicator
+design, and retention policy. The Canadian BOM carries the controlling checkout
+and one-week acceptance gates; fuller specialist questions remain in the linked
+audio, perception, story, and power/weather notes.
 
 Headless mode is now persistent: `multi-user.target` is the default, display
 manager units are inactive, and no Xorg/GNOME/Firefox process is present.
@@ -397,3 +475,37 @@ For every future model or service, add:
   FP16 plans, and measured the FP16 plan at about 8.73 ms model-only. Exact
   deterministic PyTorch/FP32/FP16 numerical gates passed; real-camera and
   combined-workload evaluation remain pending.
+- 2026-07-13: Incorporated the 48 V-class/four-battery LiFePO4 description,
+  existing 24 V and 19 V converters, 4-by-8-ft solar roof, outdoor exposure,
+  ages 5–10 audience, and all-cat story theme. Added full-pack/protection,
+  graceful-shutdown, weather, geometry, 24 V accessory, sensor-ingress, and
+  30-work pilot gates without changing software, wiring, or hardware.
+- 2026-07-13: Confirmed the four traction batteries are in series and adopted the
+  Canadian one-week revision-one BOM: two Reolink Duo 3V PoE cameras, four C4001
+  radars, and locally stocked four-mic/audio parts. Recorded the CAD 1,144.60–
+  1,364.60 planning range, 129 W allocation/200 W cap, five-minute light stories,
+  approved `Neko Neko` wake phrase, provisional LLM French/Spanish review, and
+  authenticated-adult text-only billed API policy. No part was ordered or installed.
+- 2026-07-13: Superseded that preliminary power allowance after the owner
+  identified both installed bucks as 4–38 V input modules. Recorded the immediate
+  full-pack/midpoint prohibition, Canadian-stocked DDR-240C-24/RSD-60L-12/
+  DDR-60L-12 replacement candidates, SW-005 direct-DC camera topology, revised
+  CAD 1,625.13–1,947.53 total and 135 W allocation after a revised provisional
+  safety allowance and conservative shipping tax. Inspected the occupied cart
+  image transiently, deleted it without committing people or embedded precise-
+  location metadata, and moved cameras/radars outside the slat plane. Also
+  recorded BC V9G 1L8,
+  parked-only <=10-ft greeting, 0–40 C/no-salt/cloth-cleaning environment, one
+  speaker, French priority, story boundaries and keyed/remote adult-mode options.
+  No wiring, package, service, order or model state changed.
+- 2026-07-13: Corrected the recommendation boundary to the owner-provided
+  regulated 24 V/3 A, regulated 19 V/3 A, and 12–14 V/20 A interfaces. Removed
+  battery/wiring evidence and the three full-pack converters from active purchase
+  gates; selected a RECOM `REC30K-2412SZ` for nominal-12 V camera power and an
+  `R-78B5.0-2.0` for 5 V radar/control power. Kept the Jetson on 19 V, reserved
+  24 V for the existing lights, and moved new accessory loads to 12–14 V.
+  Recorded the owner-approved 35 C orderly shutdown, the 135 W total allocation
+  across the supplied interfaces, and revised CAD 1,399.68–1,722.08 planning
+  range. Historical
+  electrical research remains labelled and preserved. No wiring, package,
+  service, order, or model state changed.

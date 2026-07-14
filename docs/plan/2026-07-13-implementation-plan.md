@@ -6,6 +6,12 @@ and the dated model, perception, audio, story, and operations research linked
 from [`AGENTS.md`](../../AGENTS.md). Prices and product availability are a
 2026-07-13 snapshot and must be checked again before ordering.
 
+For the one-week hardware revision, the Canadian purchase decision in
+[`docs/research/2026-07-13-canadian-one-week-bom.md`](../research/2026-07-13-canadian-one-week-bom.md)
+supersedes the earlier US-dollar OAK/S2L and overseas-audio purchase paths
+where they conflict. Those earlier notes remain useful research and
+acceptance-test records, not the current shopping list.
+
 ## Outcome and scope
 
 Revision one is a local-first, child-conscious social assistant on a manually
@@ -22,23 +28,30 @@ LLM tool list.
 ## System shape
 
 ```text
-roof mic + XVF3800 hardware AEC/beamforming
+roof mic + locally stocked four-mic XVF3000 hardware AEC
   -> local wake/VAD/streaming ASR
   -> deterministic intent, privacy, child-safety and turn-taking policy
        -> exact commands / approved story playback / sound actions
        -> loopback Gemma 4 E2B for bounded dialogue or scene generation
-       -> redacted text-only cloud enhancement when explicitly allowed
+       -> adult-authenticated, redacted text-only billed API when allowed
   -> local TTS + audio scheduler/limiter
-       -> full-range voice/effect speaker
+       -> limited Visaton FR 8 WP voice/effect speaker
        -> separately limited body purr transducer
 
-front OAK metric person tracks + 360 range/presence + rear confirmation
+opposing front/rear Reolink Duo 3V panoramas on local 12 V + private Ethernet
+  with no default route
+  + four exterior C4001 radar sectors at 0/90/180/270 degrees
   -> ephemeral metadata only
   -> deterministic dwell/approach/cooldown state machine
   -> one approved greeting event through the same interaction policy
 
-hard electrical cart power switch
-  -> whole system off
+normal off/offline control
+  -> orderly Linux shutdown before ordinary power removal where practical
+
+owner-provided power interfaces (upstream wiring is owner scope)
+  -> regulated 19 V / 3 A -> Jetson + USB microphone/data
+  -> regulated 24 V / 3 A -> existing lights only
+  -> 12–14 V / 20 A -> REC30K camera supply + R-78B radar supply + SW-005 + audio + controls
 
 manual driver / future independent safety controller
   -> the assistant has no motion-control path in revision one
@@ -69,57 +82,152 @@ acceptance and the complete wake + ASR + TTS + perception soak remain required.
 
 ### Audio
 
-Provisional installed range: **US$280–445** before Canadian tax/shipping.
+The one-week schedule baseline uses parts observed in Canadian stock:
 
-- Seeed reSpeaker Flex XVF3800 Circular-4 at the roof center for USB duplex,
-  hardware AEC, beamforming, VAD, direction, gain, and noise processing.
-- Dayton KAB-215v2 two-channel Class-D amplifier with Bluetooth disabled.
-- Visaton FR 10 WP 4-ohm weather-resistant full-range speaker in a correctly
-  sealed/gasketed baffle.
-- Dayton TT25-8 body shaker on a lightweight body panel, not the passenger seat
-  or chassis, with the SMRK-2 mount.
-- Mean Well DDR-60G-12 or DDR-60L-12 only after measuring the cart pack; omit it
-  if a clean, isolated, fused 12 V rail has enough capacity.
-- DC fuse/disconnect, locking/shielded USB, rain/wind protection, strain relief,
-  ferrites, and a fail-silent output path.
+- Seeed reSpeaker USB four-mic array with the older XVF3000 processor for USB
+  duplex and hardware AEC. Its discontinued silicon is a lifecycle compromise,
+  so pin its working firmware and retain a spare/rollback plan.
+- Soberton XPCB-12BT, a 10–25 V, 2 x 25 W amplifier. Use wired AUX, disable
+  Bluetooth, and verify after every cold boot that it did not re-enable.
+- One Visaton FR 8 WP, 8-ohm, 15 W RMS weather-resistant voice speaker in a
+  correctly gasketed and drained baffle.
+- One Dayton TT25-8, 8-ohm, 15 W RMS body shaker with the SMRK-2 ring on a
+  lightweight body panel, not a passenger seat or structural chassis member.
+- A sealed downstream fuse holder, fixed hardware gain/attenuation, DC branch
+  protection, shielded USB/audio cable, wind treatment, strain relief, ferrites,
+  and a fail-silent watchdog.
 
-Do not buy the DC/DC converter until nominal, fully charged, and minimum battery
-voltages are known. The transducer channel needs a limiter, band-pass/low-pass,
-maximum duration/duty cycle, gentle fades, and a watchdog. Measure a child-safe
-SPL and vibration limit; amplifier maximum is never the user volume maximum.
+The two drivers total **30 W RMS**, below the owner's 100 W driver-rating cap.
+At 12 V, target about 7 W clean per 8-ohm channel. Treat 8–10 W per channel as a
+14 V bench target, not a guaranteed output, and never exceed either 15 W driver.
+The combined planning allocation for amplifier and audio output is approximately
+**35 W electrical**, not a promise to deliver the amplifier's 2 x 25 W nameplate.
+
+The reSpeaker Flex XVF3800 Circular-4 remains the preferred long-term microphone
+because its current AEC/AGC/beamforming/noise-processing platform avoids the
+XVF3000 lifecycle issue. It is not a one-week dependency until a Canadian
+checkout can guarantee delivery. The locally stocked two-mic XU316/reSpeaker
+Lite is a schedule fallback only if the four-mic board is unavailable or proves
+unnecessary in an open-cart pickup test.
+
+Feed the 10–25 V Soberton from the owner-provided 12–14 V accessory interface,
+with downstream branch protection and filtering selected by the owner. This
+avoids both the nearly full 24 V lighting interface and the amplifier's narrow
+25 V maximum. Keep the Jetson on the supplied 19 V interface. The transducer
+channel still needs a limiter, band-pass/low-pass, maximum duration/duty cycle,
+gentle fades, and a watchdog. Measure a child-safe SPL and vibration limit;
+amplifier maximum is never the user-volume maximum.
 
 ### Social perception
 
-Conditional value tier: **US$1,100–1,300 installed**.
+The one-week build uses camera semantics plus inexpensive sector presence:
 
-- Front OAK-D W with OV9782 wide/global-shutter color sensor: on-device person
-  detection/tracking plus metric stereo XYZ.
-- RPLIDAR S2L: anonymous 360-degree range clusters and approach/dwell, only if a
-  substantially clear, level 0.9–1.2 m scan plane exists.
-- Existing C922 at the rear: low-rate or event-triggered person confirmation in
-  a suitable enclosure.
-- Industrial powered USB hub, separately fused regulated sensor power, secured
-  cabling, mounts, guards, and weather protection.
+- Two opposing Reolink Duo 3V PoE-model panoramas powered through their 12 V
+  inputs, one below the front roof edge and
+  one below the rear edge. Each provides a nominal 180-degree horizontal by
+  53-degree vertical view, local person events, RTSP/ONVIF, IP67 ingress, and an
+  IK10 housing. Start at roughly 25–30 degrees downward pitch, then map the real
+  seams and occlusions with every seat occupied.
+- Four DFRobot C4001/SEN0609 24 GHz modules at nominal yaws 0, 90, 180, and 270
+  degrees. Four 100-degree nominal horizontal sectors provide about 10 degrees
+  of neighbor overlap; three modules would leave nominal gaps before beam
+  roll-off. Start around 20–25 degrees down and constrain the social range to
+  approximately 1.2–3.05 m (4–10 ft).
+- A wired four-UART aggregator, regulated 5 V, RF-tested weather pods, protected
+  cabling, a Brainboxes SW-005 on the Jetson's onboard Ethernet port, dedicated
+  REC30K-2412SZ camera power from the supplied 12–14 V interface with two output
+  runs, an R-78B5.0-2.0 radar supply from the same interface, structural brackets,
+  glands, drip loops, and strain relief.
 
-Combined with audio, the expected pre-tax additional hardware range is about
-**US$1,380–1,730**, leaving pre-tax contingency below the owner's approximate
-US$2,000 combined added-system ceiling.
+The C4001 is a bare PCB and coarse dominant-presence/range source, not an
+IP-rated multi-person tracker or reliable bearing sensor. Require dwell/approach
+consistency and camera confirmation before a spoken greeting. A radar-only side
+event may at most trigger a restrained generic sound. Proactive greetings are
+parked-only in revision one because cart ego-motion corrupts approach cues;
+wake-word conversation can remain available under the driver's policy. Gate
+greetings on a camera-confirmed approach/dwell in the radar's approximate
+4–10 ft useful annulus. Inside its documented roughly 4-ft ranging floor,
+suppress repeated solicitation and retain wake/camera behavior. Disable camera
+microphones, speakers, sirens, spotlights, recording, P2P, UPnP, cloud, email,
+and FTP. Give the camera network no default route or DNS and verify isolation by
+packet capture.
+Use low-rate H.264 substreams and bounded local person detection rather than
+continuously decoding both 16 MP streams.
 
-The lidar decision is a geometry gate. If riders, posts, or bodywork block most
-of a useful-height plane, substitute three exterior DFRobot C4001 24 GHz sectors
-plus a wired microcontroller aggregator. That radar tier is cheaper but coarser,
-normally lacks robust bearing/multi-person output, and has a documented 1.2 m
-ranging floor. It may trigger a soft generic meow; spoken person-specific
-greetings still require camera confirmation.
+The occupied-cart photograph establishes that posts/slats and passengers will
+occlude any camera or radar mounted inside the passenger envelope. Put panorama
+optical faces below and just outside the front/rear post plane and radar faces
+outside the slats, all on structural roof-frame brackets rather than solar-panel
+or LED-strip hardware. The source image contained people and embedded location
+metadata, was inspected transiently, deleted, and not committed. Obtain complete
+empty/occupied front/rear/side survey geometry before drilling.
 
-Three new perimeter OAK-D W cameras are technically cleaner semantic surround
-coverage but cost approximately US$1.7–1.9k before audio. Keep that as a later
-premium option. Three cameras clustered at the front do not provide 360 degrees
-because they cannot see through the roof, shell, posts, driver, or passengers.
+There is **no lidar in the one-week build**. A level two-dimensional S2/S2L at
+the approximately 7-ft roof scans roughly 2.5–3.5 ft above the 3.5–4.5-ft child
+audience. Tilting a plane lowers only one azimuth while raising the opposite
+side; it does not create a downward surround cone. A vulnerable useful-height
+mount among the body, posts, driver, and passengers does not beat the camera/
+radar path on this schedule.
+
+An inverted roof-mounted hemispherical 3D lidar, provisionally Unitree L2, is
+the preferred later lidar experiment because inversion places its hemisphere
+below the roof. It remains deferred until Canadian stock/ETA, external water
+protection, optical-window treatment, 12 V power, landed cost, and combined
+tests pass. OAK-D W, RPLIDAR S2, and the existing C922 remain research or
+diagnostic alternatives rather than revision-one purchase dependencies.
+
+The roughly 4-by-8-ft roof is solar-panel surface, not free mounting area. Put
+cameras and radar pods below structural perimeter/eave mounts without clipping
+their fields; do not shade, drill, or bond to panels without manufacturer
+approval. All exposed assemblies must pass rain/splash, dust/mud, dirty-window,
+UV, condensation, vibration, cable-tug, cold/hot restart, and parked-in-sun
+thermal tests. Pressure washing remains prohibited until the exact assembled
+system has an applicable rating.
+
+### Canadian cost and total-power envelope
+
+The provisional added-system planning range is **CAD 1,399.68–1,722.08 landed**,
+leaving **CAD 277.92–600.32** under the owner's fixed CAD 2,000 landed ceiling.
+This uses an assumed British Columbia 5% GST plus 7% PST and includes planning
+allowances for power, network, weather protection, cabling, and mechanics. It is
+not a checkout quote: confirm arrival to the supplied BC postal code V9G 1L8
+within seven days, taxes, shipping, stock, cable lengths, converters, and mounts
+before buying.
+Do not consume the reserve until those items are known.
+
+The deliberately conservative simultaneous allocation is:
+
+| Supplied interface | Planning allocation |
+| --- | ---: |
+| 19 V: Jetson, NVMe, cooling, USB microphone/data, and reserve | 45 W / 2.37 A |
+| 24 V: no new Neko load; reserved for the existing lights | 0 W new load |
+| 12–14 V: cameras/network, radar/control conversion, audio, controls/cooling, and reserve | 90 W / 7.50 A at 12 V |
+| **Simultaneous supplied-interface planning total** | **135 W** |
+
+The allocation includes downstream conversion loss and uncertainty reserves. It
+is not a measurement. At the stated maximum 2 A lighting load, the 24 V/3 A
+interface retains 1 A of stated headroom because Neko adds no load to it.
+
+Acceptance is a hard **measured maximum of 200 W running** for the scoped Neko
+loads during the worst approved combined workload. Measure all three supplied
+interfaces with lights/non-Neko accessories isolated. Lights are
+outside this cap; test their simultaneous operation separately for rail/thermal
+interference rather than subtracting a guessed baseline. Use approximately
+**180 W as a soft software load-shedding threshold** if a suitable common
+measurement is available. Upstream protection and wiring remain owner scope.
+
+The candidate component data sheets include 40 C operation under their stated
+orientation, enclosure, ventilation, and derating rules; assembled solar-bay
+margin remains unproven. The Jetson Orin Nano Developer Kit itself is rated only
+0–35 C. Instrument enclosure ambient and thermal zones; unless the hardware
+platform changes, shed optional workers and perform an orderly shutdown at 35 C;
+no operation above 35 C is claimed. The owner approves that boundary.
 
 See [`docs/research/2026-07-13-audio-voice.md`](../research/2026-07-13-audio-voice.md)
 and [`docs/research/2026-07-13-perception-bom.md`](../research/2026-07-13-perception-bom.md)
-for exact parts, prices, power assumptions, placement, alternatives, and tests.
+for the longer component research and tests, and
+[`docs/research/2026-07-13-canadian-one-week-bom.md`](../research/2026-07-13-canadian-one-week-bom.md)
+for the superseding purchase list, Canadian prices, availability, and arithmetic.
 
 ## Offline software choices
 
@@ -128,8 +236,10 @@ for exact parts, prices, power assumptions, placement, alternatives, and tests.
 Benchmark the following in this order; do not install every candidate into the
 normal profile at once.
 
-1. XVF3800 hardware processing and 48 kHz duplex USB; resample capture once to
-   the ASR rate and TTS once to the playback rate.
+1. Locally stocked four-mic XVF3000 hardware AEC and duplex USB for the one-week
+   build; pin its working firmware and ALSA identity. Evaluate XVF3800 as the
+   long-term replacement once its Canadian delivery is dependable. Resample
+   capture once to the ASR rate and TTS once to the playback rate.
 2. `openWakeWord` custom **Neko Neko** model, with sherpa-onnx keyword spotting
    as the active-maintenance comparison. Avoid “Hello Kitty” as the public wake
    phrase because of Sanrio branding risk.
@@ -164,10 +274,21 @@ separate; a voice “stop” is never represented as a vehicle e-stop.
 
 ### Stories
 
-Start with 60–100 human-reviewed CC0 or CC BY 4.0 short stories across English,
-French, and Spanish. Use Global Digital Library as the primary API source, then
-curated StoryWeaver and approved African Storybook titles. Store corpus data
-outside Git; commit provenance/rights manifests and tooling only.
+Start with a 30-work human-reviewed cat-only pilot: 16 works in the ages 5–7
+presentation lane, 14 in ages 8–10, and at least 18 centered on wild, extinct,
+or mythical cats. Expand toward 60–100 only after the rights, ingestion,
+narration, and safety workflow passes. Every enabled title must center a cat:
+domestic cats, wild felids, or a clearly reviewed fictional feline all fit;
+incidental keyword matches do not. Use Global Digital Library as the primary API
+source, then curated StoryWeaver, approved African Storybook, and individually
+dual-jurisdiction-cleared public-domain titles. Store corpus data outside Git;
+commit provenance/rights manifests and tooling only.
+
+Every complete story must fit within **five minutes**. Default to a light,
+explicitly non-scary tone. Age-appropriate conflict and reviewed
+folklore/religion are allowed. Serious grief and extreme bathroom humour are
+excluded. Suspense, threat and predation need conservative content flags plus an
+approved fallback; they must never appear as an unreviewed surprise improvisation.
 
 Every story exposes a child-visible choice:
 
@@ -177,8 +298,13 @@ Every story exposes a child-visible choice:
 
 Generate 100–200-word scenes from reviewed story cards, finish and safety-check
 the whole scene before TTS, and never stream unchecked child-facing tokens.
-Prefer existing human French/Spanish translations. Keep names/session choices in
-volatile memory unless an adult explicitly saves a placeholder-based favorite.
+Prefer existing human translations, prioritizing French before Spanish. For this
+prototype, the owner accepts LLM-based French and Spanish review when fluent-human review is not
+available. Mark that output **lower assurance** in its manifest and maintenance
+UI, retain deterministic language/content checks, and always keep an approved
+local fallback. This prototype allowance is not equivalent to fluent-human
+validation. Keep names/session choices in volatile memory unless an adult
+explicitly saves a placeholder-based favorite.
 
 Reject or quarantine ambiguous licenses, ND remixes, NC material, and SA material
 until its obligations are implemented. Traditional, Indigenous, sacred, or
@@ -204,21 +330,28 @@ braking, or safe-clearance decision.
 Offline readiness never waits for NetworkManager, DNS, a cloud API, an image
 pull, or a model download.
 
-The online router may send only locally produced, redacted text to a separately
-funded and documented API. Replace child names, school/contact data, and precise
-locations with opaque placeholders and reinsert them locally. Use a provider and
-destination allowlist, small request budgets, short timeouts, a circuit breaker,
-local output safety checks, and immediate local fallback.
+An authorized adult may start a text-only session against a separately billed,
+documented API. That route requires adult authentication, visible online state,
+provider/destination and spend limits, and an explicit end-session control. It
+does not authorize unattended live child/cloud companionship. The router may
+send only locally produced, redacted text: replace names, school/contact data,
+and precise locations with opaque placeholders and reinsert them locally. Use
+small request budgets, short timeouts, a circuit breaker, local output safety
+checks, and immediate local fallback.
+
+The default local adult-mode authority is a keyed switch or a control inside a
+locked compartment; an exposed button by itself is not authentication. Remote
+activation is acceptable only through an authenticated administration channel
+with automatic expiry, a visible cart-side indicator and immediate local revoke.
 
 Z.AI Coding Plan and ChatGPT/Codex subscriptions are development entitlements,
 not embedded application API funding. Do not place their session credentials on
 the cart or automate consumer coding clients as the runtime assistant.
 
-Raw audio, images, video, and full source books do not leave during normal use.
-Any future media upload requires contemporaneous human confirmation, a visible
-indicator, a single bounded artifact, and an explicit destination. Around
-children, adult confirmation is the default. A spoken “yes” alone is not a
-strong media-export control.
+Raw audio, images, video, and full source books stay local unless a human gives
+contemporaneous consent for one bounded artifact, provider, and purpose through
+an explicit visible control. Around children, require an adult. A blanket toggle
+or spoken “yes” alone is not an adequate media-export control.
 
 Keep only a volatile 10–15 second audio ring buffer; disable raw recording and
 transcript logging by default. Use ephemeral track IDs; no face recognition,
@@ -237,7 +370,7 @@ Provisional services, implemented only as their hardware/runtime is ready:
 | `neko-asr` | streaming local transcription | exact button/canned paths remain |
 | `neko-gemma` | four-thread bounded fixed local model, preload readiness, loopback health | deterministic commands/stories/sounds remain |
 | `neko-tts` | local streaming synthesis | canned voice/earcon fallback |
-| `neko-sensors` | OAK/lidar/radar/C922 health and metadata | no proactive greeting; voice remains |
+| `neko-sensors` | front/rear Reolink and four-sector C4001 health plus ephemeral metadata | no proactive greeting; voice remains |
 | `neko-behavior` | policy, typed intents, social state, child/privacy rules | fail closed on cloud/actions; audio watchdog remains |
 | `neko-assistant` | turn pipeline and session coordination | supervisor restarts with bounded backoff |
 | `neko-cloud` | text redaction/provider/circuit breaker | disabled/offline; never blocks local readiness |
@@ -259,35 +392,60 @@ dependency-loss tests, and a combined soak—not merely `systemctl enable`.
   loopback unit enabled and warm-tested.
 - Audex exact-revision assets on NVMe; no runtime.
 - ZipDepth exact-revision assets, isolated export environment, faithful ONNX,
-  and board-built FP32/FP16 engines; numerical/runtime acceptance remains.
-- Complete the GGUF/llama.cpp GPU decision and actual reboot readiness check.
+  and board-built FP32/FP16 engines; deterministic numerical gates and model-only
+  timing pass, while real-camera and combined-workload acceptance remains.
+- Keep the measured 18.63-token/s GGUF/llama.cpp GPU path as an on-demand
+  alternate; complete actual reboot readiness and full-stack coexistence checks.
 
 Exit: package integrity, checksums, service health/restart, memory audit, and
 operations rollback are recorded.
 
 ### 1. Geometry, power, privacy, and interaction survey
 
-- Dimensioned cart sketch/photos with every seat occupied; candidate camera,
-  microphone, speaker, shaker, hub, and lidar/radar mounts.
-- Battery chemistry, nominal/full/minimum voltage, accessory rails, connectors,
-  fusing, continuous/peak budget, cable routes, and ignition behavior.
-- Operating weather/light/temperature, speed/noise, minimum child height, parked
-  vs moving conversation policy, interaction radius, and acceptable blind zones.
-- Final child age bands/content boundaries and privacy indicators/mutes.
+- Complete empty and occupied front/rear/both-side dimensioned cart survey;
+  front/rear panorama,
+  four radar-pod, microphone, speaker, shaker, network, and electronics-bay
+  mounts. Confirm the known approximately 7-ft roof underside and 3.5–4.5-ft
+  child target band at the actual mounting locations.
+- Treat regulated 19 V/3 A, regulated 24 V/3 A, and 12–14 V/20 A as the supplied
+  power boundary. Confirm received device compatibility and measure actual load,
+  ripple, and temperature at those interfaces; upstream wiring remains owner
+  scope.
+- Use an R-78B5.0-2.0 for the 5 V radar/aggregator domain and a
+  REC30K-2412SZ for the two nominal-12 V cameras, both from 12–14 V. Use the same
+  interface directly for the SW-005 and Soberton. Mount both board-level
+  converters on mechanically supported carriers in protected space and account
+  for them in the final BOM and loss budget.
+- Record solar-panel/frame geometry and approved structural attachment points;
+  roof height/posts/overhang, occupied sightlines, and shaded electronics-bay
+  space.
+- Record storage/overnight exposure, speed/noise, cooldowns and acceptable blind
+  zones. Ambient 0–40 C, no salt, cloth cleaning, one speaker, parked-only
+  proactive greeting and <=10-ft interaction radius are decided.
+- Finalize privacy indicators/mutes and owner/history controls. The story policy
+  allows reviewed conflict and folklore/religion, excludes serious grief and
+  extreme bathroom humour, and prioritizes French before Spanish.
+- At checkout, confirm arrival to BC V9G 1L8 within seven
+  days, taxes/shipping, and stock for every camera, radar, audio, power, network,
+  and enclosure line. Dispatch time alone is not sufficient.
 
-Exit: lidar geometry passes or radar fallback is selected; DC/DC parts and
-enclosure class can be chosen without guessing.
+Exit: the opposing-camera/four-radar layout has an occupied coverage sketch;
+the 2D roof-lidar path is explicitly deferred; DC/DC, network, cable, and
+enclosure parts can be selected without guessing; the complete checkout stays
+at or below CAD 2,000 landed and every critical part meets the one-week ETA.
 
 ### 2. Bench audio minimum
 
-- Install the XVF array, speaker, amp, and low-level body shaker on a protected
-  bench supply.
+- Install the locally stocked four-mic XVF3000 array, Soberton XPCB-12BT,
+  Visaton FR 8 WP, and low-level TT25-8 body shaker on a protected bench supply.
 - Pin firmware and ALSA identities; tune echo delay and barge-in.
 - Build/evaluate Neko Neko, VAD, EN/FR/ES ASR, TTS voices, canned sounds, limiter,
-  and fail-silent behavior.
+  Bluetooth-disabled AUX behavior, and fail-silent behavior. Keep XVF3800 as a
+  later lifecycle upgrade rather than a schedule dependency.
 
 Exit: wake targets, false wakes, word error, first-audio latency, interruption,
-SPL/vibration, RAM/power/temperature, restart, and eight-azimuth tests pass.
+SPL/vibration, fixed driver-safe limits, RAM/power/temperature, restart, and
+eight-azimuth tests pass within the 35 W audio allocation.
 
 ### 3. Offline assistant minimum
 
@@ -305,57 +463,120 @@ seconds.
 - Implement the rights/provenance schema and hostile-archive ingestion gate.
 - Human-curate the first exact/deterministic set before adding generation.
 - Add bounded English scene remix and deterministic child-safety checks; add
-  French/Spanish only after fluent review.
+  French first and Spanish afterward, with existing human translations where
+  possible, otherwise the
+  owner-accepted, explicitly labelled lower-assurance LLM prototype review.
+- Enforce the five-minute maximum and light/non-scary default. Allow reviewed
+  age-appropriate conflict and folklore/religion; exclude serious grief and
+  extreme bathroom humour; keep conservative fallbacks for suspense, threat and
+  predation.
 
 Exit: every visible item has a source/license/hash/content review; offline exact
 and deterministic modes survive Gemma failure; generated scenes are fully checked
-before speech.
+before speech; language assurance is visible; no story exceeds five minutes.
 
 ### 5. Social perception
 
-- Bench OAK plus the geometry-selected presence layer; reuse rear C922.
+- Bench one Reolink Duo 3V PoE panorama and one C4001 before drilling. Prove
+  local RTSP/ONVIF, H.264 substream decode, local person events, camera feature
+  disablement, isolated networking, and no media egress.
+- Add the opposing panorama and all four radar sectors through the wired
+  aggregator; keep the camera network without a default route or DNS.
 - Emit metadata only and implement deterministic dwell/approach/cooldown.
 - Mount and field-map 360 degrees with occupants, children/adults, groups,
-  occlusion, sun/night, vibration, motor noise, and intended weather.
+  seams/occlusion, sun/night, rain, dirt, vibration, radar interference, cart
+  reflections, motor noise, and intended weather.
 
 Exit: range/coverage map and blind zones are explicit; no repeated solicitation;
 camera confirmation gates spoken greetings; unplugged/blocked sensors degrade
-without harming voice.
+without harming voice. Lidar remains absent from the revision-one dependency
+graph; an inverted 3D unit is a separately gated later experiment.
 
 ### 6. Combined cart soak and launch hardening
 
 - Run perception + wake/ASR + Gemma + TTS for at least two hours, then longer
   representative duty cycles.
 - Measure P50/P95 interaction latency, DRAM/NvMap, dropped audio/frames/events,
-  total input power, minimum-battery behavior, temperature/throttling, and logs.
+  scoped Neko input power, separate lights-on coexistence behavior,
+  supplied-interface sag/ripple, temperature/throttling, and logs.
 - Test ten cold boots, USB reorder/unplug, network loss, storage-full behavior,
   process crashes, corrupt/missing assets, mute/privacy state, and fail-silent
   amplifier behavior.
+- Test ordinary shutdown through confirmed OS halt and separately the recovery
+  path after unavoidable immediate power loss.
+- Exercise the worst approved simultaneous workload: five-minute story audio,
+  purr, wake/ASR, Gemma, both camera verification paths, four radar sectors, and
+  selected ZipDepth sampling. Measure all three supplied power interfaces with
+  non-Neko loads isolated, trigger staged software shedding near
+  180 W, and reject any post-start running mode or ordinary workload transient
+  above 200 W. Repeat with lights enabled as a separate shared-rail interference
+  test.
 
-Exit: the offline minimum consistently starts and the total system remains below
-measured power/thermal/memory limits with documented recovery.
+Exit: the offline minimum consistently starts and the scoped Neko system remains below
+measured power/thermal/memory limits with documented recovery. Do not infer
+traction runtime from this accessory-power test.
 
-### 7. Optional text-only cloud mode
+### 7. Adult-authenticated text-only cloud mode
 
-- Obtain a separate supported API account/budget; implement redaction,
-  allowlists, timeouts, circuit breaker, local safety checks, and visible state.
-- Start with owner-approved pre-generation or current-information requests, not
-  open-ended live child/cloud companionship.
+- Obtain a separately billed supported API account/budget; implement adult
+  authentication, redaction, provider/destination and spend allowlists, timeouts,
+  circuit breaker, local safety checks, visible state, and explicit session end.
+- Use a keyed switch or a control inside a locked compartment for local adult
+  enablement. Remote enablement must use an authenticated administration channel,
+  expire automatically, show a cart-side indicator and remain locally revocable;
+  a plain exposed button is not authentication.
+- Start with adult-operated pre-generation, current-information requests, or
+  adult-authenticated text sessions, not unattended live child/cloud companionship.
+- Keep raw camera, audio, and source-book media local absent contemporaneous
+  per-artifact human consent; require an adult when children are involved.
 
 Exit: packet capture proves only permitted redacted text leaves; every provider
-failure immediately falls back locally; no subscription/session credential is
-embedded.
+failure immediately falls back locally; no consumer subscription/session
+credential is embedded; raw media cannot egress through the text route.
 
-## Next owner inputs
+## Remaining purchase gates and later owner inputs
 
-The next purchase cannot be finalized without:
+The core hardware recommendation is complete. Before ordering, confirm:
 
-1. battery chemistry, nominal/full/minimum voltage and existing fused rails;
-2. dry-weather vs rain/overnight/wash requirement;
-3. cart dimensions and a candidate 0.9–1.2 m unobstructed lidar scan plane;
-4. minimum child age/height, story age bands, and parked/slow/moving interaction;
-5. whether near-360 anonymous awareness with front/rear visual confirmation is
-   enough, or every side person must be visually classified;
-6. exact boundaries for scares, grief, religion/folklore, conflict, bathroom
-   humor, memory/retention, and who will review French/Spanish;
-7. whether version one cloud use should be owner pre-generation only.
+1. checkout-confirmed arrival within seven days to the supplied BC V9G 1L8
+   destination for the Reolink pair, four radars, XVF3000, amplifier, speaker,
+   transducer, converters, switch, enclosures and fabrication dependencies;
+2. complete empty/occupied front/rear/both-side photos or sketch showing the
+   approximately 7-ft roof, posts, overhang, bodywork, solar-panel/frame geometry,
+   outboard structural camera mounts, four outboard radar pods, shaded
+   electronics bay and panorama seams;
+3. storage temperature and overnight exposure; orderly degraded shutdown at
+   35 C is already approved.
+
+The following decisions affect integration and field use but do not block an
+order for the core hardware:
+
+1. greeting cooldowns and acceptable remaining seams/blind zones for children,
+   adults, groups, pets and partially occluded people; parked-only proactive
+   greeting and <=10-ft radius are decided;
+2. preferred 5–7 versus 8–10 English/French mix, memory/retention and generated-
+   history retention; French-before-Spanish and the story content boundaries are
+   decided;
+3. exact keyed/locked local adult control, remote-admin mechanism, supported
+   billed API provider/project, spend ceiling, normally-present-adult assumption,
+   and visible cloud/privacy controls;
+4. target maximum SPL at 1 m, quiet hours, microphone electrical kill, camera
+   service covers/shutters, and the schedule, consent, release, and retention
+   terms for the prospective recording under the owner-approved source-voice
+   plan; one voice speaker is decided;
+5. who may save a favorite story variant, whether spoken attribution is
+   acceptable, and whether traditional/Indigenous/sacred stories must remain
+   original-only without explicit source and cultural-review approval.
+
+The budget decision is no longer open: the ceiling is CAD 2,000 landed for added
+hardware, with the current provisional planning range at CAD
+1,399.68–1,722.08 under an assumed 12% BC tax rate. Checkout price, delivery,
+and mechanically dependent allowances remain gates. The three supplied power
+interfaces are the recommendation boundary; upstream wiring is owner scope.
+
+See the detailed electrical/environmental checklist in
+[`docs/research/2026-07-13-power-weather.md`](../research/2026-07-13-power-weather.md),
+the audio questions in
+[`docs/research/2026-07-13-audio-voice.md`](../research/2026-07-13-audio-voice.md),
+and the complete story-policy questions in
+[`docs/research/2026-07-13-stories-cloud.md`](../research/2026-07-13-stories-cloud.md).

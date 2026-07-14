@@ -1,25 +1,72 @@
 # Neko audio and voice subsystem — research cut 2026-07-13
 
-## Recommendation
+> **Superseded for the one-week revision on 2026-07-13:** the active Canadian
+> purchase decision is
+> [`2026-07-13-canadian-one-week-bom.md`](2026-07-13-canadian-one-week-bom.md).
+> Where this note's overseas XVF3800/KAB/FR-10 purchase path conflicts, retain it
+> as long-term component research rather than the current order.
 
-Build the first cart audio system around a Seeed reSpeaker Flex XVF3800
+## Current one-week audio decision
+
+Use the locally stocked four-microphone **XVF3000** board for the schedule-first
+build. The current XVF3800 Circular-4 remains the preferred long-term array once
+Canadian delivery no longer controls the schedule. Bench and record the exact
+XVF3000 USB descriptors, playback-reference/AEC behavior, firmware, host-control
+support, and end-of-life risk before treating it as a drop-in XVF3800 equivalent.
+
+The current output path is the locally stocked Soberton XPCB-12BT amplifier, one
+15 W RMS Visaton FR 8 WP voice driver, and one 15 W RMS Dayton TT25-8 body
+transducer. The two drivers total **30 W RMS**. Allocate about **35 W** to the
+limited audio domain in the scoped system power budget. At 12 V, target about
+7 W clean output per channel; treat 8–10 W as a 14 V bench target rather than a
+guarantee. Use an absolute driver-safe limit below 15 W, independent fixed gain,
+limiters, and fail-silent behavior. The
+amplifier's 2 x 25 W nameplate is specified at 20 V and 10% distortion and is not
+available or desirable from the selected 12–14 V interface.
+
+One voice speaker is sufficient for revision one. Feed the Soberton directly from
+the owner-provided 12–14 V accessory interface; it is within the board's documented
+10–25 V input range and avoids consuming the limited 24 V lighting headroom. The
+TDA7492P specification gives 7.2 W per 8-ohm channel at 12 V/1% THD and 9.5 W at
+10% THD. Bench actual output, SPL, vibration, noise, and temperature at both 12 V
+and 14 V rather than promising the 2 x 25 W headline.
+
+`Neko Neko` is the fixed wake phrase for revision one. The owner is willing to
+source a consenting adult voice; the recording/release and voice-model rights
+gates below still apply. Route playback through the selected reSpeaker device so
+its echo canceller receives the far-end reference. Validate English first,
+French second, and Spanish third; every shipped language retains a useful local
+ASR/TTS path.
+
+## Superseded overseas recommendation
+
+The earlier design built the cart audio system around a Seeed reSpeaker Flex XVF3800
 Circular-4, a small two-channel Class-D amplifier, one weather-resistant
 full-range speaker, and one body-mounted tactile transducer. Use the microphone
 array's playback path for all sound so its hardware acoustic echo canceller has
 the correct far-end reference.
 
-The exact listed hardware subtotal was **US$179.30** on 2026-07-13. A practical
-installed audio subsystem is expected to cost **US$280–445** before Canadian
-tax, depending on enclosure, wiring, shipping, and whether a spare microphone
-array is purchased. The owner's approximately US$2,000 ceiling applies to the
-combined added system. With the recommended OV9782 perception BOM's exact
-installed estimate, audio plus perception is approximately **US$1,378–1,728**,
-rounded to **US$1,380–1,730**, before Canadian tax/shipping.
+The owner later identified the existing 24 V and 19 V outputs as generic
+adjustable 4–38 V input modules. The earlier reuse assumption is superseded.
+The audio domain still begins at a separately protected 24 V accessory branch,
+but the selected 25 V-maximum amplifier needs a lower regulated downstream
+supply or a different amplifier with adequate margin. The Jetson uses its own
+documented 12 V converter.
 
-The preferred initial offline software path is:
+The exact listed hardware subtotal excluding a not-yet-justified new DC/DC
+converter was **US$146.00** on 2026-07-13. A practical installed audio subsystem
+was estimated at **US$280–445** before Canadian tax, depending on outdoor
+enclosure, protected distribution, wiring, shipping, and a spare microphone
+array. That superseded study used a working **US$2,000** combined-system ceiling;
+it was not the owner's final constraint. The controlling limit is now **CAD
+2,000 landed including tax and shipping**, with the active Canadian arithmetic
+in the one-week BOM.
+
+The software path remains applicable, with XVF3000 used for the one-week bench
+and XVF3800 retained as the long-term target:
 
 ```text
-XVF3800 hardware AEC/beamforming/AGC/noise reduction
+XVF3000 schedule path / XVF3800 long-term AEC and microphone processing
   -> openWakeWord: "Neko Neko"
   -> Silero VAD
   -> sherpa-onnx + Nemotron 3.5 ASR Streaming INT8
@@ -45,7 +92,10 @@ audio software or hardware was installed as part of this note.
 - **Acceptance target** means a proposed project requirement, not a vendor
   guarantee.
 
-## Recommended bill of materials
+## Superseded overseas bill of materials
+
+The following US-dollar parts table is historical. Do not use it as the current
+order list; use the Canadian one-week note linked above.
 
 | Component | Purpose | Observed price | Important facts |
 | --- | --- | ---: | --- |
@@ -53,32 +103,39 @@ audio software or hardware was installed as part of this note.
 | [Dayton Audio KAB-215v2](https://www.parts-express.com/Dayton-Audio-KAB-215v2-2-x-15W-Class-D-Audio-Amplifier-Board-with-Bluetooth-5.0-325-500) | Two independent amplified output buses | US$25.98 | 12–24 VDC, 4–8 ohm load support, 2 x 15 W specified at 19 V into 8 ohms, approximately 90% efficiency. The listed 82.7 mA idle figure is with Bluetooth connected. Actual output at 12 V will differ from the headline rating. |
 | [Dayton Audio KAB-FC cable package](https://www.parts-express.com/Dayton-Audio-KAB-FC-Functional-Cables-Package-for-Bluetooth-Amplifier-Boards-325-110) | Power, speaker, and AUX harnesses | US$6.98 | The documented AUX/jumper arrangement allows Bluetooth to be disabled. Disable it for the deployed cart and verify after every configuration change. |
 | [Visaton FR 10 WP, 4 ohm, black](https://www.visaton.de/index.php/en/products/drivers/fullrange-systems/fr-10-wp-4-ohm-black) | Neko's voice, meows, cues, and stories | [US$28.16 at DigiKey](https://www.digikey.com/en/products/detail/visaton-gmbh-co-kg/fr-10-wp-4-ohm-black/9842332) | 4-inch full-range driver, 20 W rated/30 W maximum, 80 Hz–16 kHz, 85 dB at 1 W/1 m. Vendor describes saltwater, corrosion, and UV resistance. IP66 applies from the front only when installed with a correct gasket in a sealed enclosure. |
-| [Dayton Audio TT25-8 Puck](https://www.daytonaudio.com/product/1104/tt25-8-puck-tactile-transducer-mini-bass-shaker) | Body purr and gentle tactile cues | US$23.99 MSRP | 8 ohms, 15 W RMS/30 W maximum, 40 Hz resonance, approximately 20–80 Hz useful range. |
+| [Dayton Audio TT25-8 Puck](https://www.daytonaudio.com/product/1104/tt25-8-puck-tactile-transducer-mini-bass-shaker) | Body purr and gentle tactile cues | US$23.99 MSRP | 8 ohms, 15 W RMS/30 W maximum, 40 Hz resonance, approximately 20–80 Hz useful range. No outdoor ingress rating is documented; it requires a dry protected cavity or a suitably rated substitute. |
 | [Dayton Audio SMRK-2 mounting ring](https://www.daytonaudio.com/product/1656/smrk-2-surface-mounting-ring-kit-for-tt25-puck-mini-bass-shaker) | Serviceable transducer mounting | US$5.99 MSRP | Surface-mount ring for the TT25 puck. |
-| Mean Well [DDR-60G-12 or DDR-60L-12](https://www.meanwell.com/Upload/PDF/DDR-60/DDR-60-SPEC.PDF) | Isolated 12 V/5 A, 60 W audio supply | About US$33.30 | `DDR-60G-12` accepts 9–36 V; `DDR-60L-12` accepts 18–75 V. The G model was [US$33.30 at DigiKey](https://www.digikey.com/en/products/detail/mean-well-usa-inc/DDR-60G-12/8681213). Select only after measuring the cart battery's maximum fully charged voltage. |
+| Existing 24 V accessory output | **Historical/rejected source** | Already installed but incompatible | The identified 4–38 V input module is rejected across the full pack and at a midpoint. Do not reuse it; this row survives only to preserve the earlier KAB test rationale. |
+| Dedicated isolated regulator, only if tests require one | Contingency for a noisy/out-of-range accessory rail | Not selected | Select from measured pack full/loaded voltage, manufacturer/configured limits, and the required lower output. The current Mean Well [DDR-60 data sheet](https://www.meanwell.com/Upload/PDF/DDR-60/DDR-60-spec.pdf) illustrates the suffix risk: L variants accept 18–75 V, while G variants accept only 9–36 V. Do not order from the “48 V” label alone. |
 
 Exact arithmetic for one of each listed item:
 
 ```text
-54.90 + 25.98 + 6.98 + 28.16 + 23.99 + 5.99 + 33.30
-= US$179.30
+54.90 + 25.98 + 6.98 + 28.16 + 23.99 + 5.99
+= US$146.00
 ```
 
-Budget another **US$100–200 estimate** for a locking/shielded USB cable, DC-rated
-fuse and disconnect, wire, connectors, ferrites, splash enclosure, speaker
+Budget another **US$100–200 estimate** for a locking/shielded USB cable,
+correctly rated branch protection/disconnect, wire, connectors, ferrites,
+outdoor enclosure, speaker
 baffle and gasket, wind/rain protection, strain relief, vibration mounts, and
 fabrication. Seeed's enclosed [reSpeaker XVF3800 USB 4-Mic Array with
 Case](https://www.seeedstudio.com/ReSpeaker-XVF3800-USB-4-Mic-Array-With-Case-p-6490.html)
 was US$62.99 and is an optional bench unit or spare; the Flex version is the
 better final mechanical fit.
 
-Do not order the DC/DC converter until the owner supplies the cart battery's
-nominal voltage and measured fully charged maximum. The `DDR-60L-12` is suitable
-for many 36/48 V nominal packs but not a pack whose charged maximum exceeds 75
-V. If the cart already provides a clean, isolated, correctly fused 12 V rail
-with enough headroom, the separate converter may be unnecessary.
+The earlier “reuse if audited” assumption is superseded. Isolate the two generic
+4–38 V modules and select the documented replacement candidates only after the
+four batteries' exact models, BMS rules/limits, measured fully charged/loaded
+voltages and controlled shutdown threshold are recorded. Every replacement input
+belongs across the protected complete pack output, never a series midpoint. The
+detailed audit is in [`2026-07-13-power-weather.md`](2026-07-13-power-weather.md).
 
 ### Power planning
+
+The table below describes the earlier XVF3800/KAB path. The active one-week path
+has 30 W RMS of selected/planned drivers and a roughly 35 W scoped audio allocation,
+subject to measured per-channel limits.
 
 The following are **estimates**, not measurements:
 
@@ -88,16 +145,27 @@ The following are **estimates**, not measurements:
 | Normal speech or gentle purr | 5–15 W |
 | Short loud combined peak | less than approximately 30–40 W |
 
-Seeed does not publish a complete Flex board consumption figure. Measure voltage
-and current at the audio supply during silence, ordinary speech, maximum allowed
-speech, purring, and combined output. Power-gate or put the external amplifier
+Seeed does not publish a complete Flex board consumption figure. Measure voltage,
+current, and ripple at the 24 V audio branch during silence, ordinary speech,
+maximum allowed speech, purring, combined output, light switching/dimming,
+traction operation, charge, key-on, and key-off. Power-gate or put the external
+amplifier
 in standby when quiet if its turn-on transient can be made inaudible. These
 figures exclude the Jetson, which remains in its existing 15 W power mode until
 the full system is characterized.
 
-## Signal routing and audio format
+For the old KAB/FR-10 bench path at its historical 24 V supply, establish
+separate measured RMS and peak limits for the 4-ohm speaker and 8-ohm shaker.
+The active Soberton/FR 8 WP/TT25 path instead has two 8-ohm loads and must be
+tested at its finally selected protected audio voltage. In both cases, fixed
+DSP/limiter settings enforce each channel independently; a master-volume cap is
+insufficient.
 
-Use the XVF3800 as both the Linux USB capture device and the USB playback device:
+## Long-term XVF3800 signal-routing research
+
+This section is the long-term XVF3800 reference. Apply the same far-end-reference
+principle to the schedule-first XVF3000 only after its actual ALSA and AEC path is
+bench-verified. The earlier XVF3800 routing was:
 
 ```text
 Orin USB
@@ -132,22 +200,32 @@ behavior. The transducer bus needs a low-pass or band-pass filter, limiter,
 maximum duty cycle, and watchdog. Start a purr around 40–60 Hz at low level with
 gentle attack and release.
 
-## Mechanical placement
+## Long-term XVF3800 mechanical-placement research
+
+The principles below remain useful, but Flex-specific dimensions, FPC routing,
+and apertures do not automatically apply to the schedule-first XVF3000 board.
+Re-measure its actual PCB, microphones, USB/playback connectors, and weather
+treatment before fabrication.
 
 - Mount the circular microphone board horizontally near the roof center. Center
   placement minimizes roof/occupant shadowing and is more appropriate for
   all-around listening than a front-only mount.
 - Use the included 20 cm FPC to keep the microphone aperture separate from the
-  protected core electronics. Mount the core board, amplifier, and DC/DC unit
-  inside a ventilated splash enclosure.
+  protected core electronics. Mount the core board and amplifier inside a
+  shaded, UV-stable protected electronics enclosure whose ingress, condensation,
+  and thermal behavior is tested as an assembled system.
 - The bare Flex board is not weather-rated. Provide an acoustically open
-  aperture, roof rain lip, drainage path, and a replaceable open-cell windscreen
-  approximately 5–10 mm away from the microphone ports.
+  aperture below the solar-roof structure, roof rain lip, hydrophobic acoustic
+  treatment validated for frequency response, drainage path below electronics,
+  and a replaceable UV-stable open-cell windscreen approximately 5–10 mm away
+  from the microphone ports.
 - Isolate the entire microphone PCB on silicone M3 grommets. Do not cover or
   individually isolate microphone ports. Provide FPC and USB strain relief.
 - Keep the array roughly 0.5 m or more from the speaker, Jetson fan, DC/DC
   converter, and traction-power wiring where the cart geometry permits. Use
-  shielded/locking USB, short analog cable, star grounding, and ferrites as
+  shielded/locking USB, short analog cable, and a local star-return layout only
+  within the qualified installer's approved grounding/bonding scheme. It must
+  not create a chassis bond or shield-current path. Add ferrites only as
   indicated by measured noise.
 - Aim the speaker downward and outward from Neko's mouth area and baffle its
   direct path toward the roof microphone. The driver requires a sealed,
@@ -155,13 +233,16 @@ gentle attack and release.
 - Attach the purr transducer to a lightweight rigid cat body or belly panel, not
   the passenger seat or vehicle chassis. A passenger-facing or chassis-mounted
   shaker could surprise or distract the driver and would couple more strongly
-  into the microphones.
+  into the microphones. Place the unrated TT25 and terminals in a dry protected
+  cavity with strain relief, corrosion protection, drainage outside the cavity,
+  and measured thermal/vibration performance; otherwise select an appropriately
+  rated transducer.
 - Mechanical purr vibration is not ordinary acoustic echo and may survive AEC.
   Initially pause wake recognition during purrs, or use a separately measured
   purr threshold profile, until full-duplex tests demonstrate reliable results.
-- Provision cable and mounting space for a second rear speaker but purchase it
-  only if real all-around audibility testing shows one front/downward speaker is
-  inadequate.
+- Purchase and install only the one approved voice speaker. A later second-speaker
+  change requires measured all-around audibility evidence and a new owner
+  decision; do not reserve one-week power or budget for it now.
 
 The vendor's nominal far-field/circular-pickup claims are not evidence of usable
 speech recognition at five metres in wind and motor noise. Treat conversation
@@ -306,7 +387,8 @@ motherly/mischievous personality.
 
 ### Recording an original voice
 
-No voice recordings currently exist. If the owner chooses to make them:
+The owner is willing to source a voice, but no recording or release currently
+exists. When the consenting adult source is selected:
 
 - Use a consenting adult and do not imitate a celebrity, known performer, or
   child.
@@ -363,6 +445,11 @@ Revision one should never send raw microphone audio off the cart:
 - Under the owner's current policy, only final redacted text may be routed to an
   allowed remote model. Network loss must immediately and transparently fall
   back to local operation.
+- An authorized adult may enable a separately billed text-only API path after
+  authentication, a visible online-mode indicator, provider/destination
+  allowlisting, redaction, strict spend/rate limits, timeouts, audit events that
+  omit content, and immediate local fallback are implemented. This authorization
+  does not permit audio upload or embedding a consumer subscription credential.
 - A future raw-audio cloud feature must require a one-shot physical button or
   owner UI action, visible recording/upload indication, clear clip/scope review,
   and deletion policy. Spoken `yes` alone is inadequate consent, especially in
@@ -400,37 +487,45 @@ misses and false accepts, AEC behavior, process and total RAM, CPU/GPU use,
 input power, temperature, SPL, and subjective voice quality. Test amplifier and
 transducer temperatures at the maximum configured purr duty cycle. A measured
 volume cap suitable for nearby children is required; do not expose raw
-amplifier maximum to the language model or ordinary UI.
+amplifier maximum to the language model or ordinary UI. Verify independent RMS/
+peak limits, clipping behavior, and fail-silent shutdown for both the 8-ohm voice
+speaker and 8-ohm shaker at the final protected audio-supply maximum.
 
 ## Remaining owner decisions
 
-1. Cart battery chemistry, nominal voltage, and measured fully charged maximum;
-   whether a clean fused 12 V accessory rail already exists.
-2. Exact roof, mouth, electronics-bay, and body-panel geometry; weather exposure
-   and available mounting distances.
+1. Measured 12–14 V interface voltage/noise under lights, audio, and traction
+   operation; actual Soberton output/SPL at 12 V and 14 V. Upstream wiring is
+   owner scope.
+2. Complete roof/posts/overhang, mouth, shaded electronics-bay, structural
+   mounts, solar-panel/frame, and body-panel geometry; storage/overnight
+   exposure and available mounting distances. Ambient 0–40 C, no salt, cloth
+   cleaning and protection from direct rain are decided.
 3. Whether conversation is explicitly parked/slow-only and whether a physical
    push-to-talk button is acceptable while moving.
-4. Target maximum SPL at 1 m, quiet hours, and whether the rear arc must hear
-   stories at full intelligibility. This determines whether to add a second
-   speaker and amplifier channel.
-5. Approval to standardize on `Neko Neko` and retire `Hello Kitty` as a wake
-   phrase.
-6. Whether a Supertonic preset is sufficient for the first ship date or an
-   original adult voice and release should be recorded.
+4. Target maximum SPL at 1 m, quiet hours, and the required rear-arc
+   intelligibility from the already-approved single voice speaker.
+5. Final `Neko Neko` wake-model training corpus and acceptance threshold; the
+   wake phrase itself is decided.
+6. Identity of the consenting adult voice source, recording schedule, written
+   release, and whether the first ship date uses that voice or a licensed preset.
 7. Desired consistency of the same character voice across EN/FR/ES, and whether
-   accented French/Spanish is acceptable for revision one.
+   accented French/Spanish is acceptable for revision one. French is the second
+   priority and Spanish the third.
 8. Source and licensing policy for meows, purr loops, music, and story assets.
 9. Exact privacy indicator/button design if any future audio-upload workflow is
    desired. The present recommendation is no off-cart audio.
 10. Acceptance of the proposed wake, latency, volume, purr-duty, and moving-cart
     test thresholds.
-11. Whether the short timeline justifies ordering a spare enclosed XVF3800 and
-    second Visaton speaker with the initial shipment.
+11. Whether the XVF3000 bench result is adequate for shipment or only a schedule
+    bridge while the preferred XVF3800 is obtained.
 
 ## Primary-source ledger
 
 Sources were retrieved on 2026-07-13. Hardware prices are volatile.
 
+- Current Soberton board and underlying amplifier IC:
+  <https://www.soberton.com/wp-content/uploads/2019/09/XPCB-12BT-spec-sheet-edited-Dec-9.pdf>,
+  <https://www.st.com/resource/en/datasheet/tda7492p.pdf>
 - Seeed Flex product and current documentation:
   <https://www.seeedstudio.com/reSpeaker-Flex-XVF3800-Circular-4-p-6737.html>,
   <https://wiki.seeedstudio.com/respeaker_flex_introduction/>

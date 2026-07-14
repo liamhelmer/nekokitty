@@ -1006,6 +1006,76 @@ Rollback: stop any future ZipDepth unit, remove `engines`, `benchmarks`, and
 checkpoints unless their provenance is deliberately discarded. Removing CUDA or
 TensorRT is the separate, higher-risk APT rollback documented above.
 
+## 2026-07-13 — power, weather, geometry, and story constraint update
+
+The owner supplied the following new design facts; no system package, service,
+model, electrical wiring, or hardware was changed:
+
+- LiFePO4 traction system described as 48 V, four 270 Ah batteries;
+- existing DC/DC outputs at 24 V for lights/accessories and 19 V for the Jetson;
+- 24 V is preferred for new accessories over adding a general 12 V rail;
+- roof approximately 4 ft by 8 ft, with solar panels on top;
+- rain, dirt/dust, temperature, and direct sun are in scope;
+- target audience ages 5–10, with stories centered on cats of all kinds.
+
+The four-battery topology remains ambiguous and the converter labels/wiring have
+not been inspected. Documentation now explicitly prohibits midpoint accessory
+loads, retains the separate 19 V Jetson branch, treats 24 V as the accessory
+standard only after full-pack/protection/noise verification, and records the
+required electrical/thermal/ingress survey in
+`docs/research/2026-07-13-power-weather.md`.
+
+Because NVIDIA requires an orderly OS shutdown before power removal, the plan
+now distinguishes a normal off/offline control with hardware-delayed converter
+cutoff from an immediate DC-rated service/emergency disconnect. The present
+switch behavior has not been inspected; no shutdown controller was installed.
+
+Manufacturer-source research also refreshed the current OAK-D W ingress options,
+the PoE/M12 alternative, S2L startup/temperature limits, Jetson 9–20 V/3.5 A
+barrel input and 0–35 C developer-kit range, LiFePO4 fuse interrupt/voltage
+requirements, and candidate full-pack-to-24 V converters. The story plan now
+starts with a 30-work cat-only pilot split into 5–7 and 8–10 presentation lanes.
+No story blobs were downloaded.
+
+The current English S2L v2.3 data sheet was retrieved through Slamtec's official
+support page rather than depending on an unstable direct-download URL. It was
+not installed or committed. The reviewed file's SHA-256 is:
+
+```text
+3e0432252f0b55ece4ba792de6e2eccaaff4a880d6c8545884a73f063d745bd2
+```
+
+It documents the 4.9–5.2 V supply window, no more than 150 mV ripple, 500 mA
+typical/600 mA maximum running current, 1.5 A startup current, -10–50 C operation,
+-20–60 C storage, typical +/-50 mm range accuracy, and bottom M3 screw depth no
+greater than 4 mm. A 3 A local regulator is only integration margin, not a claim
+that the lidar requires 3 A.
+
+### Read-only validation after the update
+
+The installed `jetson-diagnostic` snapshot and direct service probes observed:
+
+- `multi-user.target` remained the default; GDM/display-manager was inactive,
+  and no Xorg, GNOME Shell, or Firefox process was present;
+- 5,415,284 KiB available of 7,665,092 KiB RAM, no swap, and 9% root-filesystem
+  use at the sample point;
+- hottest reported thermal zone 47.4 C, 15 W nvpmodel, 0% GR3D activity, and a
+  4.556 W instantaneous `VDD_IN` sample;
+- `neko-gemma.service` enabled and active with `READY` status, four CPU threads,
+  loopback listener `127.0.0.1:9379`, about 1.2 GiB current/1.3 GiB peak service
+  memory, and a successful `GET /v1/models` response.
+
+This was a live warm-state check, not the still-pending real cold-reboot
+acceptance. Unprivileged NvMap attribution remained unavailable.
+
+Both the system Python and pinned ZipDepth export environment passed all 29 unit
+tests. `git diff --check`, the internal relative-Markdown-link audit, and the
+secret-signature scan passed. Of 41 newly added or changed external documentation
+URLs, 37 returned HTTP 200; all three StoryWeaver pages and the DigiKey product
+page returned HTTP 403 to the automated client. Their URLs were retained because
+the block is bot protection rather than evidence of a missing page, and the
+StoryWeaver references were separately reviewed through browser results.
+
 ## Installed model/service status
 
 | Item | Disk state | Runnable | Configured/enabled |
@@ -1020,3 +1090,381 @@ TensorRT is the separate, higher-risk APT rollback documented above.
 This table must be updated after every installation. “Enabled” states systemd
 configuration only; “boot-validated” additionally requires a real reboot and
 health/readiness validation.
+
+## 2026-07-13 — Canadian one-week BOM and interaction-policy update
+
+This was a research and documentation update only. No part was ordered, installed,
+wired, configured, or powered; no package, model, service, firewall, camera,
+network, or system setting changed.
+
+The owner supplied or confirmed these controlling revision-one constraints:
+
+- the four 270 Ah LiFePO4 traction batteries are connected in series, while exact
+  labels, BMS rules, charge/loaded limits, interconnects, and protection remain
+  unverified;
+- added hardware must fit a CAD 2,000 landed cap including tax and shipping and
+  arrive within one week; existing Jetson, storage, and C922 are excluded;
+- the Jetson, cameras/radar, microphone, speaker, and transducer must remain at or
+  below 200 W running, and speaker plus transducer ratings at or below 100 W;
+- the roof underside is about 7 ft high with open sides, representative children
+  are about 3.5–4.5 ft tall, and the one-week build must tolerate outdoor exposure;
+- every story is no longer than five minutes and defaults to light/non-scary;
+  `Neko Neko` is approved and `Hello Kitty` retired;
+- LLM French/Spanish review is provisionally accepted only as a labelled lower-
+  assurance prototype state with deterministic checks and local fallback; and
+- optional cloud use is an authenticated-adult, text-only session through a
+  separately billed API, never an embedded consumer credential or unattended
+  child-cloud/media path.
+
+The new controlling purchase record is
+`docs/research/2026-07-13-canadian-one-week-bom.md`. It supersedes conflicting
+US-dollar OAK/lidar and overseas audio purchase recommendations while preserving
+their longer research and acceptance-test notes. `AGENTS.md` and
+`docs/decisions/2026-07-13-owner-decisions.md` carry the durable summary.
+
+The installed Vercel `find-skills` workflow was rerun for outdoor perception,
+lidar/camera selection, robotics hardware, and BOM/procurement support. No
+credible mature result covered this weather, geometry, Canadian-stock, and
+one-week purchasing problem closely enough to install; no new skill or package
+was added. The shared Codex/Claude Jetson skills and `find-skills` copies remain
+at the paths recorded earlier in this log.
+
+The revision-one recommendation is two opposing Reolink Duo 3V PoE outdoor
+180-degree cameras, four DFRobot C4001 radar sectors, and the Canadian-stocked
+Seeed reSpeaker USB four-mic/XVF3000, Soberton XPCB-12BT amplifier, Visaton FR 8
+WP speaker, and protected Dayton TT25-8 puck. A roof-level planar 2D lidar is
+deferred because it scans above the child-height band; an inverted hemispherical
+3D lidar remains a later experiment.
+
+Using the explicitly provisional British Columbia 5% GST plus 7% PST assumption,
+the researched complete addition is CAD 1,144.60–1,364.60 landed. Its conservative
+simultaneous planning allocation is 129 W, with a measured 200 W hard acceptance
+cap and provisional 180 W software load-shedding threshold. Checkout destination,
+stock, delivery date, exact camera power/network hardware, converter capacity,
+mount geometry, weather assembly, and simultaneous power testing remain gates.
+
+A final live distributor refresh found intraday inventory/price changes and the
+documentation was recalculated rather than retaining the earlier scrape: OAK-D W
+showed 32 units, the Soberton amplifier CAD 36.35/357 units, and the Visaton
+speaker CAD 43.95/708 units. The opaque CAD 35.11 Hammond enclosure was linked
+directly, and an out-of-stock 3 A fuse suffix was replaced with the in-stock
+`0287003.H`. The 32 V fuse and holder are candidates only downstream of a verified
+24 V rail, never on the 48 V pack side.
+
+The owner-invited Claude Code reviewer was also attempted in read-only `plan`
+mode using `/home/neko/.local/bin/claude` with only Read/Grep/Glob/WebSearch/
+WebFetch tools. It emitted a connector-precedence warning and returned no review
+after roughly two minutes, so it was interrupted rather than allowed to block the
+work. Its `SessionEnd` hook then failed because
+`/home/neko/.claude/helpers/hook-handler.cjs` is missing. It made no file or
+system changes. A second, smaller `--safe-mode` local-only audit also produced no
+result within one minute and was interrupted; safe mode avoided the broken hook
+but did not resolve the provider stall. The independent Codex/subagent audits
+continued normally.
+
+The final independent documentation audit found and corrected four issues: the
+shared 24 V lights would have polluted the scoped 200 W measurement, one current
+audio criterion still said 4 ohms instead of the selected 8 ohms, an OAK/RVC2
+implementation section needed an explicit historical label, and the procurement
+claim needed to remain conditional on checkout ETA. The accepted power test now
+isolates non-Neko 24 V loads or uses a dedicated metered Neko sub-feed plus
+measured incremental conversion loss; lights-on operation is a separate shared-
+rail interference test.
+
+Post-edit validation:
+
+- all 29 unit tests passed under system Python;
+- all 29 unit tests passed under the pinned ZipDepth export environment;
+- `git diff --check`, the internal relative-Markdown-link audit, the BOM
+  arithmetic reproduction, and a credential-signature scan passed;
+- all ten primary/vendor pages that permit automated checks returned HTTP 200;
+  RobotShop and DigiKey returned bot-protection HTTP 403, the Unitree/RoboSense
+  stores rate-limited at HTTP 429, and Best Buy/Mouser rejected or timed out in
+  `curl`; the latter distributor pages were independently opened through the
+  browser research path and supplied the recorded live stock/price evidence.
+
+## 2026-07-13 — converter safety, cart geometry, and direct-DC network refresh
+
+This was a read-only physical-design research pass plus repository documentation
+edits. No hardware was ordered, opened, rewired, disconnected, configured or
+powered. No package, model, service, firewall or operating-system setting changed.
+
+### New owner facts
+
+- Destination: British Columbia, postal code `V9G 1L8`; every critical line must
+  still show checkout arrival within seven days.
+- Both installed adjustable modules are described by the marketplace title
+  `[2 Pack] DC-DC 5A Buck Converter 4-38V to 1.25-36V Step-Down Voltage
+  Regulator High Power Module with LED Display`. Each is advertised as 4–38 V
+  input and 5 A, with one set to 24 V and one to 19 V.
+- Reported present loads are approximately 1–2 A on the lighting output and
+  approximately 1 A on the Jetson output. Their exact input connections are
+  still unknown: complete string, two-battery midpoint or another regulated rail.
+- Camera cable style is secondary to power. The Jetson has one onboard Ethernet
+  port; an additional USB NIC is possible but not preferred.
+- Proactive greeting is parked-only, with an interaction radius no greater than
+  10 ft.
+- Intended ambient is 0–40 C, no salt, possible moisture/rain/dirt, key
+  components sheltered from direct rain, and cloth cleaning only.
+- One voice speaker is sufficient. French is the second language priority and
+  Spanish the third.
+- Age-appropriate conflict and reviewed folklore/religion are allowed in the
+  light/non-scary five-minute story policy; serious grief and extreme bathroom
+  humour are excluded.
+- Adult mode may use a physical key/button or authenticated remote enablement.
+  The documented design treats a keyed switch or locked-compartment control as
+  local authentication; a plain exposed button alone is not authentication.
+
+### Immediate converter finding
+
+A nominal 48 V source already exceeds the modules' advertised 38 V maximum.
+Changing their outputs to 19 or 24 V and observing modest load current cannot
+make their inputs safe. If four conventional 12.8 V LiFePO4 batteries were used,
+the illustrative string values would be roughly 51.2 V nominal and 58.4 V at
+14.6 V per battery, but battery labels and charger/BMS configuration—not this
+example—control Neko's design.
+
+The modules are therefore prohibited across the full series string. A
+two-battery midpoint is not an alternative because unequal accessory draw
+unbalances the series bank. Both inputs must be traced and isolated before
+further operation. A matching marketplace page showed the same 4–38 V,
+1.25–36 V and 5 A claims but no manufacturer-grade continuous/thermal,
+isolation, ingress or protection data; its “5 A” was not accepted as a field
+continuous rating. No attempt was made to inspect or alter the live wiring.
+
+### Conditional replacement research
+
+The controlling candidate architecture, still gated on battery labels, maximum
+charge/transient voltage, BMS rules and qualified pack-side protection, is:
+
+```text
+complete pack output
+  -> protected Mean Well DDR-240C-24 -> fused 24 V lights/audio/radar domain
+  -> protected Mean Well RSD-60L-12 -> dedicated 12 V Jetson barrel input
+  -> protected Mean Well DDR-60L-12 -> two fused camera runs + SW-005
+
+Jetson onboard Ethernet -> Brainboxes SW-005 -> both cameras
+Jetson Wi-Fi -> optional policy-controlled Internet uplink
+```
+
+Current evidence recorded in the BOM:
+
+| Candidate | Manufacturer facts | Canadian price/stock observed |
+| --- | --- | --- |
+| Mean Well `DDR-240C-24` | 33.6–67.2 V input, 24 V/10 A/240 W, 91% typical, 4 kV DC isolation, remote on/off/DC-OK, -40–70 C with derating; no outdoor IP rating | Mouser CAD 145.01, 130 able to ship immediately |
+| Mean Well `RSD-60L-12` | 18–72 V input, 12 V/5 A/60 W, 93% typical, 4 kV isolation, full output through 55 C; no outdoor IP rating or remote enable | Mouser CAD 61.34, 906 able to ship immediately |
+| Mean Well `DDR-60L-12` | 18–75 V input, 12 V/5 A/60 W, 91% typical, 4 kV isolation; protected-bay device | DigiKey CAD 49.96, 662 stocked |
+| Brainboxes `SW-005` | Five 10/100 ports, 5–30 V input, 1.1 W maximum, -10–60 C, IP30 | DigiKey CAD 81.31, 616 stocked |
+
+The four core lines total CAD 337.62 before tax/CAD 378.13 at the assumed 12%
+BC rate. With the existing camera/radar/audio/transducer lines and a revised
+CAD 250–450 protection/weather/mechanical allowance, the complete planning range
+is CAD 1,522.73–1,742.73, leaving CAD 257.27–477.27 below the CAD 2,000 ceiling.
+The pack-side simultaneous planning allocation is now 135 W; the measured Neko-
+only acceptance cap remains 200 W and lights remain a separate coexistence test.
+
+The direct camera path is approximately 25.1 W downstream at both camera
+nameplates plus the switch maximum, or about 27.6 W at the pack using the
+DDR-60L-12's published 91% typical efficiency before wiring loss. A Teltonika
+TSW101 plus DDR-60L-24 active-PoE fallback was recorded at approximately
+CAD 201.05 taxed and roughly 1 W higher; passive PoE is prohibited. A retained
+StarTech USB NIC is the cheaper fallback, but vibration, USB autosuspend/device
+ordering and split-subnet complexity make it less reliable than the switch.
+
+The Jetson carrier-board specification permits 9–20 V on its center-positive
+5.5 x 2.5 mm DC jack and limits it to 3.5 A, so a dedicated documented 12 V
+supply is valid. The same official specification rates the developer kit only
+0–35 C. The requested 35–40 C ambient band therefore requires monitored worker
+shedding and orderly shutdown unless an industrial thermal platform replaces the
+developer kit; fans cannot make enclosure ambient colder than outdoor ambient.
+
+### Cart-photo privacy and geometry
+
+The owner-provided Drive image was downloaded to a temporary path only after the
+web viewer failed, visually inspected, and deleted in the same work session. It
+showed identifiable people and contained embedded location metadata.
+No coordinates were read into project notes, and neither the image nor its raw
+link was committed.
+
+The side/rear view shows many posts/slats and occupied seats under the solar
+roof. Cameras or radars inside that plane would be strongly occluded. The plan
+now places front/rear panorama optical faces a few centimetres below and outside
+the post plane on short structural roof-frame brackets, and all four radar faces
+outside the slats in RF-tested pods. Nothing mounts to solar panels/panel glass
+or the LED strip. Complete empty and occupied front/rear/both-side survey images
+or a dimensioned drawing remain required before drilling.
+
+The C4001's documented ranging floor is about 1.2 m/4 ft, so revision-one spoken
+greeting begins with camera-confirmed approach/dwell in the approximate 4–10 ft
+annulus. Inside about 4 ft, the policy suppresses repeat solicitation and retains
+the `Neko Neko`/camera interaction path. Proactive greeting is parked-only.
+
+### Evidence and privacy handling
+
+Primary technical evidence was refreshed from current Mean Well data sheets and
+installation instructions, NVIDIA's carrier-board specification, Reolink's
+camera/power documentation, Brainboxes specifications, DFRobot documentation,
+and the already-recorded Victron series-bank guidance. Canadian price/stock came
+from Mouser and DigiKey product pages. Exact links are in the controlling BOM and
+power/weather notes. Checkout arrival to `V9G 1L8` could not be guaranteed
+without entering the cart/checkout flow, so no seven-day delivery claim was made.
+
+The temporary image path `/tmp/neko-cart-drive` was removed and verified absent.
+Repository policy remains: never commit raw owner/bystander media, recordings,
+transcripts, street addresses, GPS coordinates, embedded media-location metadata,
+credentials or model weights. The owner-supplied postal code is intentionally
+retained in this private repository only for tax/delivery research.
+
+### Final electrical/document consistency review
+
+Independent read-only audits caught several integration details before commit:
+
+- Mean Well publishes typical input inrush of 30 A for the DDR-240C-24 and 20 A
+  for each 60 W candidate. If applied together, the pulses could briefly approach
+  70 A. The 200 W requirement is now explicitly the post-start running cap;
+  startup has a separate sequencing/precharge or limiting, oscilloscope/current-
+  probe, BMS, switching, conductor, and fuse time-current acceptance gate.
+- The DDR-240 installation manual requires vertical input-down mounting, dry
+  Pollution Degree 2 conditions, and FG connected to PE. The RSD-60 also exposes
+  FG. Because a mobile cart chassis is not automatically PE, the candidate now
+  remains blocked on a qualified manufacturer-compliant bonding/fault-clearing
+  design or replacement.
+- The Soberton amplifier accepts no more than 25 V, while the DDR-240 adjusts to
+  28 V and does not begin its own overvoltage shutdown until 28.8 V. A fuse and a
+  nominal 24 V label are insufficient. The BOM now requires a selected regulated
+  downstream audio supply with coordinated OVP, or a wider-margin amplifier.
+- The still-unselected protected 24-to-5 V radar/aggregator stage and isolated
+  runtime power-measurement path are explicit BOM gates. The 34 W reserve now
+  means all conversion loss, controls, and unallocated measurement contingency,
+  rather than a claimed measured value.
+- Those added safety/integration items widened the unpriced installation
+  allowance from CAD 250–450 to CAD 350–650. The current range remains provisional
+  rather than evidence-backed. Applying the full 12% planning tax
+  conservatively to the estimated Solen shipping produces CAD
+  1,625.13–1,947.53, leaving only CAD 52.47–374.87 under the fixed ceiling. The
+  earlier ranges in this same chronological entry are superseded; checkout and
+  itemized safety lines still control budget compliance.
+- The adjustable camera converter must be set/tamper-marked at 12.0 V and checked
+  at both cameras under load; the SW-005 gets its own protected output branch.
+- The current generic 24 V converter was removed from a skimmable historical
+  audio recommendation, one obsolete US-dollar budget statement was relabelled,
+  and story acceptance is duration-based at no more than 300 seconds.
+- Displayed taxed line items are rounded individually, while controlling order
+  totals tax the unrounded subtotals; a one-cent display-sum difference is now
+  documented.
+
+### Post-edit validation
+
+- All 29 unit tests passed under system Python, and all 29 passed again under
+  `/home/neko/models/ZipDepth/export-env`.
+- `git diff --check`, all internal relative Markdown targets, the revised BOM/
+  headroom/135 W arithmetic, a credential-signature scan, and a raw-photo-link/
+  coordinate-pattern scan passed.
+- The default boot target remains `multi-user.target`; the display manager is
+  inactive, and exact process-name checks found no Xorg, GNOME Shell, or Firefox.
+- `neko-gemma.service` remains enabled and active with zero restarts. Its
+  loopback-only `/v1/models` endpoint returned only `gemma-4-e2b-it`, and a
+  bounded chat request returned exactly `meow`. No service setting was changed.
+
+## 2026-07-13 — supplied power-interface scope correction
+
+The owner clarified that this project is recommending hardware, not designing or
+approving the cart's upstream wiring. The controlling interfaces are now:
+
+- regulated 24 V, up to 3 A; existing lights draw 1–2 A;
+- regulated 19 V, up to 3 A; the Jetson currently draws about 1 A; and
+- 12–14 V, up to 20 A, for accessories.
+
+Battery labels, BMS/charger details, a wiring diagram, generic-converter input
+tracing, full-pack protection, grounding, fusing, disconnect design, and upstream
+wiring are owner scope and no longer block hardware recommendations. The owner
+also approved orderly optional-worker shedding and shutdown at 35 C. Earlier
+full-pack analysis is preserved as chronological research but labelled
+superseded in current guidance.
+
+### Revised downstream hardware recommendation
+
+Current manufacturer and Canadian distributor evidence was refreshed on
+2026-07-13:
+
+| Item | Current role and evidence | Price/stock observed |
+| --- | --- | --- |
+| RECOM `REC30K-2412SZ` | Feed from 12–14 V; nominal 12 V/2.5 A/30 W for both Reolink cameras; 9–36 V input, 88% typical full-load efficiency at nominal input, 20 ms typical/50 ms maximum startup, silicone-potted aluminium case, and MIL-STD-810F shock/vibration claims | DigiKey CAD 36.29, 141 stocked |
+| RECOM `R-78B5.0-2.0` | Feed from 12–14 V; 5 V/2 A/10 W for four C4001 radars and their aggregator; 6.5–32 V input, published full-load efficiency of 94% at minimum input/90% at maximum input, 2 A typical inrush and 10 ms typical startup at the stated nominal-input test condition, silicone potting, and 2 G vibration qualification; those startup figures are not maximums at 12–14 V | DigiKey CAD 18.72, 5,943 stocked |
+| Brainboxes `SW-005` | Feed directly from 12–14 V; five 10/100 ports, 5–30 V input, 1.1 W maximum | DigiKey CAD 81.31, previously observed 616 stocked |
+| Soberton `XPCB-12BT` | Feed directly from 12–14 V; official board range is 10–25 V | Existing selected DigiKey line |
+
+The Jetson remains directly on regulated 19 V. The 24 V interface carries only
+the existing lights. Cameras are not powered directly from 12–14 V because
+Reolink specifies 12.0 V rather than a 12–14 V range. Both new converter modules,
+the SW-005 and Soberton instead use the higher-current 12–14 V interface.
+
+The originally considered Mean Well RSD pair was rejected as the primary path
+after checking startup: both data sheets publish 20 A typical inrush at 24 V.
+That is a poor fit beside lights on a 24 V/3 A interface, and the RSD-60's value
+at 12–14 V is not specified. The REC30K does not publish a separate capacitive-
+inrush maximum, so its 20–50 ms startup figure is not a soft-start guarantee. The
+R-78B's 2 A inrush and 10 ms startup values are typical at the stated nominal-
+input condition, not maximums at 12–14 V. Repeated cold-start tests remain an
+acceptance gate. Both active RECOM parts are board-level modules and require
+mechanically supported carriers with retained connections in protected space.
+
+Soberton's 2 x 25 W claim is at 20 V and 10% THD. The underlying TDA7492P
+specifies 7.2 W per 8-ohm channel at 12 V/1% THD and 9.5 W at 10% THD. The
+12–14 V choice therefore safely de-rates the two 15 W drivers but needs an actual
+SPL/vibration bench test. Target about 7 W clean per channel at 12 V, treat
+8–10 W as a 14 V bench target rather than a guarantee, and never exceed either
+15 W driver.
+
+### Revised rail and budget arithmetic
+
+The deliberately conservative interface allocation remains 135 W:
+
+```text
+19 V: Jetson/NVMe/cooling, USB mic/data, reserve          45 W / 2.37 A
+24 V: no new Neko load; existing lights only               0 W new load
+12-14 V: cameras/network, radar/control, audio, reserve    90 W / 7.50 A at 12 V
+--------------------------------------------------------------------------
+Neko simultaneous supplied-interface planning total     135 W
+```
+
+At the reported 2 A maximum lighting load, the 24 V/3 A interface retains 1 A of
+stated headroom because Neko adds no new load there. Neko retains 65 W of planning
+margin below its required, to-be-measured 200 W running cap.
+
+The active REC30K, R-78B and SW-005 lines total CAD 136.32 pre-tax/CAD 152.68
+after assumed 12% BC tax. Retaining the conservative CAD 350–650 weather,
+mounting, cable, downstream-protection, and fabrication allowance yields:
+
+```text
+provisional landed hardware addition     CAD 1,399.68..1,722.08
+headroom below CAD 2,000                  CAD   277.92..600.32
+```
+
+No part was ordered, installed, wired, disconnected, or powered during this
+scope correction. No package, service, model, firewall, or operating-system state
+was changed.
+
+### Post-correction validation
+
+- System Python and the pinned ZipDepth export environment each passed all 29
+  unit tests.
+- `git diff --check` passed. The CommonMark parser accepted all eight changed
+  Markdown files without literal unmatched emphasis markers. An internal-link
+  audit covered 23 Markdown files and 56 relative links with no missing or
+  repository-escaping target.
+- Independent arithmetic reproduced CAD 136.32 pre-tax/CAD 152.68 taxed for the
+  active REC30K/R-78B/SW-005 lines, CAD 1,399.68–1,722.08 for the provisional
+  landed build, CAD 277.92–600.32 headroom, and 45 + 0 + 90 = 135 W with 65 W
+  below the required 200 W acceptance limit.
+- Credential-signature, raw private-photo link/identifier, and tracked-media
+  scans were clean. The owner-provided postal code remains intentionally present
+  for checkout ETA research.
+- Headless state still matched the recorded configuration: `multi-user.target`,
+  inactive display manager, and no exact Xorg, GNOME Shell, or Firefox process.
+  `neko-gemma.service` remained enabled/active with zero restarts; its loopback
+  model list contained only `gemma-4-e2b-it`, and a bounded health prompt returned
+  exactly `meow`.
+
+These checks were read-only except for the bounded local inference request. They
+did not change any service setting, package, model, network rule, or hardware.

@@ -1,5 +1,14 @@
 # Offline-first story library and optional cloud enhancement
 
+> **Owner-policy update — 2026-07-13:** current one-week system decisions are
+> summarized in
+> [`2026-07-13-canadian-one-week-bom.md`](2026-07-13-canadian-one-week-bom.md).
+> For the first release, every story is **five minutes or shorter**, light, and
+> non-scary. Age-appropriate conflict and reviewed folklore/religion are allowed;
+> serious grief and extreme bathroom humour are excluded. Earlier longer,
+> frightening, predation-heavy, or violent seed leads below are retained as
+> research but are not approved first-release assets.
+
 Research and planning date: 2026-07-13, America/Vancouver. Source catalog
 counts and provider terms were checked against the linked official sources on
 that date. Catalog counts and service terms can change and must be rechecked
@@ -18,12 +27,31 @@ The plan incorporates these owner decisions:
 - The cart is strictly personal and noncommercial in this revision.
 - Internet-independent behavior is mandatory. A cloud-only story feature is not
   worth building.
-- English is required; French and Spanish are desirable.
+- English is required; French is the second priority and Spanish the third.
+- The audience is ages 5–10. The UI/content system should expose separate 5–7
+  and 8–10 presentation lanes without assuming age equals reading level.
+- Stories are about cats of all kinds, not only domestic cats. A feline must be
+  central to every enabled work.
+- First-release tellings are at most five minutes and use light, non-scary
+  content. Longer or frightening leads are held for a later explicit policy
+  change rather than silently edited into compliance.
+- Age-appropriate conflict and reviewed folklore/religion are permitted. Serious
+  grief and extreme bathroom humour are excluded.
 - A child decides whether a story is altered.
 - Text may leave the cart under policy. Audio and images may leave only with
   explicit human-in-the-loop consent.
 - Existing Z.AI and Codex subscriptions may be used for development, but their
   suitability for an embedded runtime must be evaluated separately.
+- The owner accepts LLM-only French/Spanish review for a clearly labeled
+  prototype as a lower-assurance bridge when no fluent reviewer is available.
+  This is not represented as fluent-human validation.
+- A separately billed, text-only API may be enabled by an authorized adult after
+  authentication, visible online-mode indication, provider/destination
+  allowlisting, redaction, spend/rate limits, timeouts, and local fallback exist.
+- Local adult enablement may use a physical control, preferably a keyed switch or
+  one inside a locked compartment. Remote enablement is acceptable through an
+  authenticated administration channel with expiry, visible cart-side state and
+  immediate local revoke. A plain exposed button is not authentication.
 - Neko should be cute, motherly, playful, and a little mischievous, without
   presenting itself as a human caregiver.
 - A few seconds of interaction latency is acceptable, but a child should receive
@@ -34,13 +62,35 @@ was installed as part of this research.
 
 ## Recommendation
 
-The first release should contain a human-curated collection of approximately
-60--100 short stories carrying either `CC0-1.0` or `CC-BY-4.0`. Use the Global
-Digital Library as the main machine-readable source, then supplement it with
-selected StoryWeaver and African Storybook titles. Do not expose an upstream
-catalog wholesale merely because a title has an acceptable license; every
-runtime-visible item also needs rights, attribution, age/content, and cultural
-review.
+Start with a **30-work cat-only pilot**, then expand toward 60–100 only after the
+review, ingestion, narration, and remix workflow is proven. Target 16 works in
+the ages 5–7 presentation lane and 14 in ages 8–10. At least 18 should center
+wild, extinct, or mythical cats so the collection does not collapse into only
+domestic-cat stories. Use the Global Digital Library as the main machine-readable
+source, then supplement it with selected StoryWeaver, African Storybook, and
+dual-jurisdiction-cleared public-domain titles. Do not expose an upstream catalog
+wholesale merely because a title has an acceptable license; every runtime-visible
+item also needs rights, attribution, age/content, factual, and cultural review.
+
+Provisional pilot balance:
+
+| Primary shelf | Works | Editorial intent |
+| --- | ---: | --- |
+| Domestic/community cats | 8 | Friendship, mischief, care, purring, and Neko's cart-cat identity |
+| Wild-cat science and conservation | 9 | Tigers, lions, leopards, snow leopards, and small wildcats; scientific facts stay immutable |
+| Big-cat fables and folktales | 6 | Preserve cultural attribution and default to original-only |
+| Magical/mythical cats | 4 | Tricksters and fantasy felines with explicit moral/content review |
+| Interactive sound/guessing stories | 3 | Meows, purrs, roars, tracks, and alarm calls for participatory telling |
+
+The age lanes are narration/presentation defaults, not diagnoses of ability.
+StoryWeaver's current [reading-level guide](https://storyweaver.org.in/reading-levels)
+explicitly says age/grade does not determine reading level. Use roughly 2–5
+minutes and 100–600 words for the 5–7 lane, generally Levels 1–2. The 8–10 lane
+also remains at or below five minutes, generally using roughly 300–750 words from
+Levels 2–3. Treat a longer Level 4 work as separately reviewed episodes, each
+with its own complete, non-scary stopping point and five-minute cap. Let an
+adult/child choose a different lane per session and store no developmental
+profile.
 
 Every story should offer three clearly distinct modes, chosen by the child:
 
@@ -54,10 +104,51 @@ Neko must never silently convert an original telling into a remix. If adaptation
 is not permitted for a particular story, it should offer the original or another
 adaptable story instead.
 
-Keep content blobs outside the public Git repository, provisionally under
+Keep content blobs outside the project Git repository, provisionally under
 `/var/lib/neko/stories`. The project repository should contain ingestion code,
 schemas, manifests, hashes, review records, and deployment configuration, but not
 source content unless its redistribution rights have been individually verified.
+
+### Seed inventory for human review
+
+These are leads, not approved runtime assets. The light/non-scary five-minute
+policy supersedes their earlier age-lane placement. Ingestion must retrieve and verify
+the per-item license, contributor credits, text/edition hash, translation rights,
+content, and the underlying publisher record.
+
+| Lane | Candidate | Why it belongs / initial restriction |
+| --- | --- | --- |
+| 5–7 | [Wild Cat! Wild Cat!](https://content.digitallibrary.io/en/book/wild-cat-wild-cat/) and [French version](https://content.digitallibrary.io/fr/book/chat-sauvage-chat-sauvage-2/) | Survey of Indian wildcats. Candidate is marked CC BY 4.0; species, place, and facts are immutable, while the conversational frame may use slots. |
+| 5–7 | [Watch Out! The Tiger is Here!](https://content.digitallibrary.io/book/watch-out-the-tiger-is-here/?topic=level-1) and [French version](https://content.digitallibrary.io/fr/book/attention-le-tigre-est-la/) | Forest alarm-call participation. Candidate Level 1/CC BY; retain the ecology and calls. |
+| 5–7 | [Sani and Suri](https://content.digitallibrary.io/en/book/sani-and-suri/) and [French version](https://content.digitallibrary.io/fr/book/sani-et-suri/) | A missing pet leads to encounters with different cats; useful domestic/wild bridge. |
+| 5–7 | [The Three Little Kittens](https://content.digitallibrary.io/en/book/the-three-little-kittens/) and [French version](https://content.digitallibrary.io/fr/book/les-trois-petits-chatons-2/) | Historical lead only until review confirms the dog/fear framing is non-scary under the current policy. |
+| 5–7 | [Tiger's Delicious Treats](https://content.digitallibrary.io/en/book/tigers-delicious-treats/) | Playful anthropomorphic tiger; candidate for bounded fictional remix after item verification. |
+| 5–7 | [Clever Cat](https://africanstorybook.org/newviewer/index.php?bt=3&dual=false&id=8878) | First-sentences story with a purr moment. Accept only if the item is returned by the current ASb-approved filter and remains CC BY 4.0. |
+| 5–7 | [Manu and the Lion](https://www.africanstorybook.org/newviewer/index.php?bt=2&dual=false&id=18332) | Historical lead; hold from the first release because its comic-fright content conflicts with the current non-scary gate. |
+| 8–10 | [The Cat in the Ghat!](https://content.digitallibrary.io/book/the-cat-in-the-ghat/?topic=level-4) | Western Ghats wildlife-photographer story. Keep location/ecology immutable; do not genericize it into a jungle. |
+| 8–10 | [Gyalmo, the Queen of the Mountains](https://storyweaver.org.in/en/v0/blog_posts/481-storyweaver-celebrates-wildlife-week-2021) | Snow-leopard conservation work by a conservation scientist. Retain Spiti, local names, prey species, and conservation context. |
+| 8–10 | [Our Encounter With a Snow Leopard](https://storyweaver.org.in/en/v0/blog_posts/474-new-book-by-the-nature-conservation-foundation-our-encounter-with-a-snow-leopard) | Nature Conservation Foundation story based on a Ladakh childhood; local context is immutable. |
+| 5–7 | [Who is the Bravest?](https://content.digitallibrary.io/en/book/who-is-the-bravest/) | Lion-centered waterhole/counting story; verify the per-item CC BY record and keep animal facts distinct from anthropomorphic action. |
+| 8–10 | [Lion and Warthog](https://www.africanstorybook.org/read/downloadbook.php?a=1&d=0&id=10201&layout=landscape) | Historical lead; betrayal and predation threat exclude it from the light/non-scary first release. |
+| 8–10 | [Millions of Cats](https://www.gutenberg.org/ebooks/74181) | Historical lead; the mass cat fight excludes it from the light/non-scary first release, independent of its still-required jurisdiction/edition rights review. |
+| 8–10 | [The Master Cat; or, Puss in Boots](https://www.gutenberg.org/ebooks/503) | Magical trickster lead; discuss deception/moral ambiguity rather than silently sanitizing it. Clear the exact translation/edition in both jurisdictions. |
+
+Hold Kipling's cat/leopard tales for colonial/gender review. Reject graphic or
+poor-fit first-release leads involving poisoning, attempted animal killing,
+cannibalism, child-death threats, beating, or outdated circus captivity even
+when their copyright status would permit use. Legal adaptability is not the same
+as child-facing suitability.
+
+Add these fields to every story manifest in addition to the rights/provenance
+schema below: `felids[]` objects with nullable common/scientific names, living
+context (`domestic`, `community`, `wild`, or `mixed`), and optional conservation
+status plus `biological_status` (`extant`, `extinct`, or `unknown`); a separate
+`fictional_feline_mode` (`none`, `anthropomorphic`, `mythic`, or `fantasy`);
+plus `genre`, `cultural_origin`, `pronunciation_notes`,
+`predation`, `fear`, `death`, `age_lane`, `duration_seconds`, and
+`immutable_elements`. Keeping biological status separate from fiction prevents
+a conservation story from being remixed into false zoology or a specific
+cultural story into generic fantasy.
 
 ## Candidate content sources
 
@@ -205,10 +296,10 @@ support adaptation. Formal legal permission is a floor, not the complete decisio
 
 ### Canada and US public-domain handling
 
-The cart operates in Canada, while a public GitHub repository and downloadable
-artifacts can be accessed globally. A conservative classics policy should require
-both Canadian and US clearance, or an explicit worldwide license, before content
-is committed or redistributed.
+The cart operates in Canada and the GitHub repository is currently private, but
+downloadable artifacts may still cross borders or later be redistributed. A
+conservative classics policy should require both Canadian and US clearance, or
+an explicit worldwide license, before content is committed or redistributed.
 
 - Canada's current [Copyright Act section 6](https://laws-lois.justice.gc.ca/eng/acts/C-42/section-6.html)
   generally provides life of the author plus the remainder of the death year and
@@ -349,7 +440,10 @@ playback would therefore violate the desired interaction latency.
 
 Use these constraints:
 
-- Prefer short source stories of roughly 300--900 words.
+- Prefer source stories that measure at **300 seconds or less** with the exact
+  approved local voice, speaking rate, pauses, attribution, and interaction
+  cues. The lane word ranges above are curation heuristics, never permission for
+  a longer telling.
 - Give the model a compact reviewed story card, not the complete library or an
   unbounded transcript.
 - Generate one bounded scene or paragraph, approximately 100--200 words or less,
@@ -368,9 +462,13 @@ Use these constraints:
   than imitating protected characters or living people.
 
 For the first multilingual release, prefer existing human translations over live
-machine translation. English generative remix should mature first. French and
-Spanish generation require fluent-human review, language-specific policy tests,
-and validated fallback stories before becoming child-visible.
+machine translation. English generative remix should mature first, then French,
+then Spanish. The owner has
+accepted an explicitly labeled **lower-assurance prototype** in which French and
+Spanish outputs receive language-specific tests plus independent LLM review when
+no fluent human is available. Record the reviewing model/prompt/result, never
+describe that as fluent-human validation, retain validated local fallback
+stories, and disable a language if field testing shows material errors.
 
 ## Local safety and child protections
 
@@ -398,8 +496,12 @@ Always reject or safely redirect requests involving:
 - Instructions embedded in source material that attempt to override runtime
   policy or operate devices.
 
-Mild scares, sadness, death, conflict, religion/folklore, and bathroom humor need
-owner-configured age-band rules rather than a universal assumption.
+For the first release, reject scary presentation, predation threat, graphic or
+celebratory violence, serious death/grief, and sustained peril even when they
+are mild by adult standards. Keep tone light. Reviewed, respectful
+religion/folklore and age-appropriate conflict are allowed. Mild silliness can
+include bathroom humour, but extreme or sustained bathroom humour is excluded;
+none of these permissions bypasses the non-scary gate.
 
 Neko should explicitly identify itself as an AI kitty cart. Its warmth and
 motherly character must not become a claim that it is human, a caregiver, a
@@ -426,10 +528,13 @@ to make Neko claim human status. A human adult must sign off on the release set.
 
 ## Privacy and optional online enhancement
 
-The first story release does not need a cloud model. There should be no runtime
-route capable of sending audio or images off the cart. Cloud loss, credential
-failure, quota exhaustion, and provider rejection must all produce the equivalent
-local request or an approved original-story fallback.
+The first story release does not require a cloud model. There must be no runtime
+route capable of sending audio or images off the cart. A separately billed,
+text-only API route is nevertheless authorized when an adult-authenticated mode,
+visible online indicator, redaction, destination allowlist, strict spend/rate
+limits, short timeout, and immediate local fallback are all active. Cloud loss,
+credential failure, quota exhaustion, and provider rejection must all produce
+the equivalent local request or an approved original-story fallback.
 
 If a later cloud text path is enabled, send only a bounded, redacted request:
 
@@ -452,10 +557,13 @@ transfer must show an adult exactly what payload, provider, and purpose are bein
 authorized and require contemporaneous confirmation. A blanket settings toggle is
 not adequate human-in-the-loop consent.
 
-Live child-facing cloud use should remain disabled until an adult/guardian policy,
-age handling, retention terms, provider configuration, and consent UX are approved.
-Owner-run cloud pre-generation followed by local human review is the safer first
-online enhancement.
+Unauthenticated child activation of cloud mode remains disabled. An authorized
+adult may enable the bounded text-only route for a session or configured mode;
+the active state and spend must remain visible, and the adult can revoke it
+immediately. Owner-run cloud pre-generation remains the lowest-risk first use.
+Use a keyed switch or locked-compartment control as the default local authority.
+Remote activation requires authenticated administration, automatic expiry,
+visible cart-side indication and local revocation.
 
 ## Z.AI and OpenAI subscription/API findings
 
@@ -524,11 +632,19 @@ For either provider:
 
 ### Phase 1: approved local originals and deterministic remix
 
-- Curate approximately 60--100 GDL, StoryWeaver, and ASb CC BY/CC0 stories.
-- A provisional split is 60 English, 20 French, and 20 Spanish; revise based on
-  child age, desired duration, and available human reviewers.
+- Curate the 30-work cat-only pilot: 16 works in the 5–7 presentation lane, 14
+  in 8–10, and at least 18 centered on wild, extinct, or mythical cats. Target 14
+  publisher/editor-reviewed StoryWeaver works discoverable through GDL, 10
+  ASb-approved works, and 6 individually cleared public-domain works/tales;
+  translations are versions, not extra works.
+- Expand toward approximately 60–100 only after the pilot's rights, review,
+  ingestion, narration, safety, and offline tests pass. Set the EN/FR/ES version
+  split from actual licensed translations and fluent reviewer capacity rather
+  than a quota.
 - Ship original telling, deterministic editable slots, local catalog search, local
   TTS, attribution, and hard offline tests.
+- Enforce a maximum `duration_seconds` of 300 and the light/non-scary content gate
+  on every enabled original, deterministic variant, and generated scene sequence.
 
 ### Phase 2: English local generative remix
 
@@ -539,19 +655,21 @@ For either provider:
 - Cache only reviewed or successfully policy-checked placeholder variants.
 - Complete adversarial testing and retain immediate original-story fallback.
 
-### Phase 3: French and Spanish remix
+### Phase 3: French first, then Spanish remix
 
 - Prefer human translations already present in approved catalogs.
 - Add language-specific grammar metadata, policy rules, test prompts, and fluent
-  human review.
+  human review when available. For the owner-accepted prototype bridge, record
+  independent LLM review and label the result lower-assurance.
 - Do not expose live translation/remix merely because the base model claims the
   language.
 
 ### Phase 4: optional text-only cloud
 
 - Start with owner-operated pre-generation and local approval.
-- If live use is justified, provision a separate Z.AI general API or OpenAI API
-  account and adult-enabled mode.
+- Provision only a separately billed Z.AI general API or OpenAI API account;
+  require adult authentication, a visible online state, destination allowlist,
+  and hard spend/rate limits.
 - Transmit only redacted bounded text, keep short timeouts, and use the identical
   local output guard and fallback.
 
@@ -568,6 +686,10 @@ For either provider:
 - Every enabled story has a canonical source, exact license URI, full contributor
   attribution, original and normalized hashes, rights reviewer, and content
   reviewer.
+- Every enabled story centers a feline and carries structured felid/fiction,
+  genre, cultural origin, age lane, duration, content flags, pronunciation, and
+  immutable-elements metadata. The pilot meets its 16/14 age-lane and
+  18-work wild/extinct/mythical-cat balance.
 - Missing, ambiguous, and ND content cannot enter the remix path. SA/NC content is
   quarantined unless a later approved policy handles its obligations.
 - A child explicitly selects original, deterministic change, or generative remix.
@@ -576,40 +698,39 @@ For either provider:
   exhaustion, or provider refusal produces a useful local fallback.
 - Every retained generated version links to its parent, license, changes, model,
   runtime, prompt/policy revisions, safety result, and output hash.
-- French and Spanish runtime content has fluent-human validation.
+- Every telling is no longer than 300 seconds and passes the light/non-scary gate.
+- Allowed conflict and folklore/religion remain age-appropriate and respectful;
+  serious grief and extreme bathroom humour fail the first-release gate.
+- French and Spanish runtime content records either fluent-human validation or
+  the owner-accepted, explicitly lower-assurance LLM-only prototype review path.
 - Network packet-capture testing confirms that the story feature sends only
   allowlisted, redacted text JSON and has no audio/image egress path.
 - Session deletion and retention tests prove that child names and transient choices
   expire as configured.
-- Attribution is spoken briefly and full credits are accessible locally.
+- Full credits are accessible locally; if the owner approves spoken attribution,
+  its brief ending is included in the measured 300-second limit.
 
 ## Remaining owner decisions
 
-1. What child age bands and reading levels should the first collection target?
-2. Should the default lengths be approximately two, five, and ten minutes, or a
-   different set?
-3. What initial story count and English/French/Spanish split are preferred?
-4. Is an adult/guardian normally present, and would an adult PIN or phone approval
-   be acceptable for any live cloud child session?
-5. Should child names and settings always be session-only by default, and who may
+1. Is the proposed 30-work pilot and 8/9/6/4/3 shelf balance acceptable, and
+   what English/French balance should precede the lower-priority Spanish shelf?
+2. Which exact keyed/locked local adult control and authenticated remote-admin
+   mechanism should be used, and what per-session/daily spend cap and visible
+   online-state indicator should they control?
+3. Should child names and settings always be session-only by default, and who may
    save a favorite variant?
-6. What are the boundaries for mild scares, death/grief, conflict,
-   religion/folklore, and bathroom humor? What themes are absolute exclusions?
-7. Should Neko offer the same “original / change names or place / surprise-safe
+4. Should Neko offer the same “original / change names or place / surprise-safe
    remix” menu every time, or remember a session preference?
-8. May the first release strictly exclude NC, SA, and ND material despite its
+5. May the first release strictly exclude NC, SA, and ND material despite its
    current personal/noncommercial use?
-9. Will story corpus artifacts ever be distributed from the public Git repository
+6. Will story corpus artifacts ever be distributed from the project Git repository
    or carried across the US border? The recommended default is to keep all blobs
    outside Git and clear classics for both Canada and the US.
-10. Is a brief spoken attribution at the end of each story acceptable?
-11. Should traditional, Indigenous, and sacred stories always be original-only
+7. Is a brief spoken attribution at the end of each story acceptable?
+8. Should traditional, Indigenous, and sacred stories always be original-only
     unless a source and cultural reviewer explicitly approve adaptation?
-12. Who can perform fluent French and Spanish quality/safety review?
-13. Should a distress disclosure only prompt the child to tell a nearby trusted
+9. When might fluent French and Spanish review replace or audit the accepted
+    lower-assurance prototype path?
+10. Should a distress disclosure only prompt the child to tell a nearby trusted
     adult, or should Neko notify the owner? Notification materially changes the
     privacy design.
-14. Is the owner willing to fund separate runtime API usage, since neither the
-    Z.AI Coding Plan nor the Codex/ChatGPT subscription licenses embedded use?
-15. Should the first online release be limited to owner-run pre-generation, with
-    live child-cloud interaction deferred?
