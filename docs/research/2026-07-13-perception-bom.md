@@ -6,8 +6,10 @@
 > Where this longer note recommends an OAK-D W, RPLIDAR S2L, existing C922, or
 > three C4001 sectors, that recommendation is historical research rather than the
 > current order. The active build uses **two opposing Reolink Duo 3V PoE-model
-> cameras powered from dedicated 12 V, one SW-005 switch, and four C4001
-> sectors**. No lidar is purchased this week.
+> cameras powered at nominal 12 V through a RECOM REC30K-2412SZ from the supplied
+> 12–14 V interface, one SW-005 switch, and four C4001 modules powered at 5 V
+> through a RECOM R-78B5.0-2.0 from that same interface**. The 24 V interface is
+> reserved for existing lights. No lidar is purchased this week.
 
 ## Current one-week decision
 
@@ -516,15 +518,15 @@ cooldowns, privacy, and whether a greeting is allowed.
 
 ## Phased delivery plan
 
-### Phase 0 — geometry and electrical survey
+### Phase 0 — geometry and interface survey
 
 Before ordering, map the cart body and an occupied cart at 15-degree yaw
 increments. Complete the first side/rear occupied view with empty/occupied
 front/rear/both-side geometry. Record the front/rear panorama faces outside the
 post plane, seams, four outboard radar pods, protected electronics bay, solar
-cabling, full/rest/loaded series-string voltage, configured BMS limits, current
-generic converter input wiring, and maximum underside-roof
-temperature after a parked full-sun soak. The roof-height 2D-lidar geometry is
+cabling, the three supplied power-interface locations, and maximum underside-roof
+temperature after a parked full-sun soak. Upstream wiring is owner scope. The
+roof-height 2D-lidar geometry is
 already rejected for this revision; do not make S2L purchase depend on another
 survey.
 
@@ -618,9 +620,9 @@ Orin power mode, and mounted geometry for every test.
 - Run at least a two-hour combined perception + wake/ASR + TTS + Gemma soak.
   Record peak/steady DRAM, CPU/GPU load, total input watts, temperatures,
   throttling, dropped frames/events, and response latency.
-- Validate the two-camera direct-12 V/SW-005 branch and four-radar/aggregator branch at
-  full and loaded series-string voltage and during all allowed simultaneous
-  workloads.
+- Validate the REC30K-regulated nominal-12 V camera branch, direct SW-005 feed,
+  and R-78B-regulated 5 V radar/aggregator branch across the supplied 12–14 V
+  range and during all allowed simultaneous workloads.
 - Packet-capture or firewall-audit the perception service to prove that frames
   do not leave the cart. Verify that ordinary logs contain metadata only and
   that diagnostic recordings expire as configured.
@@ -628,7 +630,7 @@ Orin power mode, and mounted geometry for every test.
 ## Measurements and owner answers still required
 
 1. Cart outer width/length, roof height, roof overhang/cat-head geometry,
-   windshield and pillar locations, solar panel/controller/cable layout,
+   windshield and pillar locations, solar-panel/frame and cable layout,
    structural attachment points, and intended sensor mounting surfaces.
 2. Complete empty/occupied front/rear/both-side photos or a dimensioned sketch
    with an adult and child seated in every position, showing both panorama seams
@@ -636,23 +638,19 @@ Orin power mode, and mounted geometry for every test.
    established the post/slat occlusion risk.
 3. Minimum child height within the fixed 5–10-year-old audience and greeting
    cooldowns. The <=10-ft radius and parked-only proactive policy are decided.
-4. All four battery make/models and topology/BMS; measured full/rest/loaded pack
-   voltage, configured BMS limits, and controlled shutdown threshold; an urgent
-   trace of whether each incompatible generic 4–38 V converter input is
-   full-pack, midpoint or downstream of another rail; protection, output
-   tolerance/noise, connector type and source cable/fault-current data.
-5. Storage temperature, overnight exposure, maximum measured underside-roof
-   temperature in full sun, and acceptance of Jetson degraded shutdown above
-   35 C. Ambient 0–40 C, no salt, moisture/rain/dust, cloth cleaning and direct-
-   rain shelter for key components are decided.
+4. Measured voltage/noise and available connector locations for regulated 19 V,
+   regulated 24 V, and 12–14 V; upstream wiring is owner scope.
+5. Storage temperature, overnight exposure, and maximum measured underside-roof
+   temperature in full sun. Ambient 0–40 C, no salt, moisture/rain/dust, cloth
+   cleaning, direct-rain shelter, and orderly shutdown at 35 C are decided.
 6. Whether an inverted hemispherical 3D lidar under the roof should be revisited
    after revision one; a roof-mounted 2D lidar is not a current option.
 7. Acceptable blind sectors and whether “near-360 anonymous awareness with front/
    rear semantic confirmation” meets the experience, or whether every side
    person must be visually classified.
 8. Final Ethernet/power cable lengths and routes, SW-005 location, output fuses
-   and connector terminations. Direct 12 V camera power and the onboard-NIC
-   switch topology are selected provisionally.
+   and connector terminations. REC30K-regulated nominal-12 V camera power and the
+   onboard-NIC switch topology are selected provisionally.
 9. Expected operating light at night and whether visible/IR illumination is
    acceptable.
 10. Checkout-confirmed arrival to BC V9G 1L8 and totals for the Canadian
@@ -666,7 +664,8 @@ Primary manufacturer/project sources used in this cut:
 - Active Reolink, camera-power and network specifications:
   <https://reolink.com/ca/product/reolink-duo-3v-poe/>,
   <https://support.reolink.com/articles/12972721694617-Getting-Started-with-Power-Adapter/>,
-  <https://www.meanwell.com/Upload/PDF/DDR-60/DDR-60-spec.pdf>,
+  <https://recom-power.com/pdf/Econoline/REC30K%28-Z%29.pdf>,
+  <https://recom-power.com/pdf/Innoline/R-78Bxx-2.0.pdf>,
   <https://www.brainboxes.com/products/industrial-ethernet-switches/page/fast-ethernet>
 - Luxonis OAK-D W product and hardware documentation:
   <https://shop.luxonis.com/products/oak-d-w>,

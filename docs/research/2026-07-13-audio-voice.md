@@ -17,20 +17,19 @@ support, and end-of-life risk before treating it as a drop-in XVF3800 equivalent
 The current output path is the locally stocked Soberton XPCB-12BT amplifier, one
 15 W RMS Visaton FR 8 WP voice driver, and one 15 W RMS Dayton TT25-8 body
 transducer. The two drivers total **30 W RMS**. Allocate about **35 W** to the
-limited audio domain in the scoped system power budget; enforce approximately
-12–15 W RMS on voice and 10–12 W RMS on purr with independent fixed gain,
-limiters, and fail-silent behavior. The amplifier's 2 x 25 W nameplate is not an
-allowed output setting.
+limited audio domain in the scoped system power budget. At 12 V, target about
+7 W clean output per channel; treat 8–10 W as a 14 V bench target rather than a
+guarantee. Use an absolute driver-safe limit below 15 W, independent fixed gain,
+limiters, and fail-silent behavior. The
+amplifier's 2 x 25 W nameplate is specified at 20 V and 10% distortion and is not
+available or desirable from the selected 12–14 V interface.
 
-One voice speaker is sufficient for revision one. Feed the amplifier from its own
-fused, regulated downstream branch of the proposed documented DDR-240C-24 rail,
-or replace it with an amplifier having adequate supply margin. The Soberton's
-input maximum is 25 V, while the DDR-240 output adjusts through 28 V and its own
-overvoltage shutdown begins far above the amplifier limit. A nominal 24 V label
-and a fuse do not protect against overvoltage; select and test the downstream
-regulator/OVP, startup and turn-off overshoot before connection. The current
-generic 4–38 V input module is rejected on the full series string and at a battery
-midpoint.
+One voice speaker is sufficient for revision one. Feed the Soberton directly from
+the owner-provided 12–14 V accessory interface; it is within the board's documented
+10–25 V input range and avoids consuming the limited 24 V lighting headroom. The
+TDA7492P specification gives 7.2 W per 8-ohm channel at 12 V/1% THD and 9.5 W at
+10% THD. Bench actual output, SPL, vibration, noise, and temperature at both 12 V
+and 14 V rather than promising the 2 x 25 W headline.
 
 `Neko Neko` is the fixed wake phrase for revision one. The owner is willing to
 source a consenting adult voice; the recording/release and voice-model rights
@@ -494,13 +493,11 @@ speaker and 8-ohm shaker at the final protected audio-supply maximum.
 
 ## Remaining owner decisions
 
-1. Exact make/model and physical verification of the owner-confirmed four-battery
-   series string;
-   measured pack full/rest/loaded voltage, configured BMS limits, and controlled
-   shutdown threshold; trace of both known-incompatible 4–38 V module inputs;
-   protection, grounding, and replacement 24 V rail tolerance/noise measurements.
+1. Measured 12–14 V interface voltage/noise under lights, audio, and traction
+   operation; actual Soberton output/SPL at 12 V and 14 V. Upstream wiring is
+   owner scope.
 2. Complete roof/posts/overhang, mouth, shaded electronics-bay, structural
-   mounts, solar panel/controller, and body-panel geometry; storage/overnight
+   mounts, solar-panel/frame, and body-panel geometry; storage/overnight
    exposure and available mounting distances. Ambient 0–40 C, no salt, cloth
    cleaning and protection from direct rain are decided.
 3. Whether conversation is explicitly parked/slow-only and whether a physical
@@ -526,6 +523,9 @@ speaker and 8-ohm shaker at the final protected audio-supply maximum.
 
 Sources were retrieved on 2026-07-13. Hardware prices are volatile.
 
+- Current Soberton board and underlying amplifier IC:
+  <https://www.soberton.com/wp-content/uploads/2019/09/XPCB-12BT-spec-sheet-edited-Dec-9.pdf>,
+  <https://www.st.com/resource/en/datasheet/tda7492p.pdf>
 - Seeed Flex product and current documentation:
   <https://www.seeedstudio.com/reSpeaker-Flex-XVF3800-Circular-4-p-6737.html>,
   <https://wiki.seeedstudio.com/respeaker_flex_introduction/>

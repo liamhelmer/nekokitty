@@ -46,15 +46,12 @@ opposing front/rear Reolink Duo 3V panoramas on local 12 V + private Ethernet
   -> one approved greeting event through the same interaction policy
 
 normal off/offline control
-  -> orderly Linux shutdown -> hardware-supervised delayed converter cutoff
+  -> orderly Linux shutdown before ordinary power removal where practical
 
-DC-rated service/emergency disconnect
-  -> immediate whole-system electrical isolation when safety requires it
-
-full 48 V-class LiFePO4 bank output (four batteries in series; labels/BMS pending audit)
-  -> protected Mean Well DDR-240C-24 candidate -> fused 24 V accessories
-  -> protected Mean Well RSD-60L-12 candidate -> dedicated 12 V Jetson
-  -> protected Mean Well DDR-60L-12 candidate -> cameras + SW-005 switch
+owner-provided power interfaces (upstream wiring is owner scope)
+  -> regulated 19 V / 3 A -> Jetson + USB microphone/data
+  -> regulated 24 V / 3 A -> existing lights only
+  -> 12–14 V / 20 A -> REC30K camera supply + R-78B radar supply + SW-005 + audio + controls
 
 manual driver / future independent safety controller
   -> the assistant has no motion-control path in revision one
@@ -101,10 +98,10 @@ The one-week schedule baseline uses parts observed in Canadian stock:
   and a fail-silent watchdog.
 
 The two drivers total **30 W RMS**, below the owner's 100 W driver-rating cap.
-Limit the voice channel to about 12–15 W RMS and the purr channel to about
-10–12 W RMS so the 2 x 25 W amplifier cannot overdrive either 15 W device. The
-combined planning allocation for amplifier and audio output is approximately
-**35 W electrical**, not a promise to deliver amplifier nameplate power.
+At 12 V, target about 7 W clean per 8-ohm channel. Treat 8–10 W per channel as a
+14 V bench target, not a guaranteed output, and never exceed either 15 W driver.
+The combined planning allocation for amplifier and audio output is approximately
+**35 W electrical**, not a promise to deliver the amplifier's 2 x 25 W nameplate.
 
 The reSpeaker Flex XVF3800 Circular-4 remains the preferred long-term microphone
 because its current AEC/AGC/beamforming/noise-processing platform avoids the
@@ -113,21 +110,13 @@ checkout can guarantee delivery. The locally stocked two-mic XU316/reSpeaker
 Lite is a schedule fallback only if the four-mic board is unavailable or proves
 unnecessary in an open-cart pickup test.
 
-Feed the amplifier from a separately fused, regulated downstream branch of the
-proposed documented 24 V accessory output, or select a different amplifier with
-adequate input margin. Do not connect the 25 V-maximum Soberton directly merely
-because the rail is nominally 24 V: the DDR-240 adjusts to 28 V and its own
-overvoltage trip is too high to protect that amplifier. Select and bench the
-downstream regulator/overvoltage protection, including startup and turn-off
-overshoot, before connection. The present generic 4–38 V module is rejected on
-both the full nominal-48 V string and a battery midpoint.
-
-The four LiFePO4 batteries are in series. Every converter input must span the
-complete series string; a battery midpoint is never an accessory supply. Keep
-the Jetson alone on the proposed isolated 12 V RSD branch. The transducer channel
-still needs a limiter, band-pass/low-pass, maximum duration/duty cycle, gentle
-fades, and a watchdog. Measure a child-safe SPL and vibration limit; amplifier
-maximum is never the user-volume maximum.
+Feed the 10–25 V Soberton from the owner-provided 12–14 V accessory interface,
+with downstream branch protection and filtering selected by the owner. This
+avoids both the nearly full 24 V lighting interface and the amplifier's narrow
+25 V maximum. Keep the Jetson on the supplied 19 V interface. The transducer
+channel still needs a limiter, band-pass/low-pass, maximum duration/duty cycle,
+gentle fades, and a watchdog. Measure a child-safe SPL and vibration limit;
+amplifier maximum is never the user-volume maximum.
 
 ### Social perception
 
@@ -146,7 +135,8 @@ The one-week build uses camera semantics plus inexpensive sector presence:
   approximately 1.2–3.05 m (4–10 ft).
 - A wired four-UART aggregator, regulated 5 V, RF-tested weather pods, protected
   cabling, a Brainboxes SW-005 on the Jetson's onboard Ethernet port, dedicated
-  DDR-60L-12 camera power with two individually fused runs, structural brackets,
+  REC30K-2412SZ camera power from the supplied 12–14 V interface with two output
+  runs, an R-78B5.0-2.0 radar supply from the same interface, structural brackets,
   glands, drip loops, and strain relief.
 
 The C4001 is a bare PCB and coarse dominant-presence/range source, not an
@@ -196,8 +186,8 @@ system has an applicable rating.
 
 ### Canadian cost and total-power envelope
 
-The provisional added-system planning range is **CAD 1,625.13–1,947.53 landed**,
-leaving **CAD 52.47–374.87** under the owner's fixed CAD 2,000 landed ceiling.
+The provisional added-system planning range is **CAD 1,399.68–1,722.08 landed**,
+leaving **CAD 277.92–600.32** under the owner's fixed CAD 2,000 landed ceiling.
 This uses an assumed British Columbia 5% GST plus 7% PST and includes planning
 allowances for power, network, weather protection, cabling, and mechanics. It is
 not a checkout quote: confirm arrival to the supplied BC postal code V9G 1L8
@@ -207,48 +197,31 @@ Do not consume the reserve until those items are known.
 
 The deliberately conservative simultaneous allocation is:
 
-| Domain | Planning allocation |
+| Supplied interface | Planning allocation |
 | --- | ---: |
-| Jetson, NVMe, and cooling load allowance | 30 W |
-| Two Reolink cameras plus SW-005 load allowance | 26 W |
-| Four radars and wired aggregator | 5 W |
-| Microphone array and remaining low-voltage data electronics | 5 W |
-| Limited amplifier, 15 W speaker, and 15 W transducer | 35 W |
-| All conversion loss, thermal/measurement controls, and unallocated contingency | 34 W |
-| **Simultaneous pack-side planning total** | **135 W** |
+| 19 V: Jetson, NVMe, cooling, USB microphone/data, and reserve | 45 W / 2.37 A |
+| 24 V: no new Neko load; reserved for the existing lights | 0 W new load |
+| 12–14 V: cameras/network, radar/control conversion, audio, controls/cooling, and reserve | 90 W / 7.50 A at 12 V |
+| **Simultaneous supplied-interface planning total** | **135 W** |
 
-The first five rows are conservative load-domain allowances; the 34 W reserve
-contains the full-pack and downstream conversion losses needed to express the
-135 W total at the pack, plus controls and unallocated measurement contingency.
-It is not a measured result.
+The allocation includes downstream conversion loss and uncertainty reserves. It
+is not a measurement. At the stated maximum 2 A lighting load, the 24 V/3 A
+interface retains 1 A of stated headroom because Neko adds no load to it.
 
 Acceptance is a hard **measured maximum of 200 W running** for the scoped Neko
-loads during the worst approved combined workload. Measure all three proposed
-full-pack converter inputs with lights/non-Neko accessories isolated. Lights are
+loads during the worst approved combined workload. Measure all three supplied
+interfaces with lights/non-Neko accessories isolated. Lights are
 outside this cap; test their simultaneous operation separately for rail/thermal
 interference rather than subtracting a guessed baseline. Use approximately
-**180 W as a soft software load-shedding threshold**, while sizing every fuse
-and conductor from its audited circuit rather than a software limit. The
-runtime threshold also needs a selected isolated pack-side voltage/current
-measurement path; if that path includes the lights, it may shed Neko early but
-must never under-report total input.
-
-Startup inrush is a separate electrical acceptance test, not an exception hidden
-inside “running.” The three candidates publish typical input inrush of 30 A,
-20 A, and 20 A. Prevent simultaneous uncontrolled application with a qualified
-sequencing/precharge or inrush-limiting design, and coordinate the BMS, contactor,
-wiring, and fuse time-current curves. No traction-pack runtime calculation is
-required or authorized; battery labels, BMS rules, converter input/output
-behavior, and protection remain audit gates despite the known four-in-series
-topology.
+**180 W as a soft software load-shedding threshold** if a suitable common
+measurement is available. Upstream protection and wiring remain owner scope.
 
 The candidate component data sheets include 40 C operation under their stated
 orientation, enclosure, ventilation, and derating rules; assembled solar-bay
 margin remains unproven. The Jetson Orin Nano Developer Kit itself is rated only
 0–35 C. Instrument enclosure ambient and thermal zones; unless the hardware
-platform changes, 35–40 C requires optional-worker shedding followed by orderly
-shutdown, not a claim of continuous operation. Owner acceptance of that degraded
-boundary remains open.
+platform changes, shed optional workers and perform an orderly shutdown at 35 C;
+no operation above 35 C is claimed. The owner approves that boundary.
 
 See [`docs/research/2026-07-13-audio-voice.md`](../research/2026-07-13-audio-voice.md)
 and [`docs/research/2026-07-13-perception-bom.md`](../research/2026-07-13-perception-bom.md)
@@ -434,27 +407,18 @@ operations rollback are recorded.
   four radar-pod, microphone, speaker, shaker, network, and electronics-bay
   mounts. Confirm the known approximately 7-ft roof underside and 3.5–4.5-ft
   child target band at the actual mounting locations.
-- Record all four series-connected battery labels, BMS/solar/charger/disconnect,
-  full/rest/loaded voltage, configured BMS limits, controlled shutdown threshold,
-  the two generic converter input connections, accessory rails, grounding,
-  connectors, protection, continuous/peak budget, cable routes, and ignition
-  behavior. Isolate the generic modules; do not operate them across the full
-  bank or a midpoint. Confirm every proposed converter range with margin.
-- Resolve the DDR-240 installation manual's required vertical/input-down,
-  dry Pollution Degree 2, and FG-to-PE conditions. A cart chassis is not
-  automatically PE; have a qualified mobile-DC installer define or reject the
-  manufacturer-compliant bonding scheme, including the RSD chassis FG.
-- Select the protected 24-to-5 V radar/aggregator stage, the regulated audio
-  stage or wider-margin amplifier, and an isolated full-pack measurement path
-  for the runtime 180 W policy. Account for each in the final BOM and loss budget.
-- Design staged startup/precharge or inrush limiting for the candidates' typical
-  30 A + 20 A + 20 A input pulses and coordinate it with the BMS, switches,
-  conductors, and fuse time-current curves.
-- Determine whether the present hard switch has an auxiliary/remote-enable path;
-  design normal orderly shutdown with measured hold-up while retaining an
-  immediate, qualified-and-verified DC-rated service/emergency disconnect.
-- Record solar-panel/controller models and structural attachment points; roof
-  height/posts/overhang, occupied sightlines, and shaded electronics-bay space.
+- Treat regulated 19 V/3 A, regulated 24 V/3 A, and 12–14 V/20 A as the supplied
+  power boundary. Confirm received device compatibility and measure actual load,
+  ripple, and temperature at those interfaces; upstream wiring remains owner
+  scope.
+- Use an R-78B5.0-2.0 for the 5 V radar/aggregator domain and a
+  REC30K-2412SZ for the two nominal-12 V cameras, both from 12–14 V. Use the same
+  interface directly for the SW-005 and Soberton. Mount both board-level
+  converters on mechanically supported carriers in protected space and account
+  for them in the final BOM and loss budget.
+- Record solar-panel/frame geometry and approved structural attachment points;
+  roof height/posts/overhang, occupied sightlines, and shaded electronics-bay
+  space.
 - Record storage/overnight exposure, speed/noise, cooldowns and acceptable blind
   zones. Ambient 0–40 C, no salt, cloth cleaning, one speaker, parked-only
   proactive greeting and <=10-ft interaction radius are decided.
@@ -534,21 +498,16 @@ graph; an inverted 3D unit is a separately gated later experiment.
   representative duty cycles.
 - Measure P50/P95 interaction latency, DRAM/NvMap, dropped audio/frames/events,
   scoped Neko input power, separate lights-on coexistence behavior,
-  minimum-battery behavior, temperature/throttling, and logs.
+  supplied-interface sag/ripple, temperature/throttling, and logs.
 - Test ten cold boots, USB reorder/unplug, network loss, storage-full behavior,
   process crashes, corrupt/missing assets, mute/privacy state, and fail-silent
   amplifier behavior.
-- Test normal switch-off through confirmed OS halt and delayed converter cutoff,
-  low-pack pre-shutdown, and separately the recovery path after unavoidable
-  immediate power loss.
-- Measure each converter's startup pulse with an appropriate current probe. Test
-  the designed sequencing/precharge or inrush limiter against BMS behavior,
-  contactor/switch making duty, conductor limits, and fuse time-current curves;
-  do not use the running watt meter to characterize a millisecond-scale pulse.
+- Test ordinary shutdown through confirmed OS halt and separately the recovery
+  path after unavoidable immediate power loss.
 - Exercise the worst approved simultaneous workload: five-minute story audio,
   purr, wake/ASR, Gemma, both camera verification paths, four radar sectors, and
-  selected ZipDepth sampling. Measure all three proposed full-pack converter
-  inputs with non-Neko loads isolated, trigger staged software shedding near
+  selected ZipDepth sampling. Measure all three supplied power interfaces with
+  non-Neko loads isolated, trigger staged software shedding near
   180 W, and reject any post-start running mode or ordinary workload transient
   above 200 W. Repeat with lights enabled as a separate shared-rail interference
   test.
@@ -575,56 +534,45 @@ Exit: packet capture proves only permitted redacted text leaves; every provider
 failure immediately falls back locally; no consumer subscription/session
 credential is embedded; raw media cannot egress through the text route.
 
-## Next owner inputs
+## Remaining purchase gates and later owner inputs
 
-The next purchase cannot be finalized without:
+The core hardware recommendation is complete. Before ordering, confirm:
 
-1. photos/make/model of all four battery labels and a wiring diagram showing
-   the known series topology, BMS, shunt, main fuse/disconnect, charger/solar
-   controller, full/rest/loaded voltage, configured limits, controlled shutdown
-   threshold and prospective fault current;
-2. an urgent trace showing whether each incompatible generic 4–38 V converter
-   input is across the full string, a two-battery midpoint, or another regulated
-   rail, plus present fuse/wire details; whether the hard switch immediately cuts
-   the pack or exposes a remote/auxiliary contact; and its make/model/DC ratings;
-3. checkout-confirmed arrival within seven days to the supplied BC V9G 1L8
+1. checkout-confirmed arrival within seven days to the supplied BC V9G 1L8
    destination for the Reolink pair, four radars, XVF3000, amplifier, speaker,
    transducer, converters, switch, enclosures and fabrication dependencies;
-4. qualified full-pack fuse/holder/interrupt ratings, FG/PE and chassis-bonding
-   disposition, startup-inrush sequencing/limiting, shutdown controller/relay,
-   isolated runtime power measurement, protected 24-to-5 V sensor conversion,
-   regulated audio supply/OVP, and final cable lengths/conductor sizing. The
-   direct-12 V/SW-005 camera topology is selected provisionally;
-5. complete empty/occupied front/rear/both-side photos or sketch showing the
-   approximately 7-ft roof, posts, overhang, bodywork, panel/controller models,
+2. complete empty/occupied front/rear/both-side photos or sketch showing the
+   approximately 7-ft roof, posts, overhang, bodywork, solar-panel/frame geometry,
    outboard structural camera mounts, four outboard radar pods, shaded
    electronics bay and panorama seams;
-6. storage temperature, overnight exposure and acceptance of orderly degraded
-   shutdown from 35–40 C because the Jetson developer kit is rated only to 35 C;
-7. greeting cooldowns and acceptable remaining seams/blind zones for children,
+3. storage temperature and overnight exposure; orderly degraded shutdown at
+   35 C is already approved.
+
+The following decisions affect integration and field use but do not block an
+order for the core hardware:
+
+1. greeting cooldowns and acceptable remaining seams/blind zones for children,
    adults, groups, pets and partially occluded people; parked-only proactive
    greeting and <=10-ft radius are decided;
-8. preferred 5–7 versus 8–10 English/French mix, memory/retention and generated-
+2. preferred 5–7 versus 8–10 English/French mix, memory/retention and generated-
    history retention; French-before-Spanish and the story content boundaries are
    decided;
-9. exact keyed/locked local adult control, remote-admin mechanism, supported
+3. exact keyed/locked local adult control, remote-admin mechanism, supported
    billed API provider/project, spend ceiling, normally-present-adult assumption,
    and visible cloud/privacy controls;
-10. target maximum SPL at 1 m, quiet hours, microphone electrical kill, camera
+4. target maximum SPL at 1 m, quiet hours, microphone electrical kill, camera
    service covers/shutters, and the schedule, consent, release, and retention
    terms for the prospective recording under the owner-approved source-voice
    plan; one voice speaker is decided;
-11. who may save a favorite story variant, whether spoken attribution is
-    acceptable, and whether traditional/Indigenous/sacred stories must remain
-    original-only without explicit source and cultural-review approval.
+5. who may save a favorite story variant, whether spoken attribution is
+   acceptable, and whether traditional/Indigenous/sacred stories must remain
+   original-only without explicit source and cultural-review approval.
 
 The budget decision is no longer open: the ceiling is CAD 2,000 landed for added
 hardware, with the current provisional planning range at CAD
-1,625.13–1,947.53 under an assumed 12% BC tax rate. Checkout price, delivery, and
-mechanically dependent allowances remain gates. The four-series-battery
-statement is also recorded, but
-it does not substitute for label/BMS/converter inspection and is not authority
-to calculate or promise traction runtime.
+1,399.68–1,722.08 under an assumed 12% BC tax rate. Checkout price, delivery,
+and mechanically dependent allowances remain gates. The three supplied power
+interfaces are the recommendation boundary; upstream wiring is owner scope.
 
 See the detailed electrical/environmental checklist in
 [`docs/research/2026-07-13-power-weather.md`](../research/2026-07-13-power-weather.md),

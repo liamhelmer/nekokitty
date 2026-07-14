@@ -153,8 +153,8 @@ Read these before changing the system:
   per-item rights, secure ingestion, child remix policy, subscriptions/APIs, and
   staged cloud enhancement.
 - [Power, weather, and physical integration](docs/research/2026-07-13-power-weather.md)
-  — owner-supplied 48/24/19 V facts, confirmed four-battery series arrangement,
-  unresolved labels/BMS, full-pack DC/DC and protection gates, outdoor zones,
+  — supplied 24 V/3 A, 19 V/3 A, and 12–14 V/20 A recommendation boundary,
+  downstream rail allocation, historical full-pack research, outdoor zones,
   solar-roof mounting, and acceptance tests.
 - [LiteRT upstream report](docs/research/2026-07-13-litert-upstream-report.md) —
   exact R39.2 reproduction comment and upstream URL.
@@ -281,13 +281,13 @@ linked notes. Important conclusions:
   four-mic/XVF3000 array, Soberton XPCB-12BT two-channel amplifier, Visaton FR 8
   WP 15 W RMS voice speaker, and a protected Dayton TT25-8 15 W RMS body puck.
   The older XVF3000 silicon is a schedule-first compromise; XVF3800 remains the
-  preferred later array. Limit voice to about 12–15 W RMS and purr to about
-  10–12 W RMS with fixed attenuation and independent protection. One voice
-  speaker is sufficient. Source audio from the proposed documented 24 V rail only
-  through a selected lower regulated/OVP branch, or replace the 25 V-maximum
-  Soberton with a wider-margin amplifier. The present generic module is rejected
-  on the full string and at a midpoint. The two 15 W RMS drivers total 30 W,
-  below the owner's 100 W combined speaker/transducer rating cap.
+  preferred later array. Run the 10–25 V amplifier from the supplied 12–14 V
+  accessory interface, not the already-loaded 24 V lighting interface. At this
+  lower supply, target about 7 W clean per 8-ohm channel at 12 V and treat
+  8–10 W as a 14 V bench target—not a guaranteed output—rather than promising
+  the 2 x 25 W nameplate. Enforce fixed attenuation and independent protection.
+  One voice speaker is sufficient. The two 15 W RMS drivers total 30 W, below
+  the owner's 100 W combined speaker/transducer rating cap.
 - **`Neko Neko` is approved** as the revision-one wake phrase; `Hello Kitty` is
   retired. Current local software candidates remain openWakeWord, Silero VAD,
   Nemotron 3.5 streaming ASR through sherpa-onnx with whisper.cpp fallback, and
@@ -304,12 +304,12 @@ linked notes. Important conclusions:
   the C4001's approximate 4–10 ft useful annulus. A level 2D lidar at the roughly
   7 ft roof scans above 3.5–4.5 ft children, so lidar is deferred; an inverted
   hemispherical 3D lidar is the later geometry-valid experiment.
-- The Canadian one-week BOM is provisionally **CAD 1,625.13–1,947.53 landed** at
-  an assumed British Columbia 5% GST plus 7% PST, leaving only **CAD
-  52.47–374.87** of unquoted headroom below the owner's **CAD 2,000 landed** cap.
-  Checkout-confirmed tax, shipping, stock, itemized safety hardware, and arrival
-  within seven days are still gates. The conservative
-  simultaneous pack-side allocation is **135 W**; the complete Jetson,
+- The Canadian one-week BOM is provisionally **CAD 1,399.68–1,722.08 landed** at
+  an assumed British Columbia 5% GST plus 7% PST, leaving **CAD
+  277.92–600.32** of unquoted headroom below the owner's **CAD 2,000 landed** cap.
+  Checkout-confirmed tax, shipping, stock, itemized integration hardware, and
+  arrival within seven days are still gates. The conservative
+  simultaneous supplied-interface allocation is **135 W**; the complete Jetson,
   perception, audio, and transducer build has a hard **200 W running** acceptance
   cap, verified by measurement rather than nameplate arithmetic.
 - Start stories for ages 5–10 with a 30-work cat-only pilot: 16 works in a 5–7
@@ -325,26 +325,22 @@ linked notes. Important conclusions:
   review may use an LLM, but must be labelled lower-assurance; French is the
   second language priority and Spanish the third. Both retain deterministic
   checks plus an approved local fallback.
-- Power is 48 V-class LiFePO4 from four 270 Ah batteries now confirmed in series.
-  Both current modules advertise only 4–38 V input, so they are unsafe across the
-  full nominal-48 V string and unacceptable at a battery midpoint. Trace and
-  isolate them. Conditional Canadian-stock replacements are a Mean Well
-  DDR-240C-24 for accessories, RSD-60L-12 dedicated to the Jetson, and
-  DDR-60L-12 dedicated to cameras/network. Exact battery labels, BMS rules,
-  charge/loaded/transient limits and pack-side protection remain unverified.
-  Every replacement input spans the complete string. The 4-by-8-ft solar roof
-  and 0–40 C/no-salt/rain/dust/sun exposure make ingress, condensation, UV,
-  full-sun thermal soak, and non-panel structural mounts hard gates. The Jetson
-  developer kit itself is rated only 0–35 C, so
-  degraded orderly shutdown above that boundary is required unless the hardware
-  platform changes.
-  The three full-pack candidates publish typical startup inrush of 30 A + 20 A +
-  20 A; do not apply them simultaneously until a qualified design sequences or
-  limits that pulse and coordinates BMS, switching, wiring, and fuse time-current
-  behavior. The 200 W requirement remains the measured running-load cap.
-  DDR-240 FG-to-PE/chassis treatment, the RSD FG, protected 24-to-5 V sensor
-  regulation, an isolated runtime power meter, and the lower-voltage audio stage
-  are unresolved final-BOM gates.
+- The owner defines three available power interfaces for this recommendation:
+  regulated **24 V up to 3 A**, regulated **19 V up to 3 A**, and **12–14 V up
+  to 20 A** for accessories. Upstream battery, converter, fuse, grounding, and
+  wiring design are owner-managed and are not prerequisites for recommending
+  Neko hardware. Keep the existing 1–2 A lights as the only baseline load on the
+  24 V interface; run the Jetson from 19 V; run new perception/audio loads from
+  12–14 V. Add a RECOM `REC30K-2412SZ` for regulated nominal-12 V camera power
+  and an `R-78B5.0-2.0` for the 5 V radar/aggregator domain. Its data sheet lists
+  2 A typical inrush and 10 ms typical startup under stated nominal-input test
+  conditions—not a maximum at 12–14 V—so cold-start testing remains mandatory.
+  Powering both modules from 12–14 V avoids the limited 24 V lighting headroom.
+  The SW-005 and Soberton also accept 12–14 V directly. The 4-by-8-ft solar roof
+  and 0–40 C/no-salt/rain/dust/sun exposure
+  still make ingress, condensation, UV, full-sun thermal soak, and non-panel
+  structural mounts hard gates. The Jetson developer kit is rated only 0–35 C;
+  the owner approves orderly worker shedding and shutdown at 35 C.
 - Optional online enhancement is limited to an authenticated-adult, text-only
   session through separately billed API access. It does not authorize raw media,
   consumer-subscription credentials, or unattended child-cloud interaction;
@@ -382,23 +378,21 @@ These are constraints, not yet final component choices:
 
 ## Open owner decisions
 
-The initial blockers are resolved in the owner-decisions record. Before ordering,
-the project still needs checkout-confirmed seven-day arrival to the known BC
-V9G 1L8 destination; final stock for every BOM line; battery labels/BMS/charger/
-transient limits; an urgent trace of both unsafe generic converter inputs;
-qualified full-pack protection and shutdown hardware; and the current hard-switch
-topology. Direct 12 V camera power through the SW-005 is the provisional network
-decision. Field use still needs complete empty/occupied front/rear/side geometry,
-protected electronics space, storage/overnight exposure, measured converter
-headroom/noise, a simultaneous under-200 W power test, and accepted blind zones/
-cooldowns. Parked-only greeting, <=10-ft interaction, 0–40 C/no salt/cloth
-cleaning and one speaker are decided. Story questions are now limited to age-lane
-language mix, retention/owner controls, and the final manifest. Online mode still
-needs the exact keyed/local and authenticated remote implementation, separately
-billed provider/budget, redaction/indicator design, and retention policy. The
-Canadian BOM carries the controlling checkout and one-week acceptance gates;
-fuller specialist questions remain in the linked audio, perception, story, and
-power/weather notes.
+The electrical source boundary is resolved for recommendation purposes: use the
+owner-provided 24 V/3 A, 19 V/3 A, and 12–14 V/20 A interfaces and do not require
+battery or upstream wiring evidence. Before ordering, the project still needs
+checkout-confirmed seven-day arrival to the known BC V9G 1L8 destination and
+final stock for every BOM line. Field use still needs complete empty/occupied
+front/rear/side geometry, protected electronics space, storage/overnight exposure,
+a simultaneous under-200 W power test at the supplied interfaces, and accepted
+blind zones/cooldowns. Parked-only greeting, <=10-ft interaction, 0–40 C/no
+salt/cloth cleaning, one speaker, and orderly shutdown at 35 C are decided. Story
+questions are now limited to age-lane language mix, retention/owner controls, and
+the final manifest. Online mode still needs the exact keyed/local and authenticated
+remote implementation, separately billed provider/budget, redaction/indicator
+design, and retention policy. The Canadian BOM carries the controlling checkout
+and one-week acceptance gates; fuller specialist questions remain in the linked
+audio, perception, story, and power/weather notes.
 
 Headless mode is now persistent: `multi-user.target` is the default, display
 manager units are inactive, and no Xorg/GNOME/Firefox process is present.
@@ -504,3 +498,14 @@ For every future model or service, add:
   parked-only <=10-ft greeting, 0–40 C/no-salt/cloth-cleaning environment, one
   speaker, French priority, story boundaries and keyed/remote adult-mode options.
   No wiring, package, service, order or model state changed.
+- 2026-07-13: Corrected the recommendation boundary to the owner-provided
+  regulated 24 V/3 A, regulated 19 V/3 A, and 12–14 V/20 A interfaces. Removed
+  battery/wiring evidence and the three full-pack converters from active purchase
+  gates; selected a RECOM `REC30K-2412SZ` for nominal-12 V camera power and an
+  `R-78B5.0-2.0` for 5 V radar/control power. Kept the Jetson on 19 V, reserved
+  24 V for the existing lights, and moved new accessory loads to 12–14 V.
+  Recorded the owner-approved 35 C orderly shutdown, the 135 W total allocation
+  across the supplied interfaces, and revised CAD 1,399.68–1,722.08 planning
+  range. Historical
+  electrical research remains labelled and preserved. No wiring, package,
+  service, order, or model state changed.

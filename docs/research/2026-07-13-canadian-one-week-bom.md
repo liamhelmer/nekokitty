@@ -19,6 +19,8 @@ the exact checkout arrival date remains a purchase gate.
 - All cameras, lidar/radar, microphones, audio output, and the Jetson together
   must draw **less than or equal to 200 W while running**. Overall cart energy
   and runtime are explicitly out of scope.
+- Recommendation inputs are regulated 24 V up to 3 A, regulated 19 V up to 3 A,
+  and 12–14 V up to 20 A. Upstream wiring is owner scope.
 - Speaker and body-transducer ratings must total **100 W or less**.
 - All required parts must be obtainable within one week.
 - Roof underside is about 7 ft (2.13 m) high, lightly sloped, and open at the
@@ -28,6 +30,8 @@ the exact checkout arrival date remains a purchase gate.
   sheltered from direct rain and cleaned by cloth only.
 - Perception is for social behavior on a manually driven cart, never vehicle
   control or a safety-rated protective function.
+- Orderly optional-worker shedding and shutdown at 35 C is approved for the
+  0–35 C-rated Jetson developer kit.
 
 ## Decision
 
@@ -40,8 +44,9 @@ defer lidar:
    degrees for low-cost anonymous presence/range hints;
 3. a locally stocked four-microphone/AEC board, two-channel amplifier, one
    weather-resistant voice speaker, and one protected body transducer;
-4. documented isolated full-pack conversion for 24 V accessories, dedicated
-   12 V Jetson power, and dedicated 12 V camera/network power; and
+4. the owner-provided regulated 19 V/3 A interface for the Jetson, plus industrial
+   12–14-to-5 V and 12–14-to-nominal-12 V modules for radar/control and cameras;
+   and
 5. the Jetson onboard Ethernet port feeding one low-power industrial switch for
    both cameras, with Wi-Fi retained as the optional online uplink.
 
@@ -49,20 +54,18 @@ This is the lowest-risk path found that is weather-capable, nominally covers the
 full azimuth, recognizes people, **can** fit the one-week procurement window if
 every checkout gate below passes, and stays well below 200 W in the design
 allocation. It can remain under the hardware cap on paper, but the conservative
-high case leaves only CAD 52.47. It is not a claim of perfect 360-degree coverage:
-panorama seams, roof posts, occupants, bodywork, dirty lenses, and very close
-targets still need a measured blind-zone map.
+high case still leaves CAD 277.92. It is not a claim of perfect 360-degree
+coverage: panorama seams, roof posts, occupants, bodywork, dirty lenses, and very
+close targets still need a measured blind-zone map.
 
 An **inverted hemispherical 3D lidar is geometrically valid on the roof** and is
 the preferred later lidar experiment. It is deferred only because current
 Canadian stock, weather integration, and landed cost do not beat the camera/radar
 build inside this one-week revision.
 
-The two currently installed generic modules advertise only 4–38 V input. They
-are rejected on the nominal-48 V series string and at any battery midpoint;
-present input wiring must be traced and isolated before this purchase becomes an
-installation. Output settings of 19 or 24 V and currently modest load do not fix
-an input overvoltage or series-balance problem.
+For recommendation purposes, the owner defines regulated 24 V up to 3 A,
+regulated 19 V up to 3 A, and 12–14 V up to 20 A as available interfaces. Their
+upstream implementation is owner scope and is not a purchase gate in this note.
 
 ## Why a roof-mounted 2D lidar does not work
 
@@ -139,7 +142,7 @@ protection**, already over the complete hardware ceiling.
 | [Soberton XPCB-12BT](https://www.digikey.ca/en/products/detail/soberton-inc/XPCB-12BT/10638209) 10–25 V, 2 x 25 W amplifier | 1 | 36.35 | 40.71 | 357 in stock; AUX must disable Bluetooth and be verified at every boot |
 | [Visaton FR 8 WP, 8 ohm](https://www.digikey.ca/en/products/detail/visaton-gmbh-co-kg/FR-8-WP-8-OHM-BLACK/9842335) | 1 | 43.95 | 49.22 | 708 in stock; 15 W RMS, weather-resistant only when correctly mounted |
 | [Opaque Hammond 1554E2GY IP68/NEMA 4X enclosure example](https://www.digikey.ca/en/products/detail/hammond-manufacturing/1554E2GY/2359929) | 1 | 35.11 | 39.32 | 1,490 in stock; size/thermal layout must be checked before treating this exact box as final |
-| [Littelfuse FHAS100 sealed fuse holder](https://www.digikey.ca/en/products/detail/littelfuse-commercial-vehicle-products/FHAS100/15775916) plus in-stock [0287003.H 3 A fuse](https://www.digikey.ca/en/products/detail/littelfuse-inc/0287003-H/3104042) | 1 | 27.23 | 30.50 | 32 V-rated downstream 24 V audio branch example only; never use on the 48 V pack side, and finalize only after rail/wire/device audit |
+| [Littelfuse FHAS100 sealed fuse holder](https://www.digikey.ca/en/products/detail/littelfuse-commercial-vehicle-products/FHAS100/15775916) plus in-stock [0287003.H 3 A fuse](https://www.digikey.ca/en/products/detail/littelfuse-inc/0287003-H/3104042) | 1 | 27.23 | 30.50 | Downstream fuse-holder/example fuse only; the owner will select the exact accessory-branch rating. This is not an upstream recommendation. |
 | [Dayton TT25-8 Puck](https://solen.ca/en/products/dayton-audio-tt25-8-puck-tactile-transducer-mini-bass-shaker-8-ohm) plus SMRK-2 ring | 1 | 32.50 | CAD 58.80–81.20 including conservative tax on CAD 20–40 estimated expedited shipping | Eight individual pucks reported in stock; telephone/checkout confirmation required |
 
 The DigiKey lines, including all four radars, total CAD 328.40 pre-tax and
@@ -147,49 +150,42 @@ approximately CAD 367.81 after BC tax. That clears DigiKey's CAD 100 Canadian
 free-shipping threshold. The exact distributor promise and cut-off time still
 control the order.
 
-### Exact power and camera-network candidates
+### Exact downstream power and camera-network candidates
 
-These parts replace—not supplement—the two unsafe 4–38 V modules. Selection is
-conditional on battery labels, measured charger/transient maximum, BMS rules and
-qualified full-pack protection.
+The 19 V Jetson interface needs no additional converter, and the 24 V interface
+remains reserved for the existing lights. Both new converters below run from the
+12–14 V/20 A interface. This avoids placing a high-inrush converter on the
+24 V/3 A interface beside a possible 2 A lighting load.
+
+The earlier Mean Well RSD pair is not the primary recommendation. Both data
+sheets publish 20 A typical input inrush at 24 V; the RSD-30 therefore has poor
+startup compatibility with the supplied 24 V/3 A interface, while RSD-60 inrush
+at the proposed 12–14 V input is not specified. The smaller RECOM modules have
+better-matched input behavior. They are board-level parts: solder each to a
+mechanically supported carrier with retained connectors inside the protected
+electronics space; do not hang them from wires or expose them to weather.
 
 | Item | Qty | Pre-tax CAD | Planned taxed CAD | Current evidence and role |
 | --- | ---: | ---: | ---: | --- |
-| [Mean Well DDR-240C-24](https://www.mouser.ca/ProductDetail/MEAN-WELL/DDR-240C-24?qs=w%2Fv1CP2dgqouKa%252BL5o5nyg%3D%3D) | 1 | 145.01 | 162.41 | 130 shown able to ship immediately; 33.6–67.2 V input, isolated 24 V/10 A/240 W accessory rail, 91% typical efficiency, remote on/off and DC-OK |
-| [Mean Well RSD-60L-12](https://www.mouser.ca/ProductDetail/MEAN-WELL/RSD-60L-12?qs=Mv7BduZupUihW4A7NyykSQ%3D%3D) | 1 | 61.34 | 68.70 | 906 shown able to ship immediately; 18–72 V input, isolated 12 V/5 A/60 W, 93% typical efficiency, dedicated Jetson supply |
-| [Mean Well DDR-60L-12](https://www.digikey.ca/en/products/detail/mean-well-usa-inc/DDR-60L-12/8681217) | 1 | 49.96 | 55.96 | 662 shown stocked; 18–75 V input, isolated 12 V/5 A/60 W, 91% typical efficiency, dedicated cameras/network |
+| [RECOM REC30K-2412SZ](https://www.digikey.ca/en/products/detail/recom-power/REC30K-2412SZ/24366428) | 1 | 36.29 | 40.64 | 141 shown stocked; 9–36 V input, nominal 12 V/2.5 A/30 W, 88% typical full-load efficiency at nominal input, 20 ms typical/50 ms maximum startup, and MIL-STD-810F shock/vibration claims; feed it from 12–14 V for both cameras |
+| [RECOM R-78B5.0-2.0](https://www.digikey.ca/en/products/detail/recom-power/R-78B5-0-2-0/6677084) | 1 | 18.72 | 20.97 | 5,943 shown stocked; 6.5–32 V input, 5 V/2 A, published full-load efficiency of 94% at minimum input and 90% at maximum input, 2 A typical inrush and 10 ms typical startup under its stated nominal-input conditions, and 2 G vibration qualification; feed it from 12–14 V for four radars and their aggregator; neither startup value is a maximum at 12–14 V |
 | [Brainboxes SW-005](https://www.digikey.ca/en/products/detail/brainboxes/SW-005/10707220) | 1 | 81.31 | 91.07 | 616 shown stocked; five 10/100 ports, 5–30 V input, 1.1 W maximum, -10–60 C, IP30 protected-bay switch |
 
-The two Mouser lines total CAD 206.35 pre-tax/CAD 231.11 after assumed BC tax.
-The two DigiKey lines total CAD 131.27 pre-tax/CAD 147.02 after tax. Each order
-clears that distributor's stated Canadian free-shipping threshold, but checkout
-controls. Core conversion and camera networking therefore total **CAD 337.62
-pre-tax / CAD 378.13 after assumed tax**.
+The three lines total **CAD 136.32 pre-tax / CAD 152.68 after assumed BC tax**.
+They join the existing DigiKey order above its Canadian free-shipping threshold;
+checkout still controls delivery and tax.
 
 Order totals apply 12% tax to unrounded pre-tax subtotals. Individually displayed
 taxed line items are rounded to cents, so adding their displayed values can differ
 from the controlling order subtotal by one cent.
 
-These are still conditional integration candidates. The DDR-240 installation
-manual requires vertical input-down mounting, a dry Pollution Degree 2 setting,
-and FG connected to PE. The RSD-60 also exposes an FG terminal. A vehicle chassis
-is not automatically a valid PE or return; a qualified mobile-DC installer must
-resolve manufacturer-compliant bonding with the battery, solar, data shields,
-and accessible metal, or reject the candidate.
-
-Published typical input inrush is 30 A for the DDR-240C-24 and 20 A for each 60 W
-candidate. Simultaneous input application could therefore briefly approach
-70 A. This is not a continuous-load estimate and is separate from the 200 W
-running cap. Add measured sequencing/precharge or inrush limiting and coordinate
-BMS, contactor/switch making duty, conductors, and fuse time-current curves before
-energizing all three.
-
 The selected Reolink cameras each accept 12 V DC as well as active PoE and draw
 less than 12 W. The direct-DC path avoids a PoE boost stage: at the cameras'
-combined 24 W nameplate plus the switch's 1.1 W maximum and the DDR's 91%
-typical efficiency, the pack-side estimate is about **27.6 W** before wiring
-loss. Allocate 30 W and measure with IR/spotlight worst case even though
-spotlights, audio, siren and recording are disabled in service.
+combined 24 W nameplate and the REC30K's 88% typical full-load efficiency, the
+camera-converter estimate is about **27.3 W** before wiring loss. The SW-005 draws
+at most another 1.1 W directly from 12–14 V. Allocate 32 W to camera/network and measure with
+IR/spotlight worst case even though spotlights, audio, siren and recording are
+disabled in service.
 
 Use the Jetson onboard Ethernet interface, then the SW-005, then both cameras.
 The cameras are 100 Mb/s devices and their two bounded H.264 streams fit this
@@ -200,16 +196,15 @@ ordering and two separately configured subnets make it a poorer cart install.
 Use two separately fused power runs rather than a barrel Y-splitter. Reolink's
 current guidance identifies a 5.5 x 2.1 x 10 mm center-positive camera plug;
 verify the received hardware revision and polarity before fabricating the leads.
-Set and tamper-mark the adjustable DDR-60L-12 at 12.0 V, then verify startup,
-loaded voltage and polarity at each received camera before connection. Give the
-SW-005 its own protected output branch rather than sharing either camera fuse.
+Verify and, if necessary, trim the REC30K output, then test startup, loaded
+voltage and polarity at each
+received camera before connection. Give the SW-005 its own protected output
+branch rather than sharing either camera fuse.
 
-The active-PoE fallback is a Canadian-stocked Teltonika `TSW101000000` fed by a
-dedicated `DDR-60L-24`: four active 802.3af/at ports, 9–30 V input, 2.31 W switch
-maximum, -40–75 C, approximately CAD 179.51 pre-tax/CAD 201.05 after assumed
-tax for converter plus switch. It is about CAD 54 taxed more and roughly 1 W
-higher at the pack than direct camera DC. It is technically sound if single-cable
-exterior runs become more valuable than cost; passive PoE is never an option.
+The active-PoE fallback is a Canadian-stocked Teltonika `TSW101000000` powered
+directly from 12–14 V: four active 802.3af/at ports, 9–30 V input, 2.31 W switch
+maximum, and -40–75 C rating. Reprice it at checkout if single-cable exterior
+runs become more valuable than direct DC; passive PoE is never an option.
 
 The USB-adapter fallback uses the onboard NIC for one camera and a mechanically
 retained Linux-compatible USB NIC for the other. It can save roughly CAD 45–50
@@ -234,17 +229,18 @@ Network deployment policy:
 Allow a further **CAD 350–650 landed** for the still mechanically/electrically
 dependent installation items:
 
-- full-pack-rated branch fuses/holders with adequate DC interrupt rating, source
-  distribution, wire, a normal shutdown controller/relay, DIN rail, touch
-  guards, startup-inrush control, isolated runtime power measurement, and the
-  protected ventilated power bay;
-- a wired four-UART aggregator or adapters, a selected protected 24-to-5 V
-  regulator, radar radomes/pods, and protected cabling;
-- a regulated audio sub-supply/overvoltage solution for the 25 V-maximum
-  Soberton, or a replacement amplifier with adequate 24 V-rail margin;
+- downstream branch protection/distribution selected by the owner, supported
+  carrier PCB/terminal hardware for both converter modules, wire, touch guards,
+  optional runtime power measurement, and the protected ventilated bay;
+- a wired four-UART aggregator or adapters, radar radomes/pods, and protected
+  cabling;
 - two individually fused 18 AWG tinned-copper camera power runs, Ethernet, USB
   and audio cable, glands, gaskets, wind treatment, structural brackets,
   drip loops, strain relief, baffle, fasteners and fabrication.
+
+The allowance is deliberately retained at its earlier conservative level even
+though both downstream regulators are now itemized and the former full-pack and
+audio-regulator work is out of project scope. It is not a quote.
 
 Planning total:
 
@@ -252,19 +248,18 @@ Planning total:
 Reolink pair after assumed BC tax                         CAD 470.39
 DigiKey combined radar/audio/protection batch            CAD 367.81
 Solen transducer/ring after tax and taxed shipping       CAD  58.80..81.20
-exact core power conversion and camera networking        CAD 378.13
+exact downstream conversion and camera networking       CAD 152.68
 remaining protection/weather/mechanics                    CAD 350.00..650.00
 --------------------------------------------------------------------------
-provisional estimated landed addition                    CAD 1,625.13..1,947.53
-headroom under CAD 2,000                                 CAD    52.47..374.87
+provisional estimated landed addition                    CAD 1,399.68..1,722.08
+headroom under CAD 2,000                                 CAD   277.92..600.32
 ```
 
 This is an unitemized planning range, not an evidence-backed upper bound or a
-checkout quote. The high case leaves only CAD 52.47, so budget compliance remains
+checkout quote. The high case leaves CAD 277.92, so budget compliance remains
 unresolved until every line is selected and quoted. Do not spend the reserve
-until the protection, grounding, inrush, metering, downstream regulation, mounts,
-cable lengths, delivery date, battery limits, shutdown controller, and thermal
-layout are known.
+until downstream protection, metering, mounts, cable lengths, delivery date, and
+thermal layout are known. Upstream cart wiring is owner scope.
 
 ### Microphone schedule alternatives
 
@@ -356,44 +351,37 @@ result:
 
 | Domain | Allocation |
 | --- | ---: |
-| Jetson, NVMe and cooling through the dedicated RSD supply at the current 15 W module profile | 30 W |
-| Two Reolink cameras plus SW-005 downstream load | 26 W |
-| Four radars and wired aggregator | 5 W |
-| Microphone array and remaining low-voltage data electronics | 5 W |
-| Limited amplifier, one 15 W RMS speaker and one 15 W RMS transducer | 35 W |
-| All conversion loss, thermal/measurement controls and unallocated contingency | 34 W |
-| **Planning simultaneous pack-side total** | **135 W** |
+| 19 V interface: Jetson, NVMe, cooling, USB microphone/data and reserve | 45 W / 2.37 A |
+| 24 V interface: no new Neko load; reserved for existing lights | 0 W new load |
+| 12–14 V interface: cameras/network, radar/control conversion, audio, controls/cooling and reserve | 90 W / 7.50 A at 12 V |
+| **Planning simultaneous supplied-interface total** | **135 W** |
 
-The first five rows are conservative load-domain allowances. The 34 W reserve
-contains losses from all three full-pack converters and the still-unselected
-downstream sensor/audio regulation, plus controls and unallocated measurement
-contingency. This is how the mixed downstream allowances become a conservative
-pack-side total; none of it is a measured result yet.
+The rows include downstream conversion losses and uncertainty reserves; none is
+a measured result yet. With the owner's reported maximum 2 A lighting load, the
+24 V/3 A interface retains 1 A of stated headroom because Neko adds no load to
+it. Cameras, radar conversion, network and audio stay on 12–14 V.
 
-The audio mixer must limit the voice channel to about 12–15 W RMS and the purr
-channel to about 10–12 W RMS, with fixed gain/attenuation so a software failure
-cannot expose the 15 W drivers to the amplifier's full nameplate. The two drivers
-total 30 W RMS, below the owner's 100 W ceiling. Route playback through the
-reSpeaker device so its echo canceller receives the far-end reference.
+At 12 V, start around 7 W clean output per 8-ohm channel. Treat 8–10 W per channel
+as a 14 V bench target, not a guarantee, and keep a fixed hardware-safe limit
+below each driver's 15 W rating. The underlying amplifier IC specifies only
+7.2 W/channel at 12 V and 1% THD, so bench SPL and vibration rather than promising
+its 20 V nameplate. The two drivers total 30 W RMS, below the owner's 100 W
+ceiling. Route playback through the reSpeaker device so its echo canceller
+receives the far-end reference.
 
 Running-load acceptance requires measurement during simultaneous maximum
 approved story audio, purr, wake/ASR, Gemma, camera verification and ZipDepth
-sampling. Measure the DDR-240C-24, RSD-60L-12 and DDR-60L-12 inputs with lights
-and all other non-Neko accessories positively isolated/off.
+sampling. Measure the 19 V, 24 V and 12–14 V interfaces, with lights and all
+other non-Neko accessories positively isolated/off.
 Do not count lights against the owner's scoped 200 W Neko limit, and do not hide
 their consumption with an undocumented subtraction. Test lights-on coexistence
 separately for rail sag, ripple, heat and interference. The Neko build fails if
 any post-start running mode or ordinary workload transient exceeds 200 W. Set a
 conservative software load-shedding threshold below that limit, provisionally
-180 W, but first select an isolated full-pack voltage/current measurement path.
-If it conservatively includes lights, early Neko shedding is acceptable; it must
-not under-report input. Size every fuse and conductor for its audited circuit,
-not from a software watt limit.
-
-Test converter startup inrush separately with a current probe fast enough for
-the pulse; a slow watt meter and the 200 W running criterion do not characterize
-it. Adding a later Unitree L2 would reserve roughly another 13 W and still fit
-the planning envelope after the running build passes.
+180 W, if the owner chooses a suitable common measurement path. If it includes
+lights, early Neko shedding is acceptable; it must not under-report input. Adding
+a later Unitree L2 would reserve roughly another 13 W and still fit the planning
+envelope after the running build passes.
 
 No traction-pack runtime calculation is required or authorized by this note.
 
@@ -402,33 +390,30 @@ No traction-pack runtime calculation is required or authorized by this note.
 1. Confirm checkout arrival within seven days to the supplied British Columbia
    postal code V9G 1L8 for every line; “ships in two days” is not “arrives within
    a week.”
-2. Trace and isolate both incompatible 4–38 V converter inputs. Record whether
-   each presently spans the full string, a two-battery midpoint, or another
-   regulated source. Do not operate it on either of the first two topologies.
-3. Photograph all four battery labels and record BMS/series permission,
-   charger/transient maximum, full/rest/loaded voltage, grounding and prospective
-   fault current. Confirm all three selected converter input ranges with margin.
-4. Finalize full-pack fuses/holders, FG/PE/chassis bonding, startup-inrush
-   sequencing/limiting, shutdown relay/controller, isolated runtime metering,
-   the protected 24-to-5 V sensor regulator, the regulated audio supply/OVP or
-   replacement amplifier, cable lengths, and output branch protection. Never
-   feed passive 24 V into an 802.3af camera.
-5. Complete empty and occupied front/rear/both-side survey images or a
+2. Confirm the received REC30K-2412SZ, R-78B5.0-2.0, SW-005, camera, and amplifier
+   voltage/current compatibility against the supplied 19 V/3 A, 24 V/3 A, and
+   12–14 V/20 A interfaces. Never feed 12–14 V directly into a camera specified
+   only for 12.0 V, and never feed passive 24 V into an 802.3af camera. Cold-start
+   both converter modules together with the network and silent amplifier and
+   reject any rail sag, restart loop, excessive overshoot, or thermal fault.
+3. Finalize owner-selected downstream branch protection, cable lengths,
+   connectors, and the optional runtime measurement method. Upstream wiring is
+   outside this recommendation scope.
+4. Complete empty and occupied front/rear/both-side survey images or a
    dimensioned sketch showing roof posts, bodywork, outboard camera faces, radar
    pods and the protected electronics bay. The first side/rear photograph is not
    a complete fabrication drawing.
-6. Bench one camera and one radar before drilling/fabrication. Prove local RTSP,
+5. Bench one camera and one radar before drilling/fabrication. Prove local RTSP,
    H.264 substream decoding, local person events, network isolation and no media
    egress.
-7. Map all 360 degrees with 3.5–4.5-ft targets, adults, groups and every seat
+6. Map all 360 degrees with 3.5–4.5-ft targets, adults, groups and every seat
    occupied. Record seam/occlusion blind zones and false greetings.
-8. Run rain/splash, dust/dirty lens, condensation, UV/full-sun soak, vibration,
+7. Run rain/splash, dust/dirty lens, condensation, UV/full-sun soak, vibration,
    cold/hot restart, cable-tug and two-hour combined-workload tests.
-9. Measure combined watts and audio SPL/vibration during a full five-minute story.
+8. Measure combined watts and audio SPL/vibration during a full five-minute story.
    Do not ship solely from nameplate arithmetic.
-10. Because the Jetson developer kit is rated only 0–35 C, prove the enclosure
-    temperature policy and orderly degraded shutdown before claiming any 35–40 C
-    operation.
+9. Because the Jetson developer kit is rated only 0–35 C, implement and test the
+   owner-approved orderly degraded shutdown at 35 C.
 
 ## Primary source ledger
 
@@ -459,11 +444,18 @@ No traction-pack runtime calculation is required or authorized by this note.
   <https://www.digikey.ca/en/products/detail/seeed-technology-co-ltd/107990273/24814468>
 - Dayton TT25-8 manufacturer specification:
   <https://www.daytonaudio.com/product/1104/tt25-8-puck-tactile-transducer-mini-bass-shaker>
-- Mean Well current converter specifications and installation rules:
-  <https://www.meanwell.com/Upload/PDF/DDR-240/DDR-240-SPEC.pdf>,
-  <https://www.meanwell.com/Upload/PDF/DDR-120%2C240%2C480_EN.pdf>,
+- Soberton amplifier board, underlying ST amplifier IC, and Visaton driver:
+  <https://www.soberton.com/wp-content/uploads/2019/09/XPCB-12BT-spec-sheet-edited-Dec-9.pdf>,
+  <https://www.st.com/resource/en/datasheet/tda7492p.pdf>,
+  <https://www.visaton.de/en/products/drivers/fullrange-systems/fr-8-wp-8-ohm-black>
+- RECOM active downstream converter specifications and Canadian stock:
+  <https://recom-power.com/pdf/Econoline/REC30K%28-Z%29.pdf>,
+  <https://recom-power.com/pdf/Innoline/R-78Bxx-2.0.pdf>,
+  <https://www.digikey.ca/en/products/detail/recom-power/REC30K-2412SZ/24366428>,
+  <https://www.digikey.ca/en/products/detail/recom-power/R-78B5-0-2-0/6677084>
+- Rejected RSD alternative startup evidence:
   <https://www.meanwell.com/Upload/PDF/RSD-60/RSD-60-SPEC.PDF>,
-  <https://www.meanwell.com/Upload/PDF/DDR-60/DDR-60-spec.pdf>
+  <https://www.meanwell.com/Upload/PDF/RSD-30/RSD-30-spec.pdf>
 - Brainboxes SW-005 manufacturer specifications:
   <https://www.brainboxes.com/products/industrial-ethernet-switches/page/fast-ethernet>
 - Teltonika TSW101 active-PoE fallback and StarTech USB-NIC fallback:

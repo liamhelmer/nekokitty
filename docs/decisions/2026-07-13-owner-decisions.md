@@ -56,13 +56,13 @@ not assumptions. Revisit them explicitly if Neko's use or hardware changes.
   plus four inexpensive radar sectors, with no lidar in the one-week build. A
   roof-inverted Unitree-class 3D lidar remains the first later lidar experiment.
   No part has been ordered yet.
-- With documented replacement power and the low-power camera switch included,
-  the safety-revised **provisional** planning range is **CAD
-  1,625.13–1,947.53 landed**, leaving only **CAD 52.47–374.87** under the fixed
-  ceiling. This is not an evidence-backed upper bound until unselected protection,
-  grounding, inrush, metering, regulation, and fabrication lines are quoted. The
-  simultaneous pack-side design allocation is **135 W**, still subject to a
-  measured 200 W Neko-only acceptance cap.
+- Using the owner-provided power interfaces and the low-power camera switch, the
+  revised **provisional** planning range is **CAD 1,399.68–1,722.08 landed**,
+  leaving **CAD 277.92–600.32** under the fixed ceiling. This remains an
+  unitemized planning range until weather, mounting, cabling, protection, and
+  fabrication lines are quoted. The simultaneous supplied-interface design
+  allocation is **135 W**, still subject to the required, to-be-measured 200 W
+  Neko-only acceptance cap.
 - Proactive greetings are **parked-only** in revision one. The desired social
   interaction radius is no more than 10 ft (3.05 m). Because the selected C4001
   radar does not provide documented ranging below about 1.2 m (3.9 ft), its
@@ -86,50 +86,30 @@ not assumptions. Revisit them explicitly if Neko's use or hardware changes.
 
 ## Power, roof, and operating environment
 
-- The traction bank is LiFePO4, described as 48 V and made from four 270 Ah
-  batteries connected **in series**. Exact battery labels, nominal/charge limits,
-  BMS rules, interconnects and protection remain unverified. The project does not
-  need an overall cart energy/runtime calculation; it still needs those facts for
-  safe converter, fuse and shutdown design.
-- Two generic adjustable DC/DC modules currently produce 24 V for lights and
-  19 V for the Jetson. The owner identifies each only by a marketplace title
-  advertising **4–38 V input, 1.25–36 V output and 5 A**. A nominal 48 V bank is
-  already outside that input range, so neither module is approved on the full
-  series string. Do not reconnect or operate either one across the complete
-  pack. If either input uses a two-battery midpoint, shut that accessory path
-  down too: midpoint loading is not an acceptable workaround because it
-  unbalances the series bank. Their exact present input wiring remains an urgent
-  inspection item.
-- The current loads reported by the owner are approximately 1–2 A on the 24 V
-  lighting output and approximately 1 A on the 19 V Jetson output. These are
-  observations, not converter qualifications; the advertised 5 A is not accepted
-  as continuous capability without a real data sheet and thermal test.
-- The 200 W requirement is a **running-load** cap. The three conditional
-  full-pack converters publish typical startup inrush values of 30 A, 20 A, and
-  20 A; simultaneous input application could briefly approach 70 A. That
-  separate electrical transient requires measured sequencing/precharge or
-  inrush limiting plus BMS, contactor, wiring, and fuse time-current
-  coordination. It is not evidence of a 70 A continuous load and is not governed
-  by a slow software watt limit.
-- Preserve 24 V as the preferred accessory distribution voltage, but create it
-  with a properly protected, full-pack-rated converter whose complete input
-  range exceeds the measured battery/charger range. Give the Jetson its own
-  independently protected full-pack-rated supply. Camera 12 V may be a dedicated
-  downstream branch because the selected cameras explicitly require 12 V or
-  standards-compliant active PoE. The recorded converter candidates may not be
-  finally approved, ordered, or energized until battery labels, maximum charge/
-  transient voltage, grounding, and protection are known.
-- The provisional lowest-power camera topology is a dedicated isolated
-  full-pack-to-12 V converter feeding two individually fused camera power runs
-  and a low-power non-PoE switch. The Jetson onboard Ethernet port connects to
-  that switch and Wi-Fi remains the optional online uplink. A crossover cable,
-  USB Ethernet adapter and PoE boost stage are unnecessary in the primary path.
-- Final electrical approval still needs a manufacturer-compliant DDR-240/RSD FG
-  and mobile PE/chassis-bonding disposition, protected 24-to-5 V sensor
-  regulation, an isolated runtime power-measurement path, and either a regulated
-  lower-voltage audio branch with coordinated OVP or a wider-margin amplifier.
-  A nominal 24 V rail is too close to the selected Soberton's 25 V maximum to be
-  treated as a complete protection design.
+- For hardware recommendation purposes, the owner supplies three black-box power
+  interfaces: regulated **24 V up to 3 A**, regulated **19 V up to 3 A**, and
+  **12–14 V up to 20 A** for accessories. The owner is responsible for upstream
+  battery, conversion, grounding, protection, and wiring. Battery labels, a
+  wiring diagram, BMS/charger details, and inspection of the existing converters
+  are explicitly not prerequisites for this project's hardware recommendations.
+- Existing lights draw 1–2 A from the 24 V interface. The Jetson currently draws
+  about 1 A from 19 V. Treat the stated interface limits as controlling and
+  verify the completed Neko load at those interfaces.
+- Leave all new hardware off the already-loaded 24 V interface. Keep the Jetson
+  and its USB microphone/data load on 19 V. Use 12–14 V for cameras/network,
+  radar/control conversion, audio, cooling, and controls.
+- The cameras are specified at 12.0 V, not a 12–14 V range. The Mean Well RSD
+  pair was considered but rejected as the primary path because its published
+  startup inrush is poorly matched to the supplied interfaces. The active camera
+  recommendation is a RECOM `REC30K-2412SZ`: 9–36 V input, nominal 12 V/2.5 A,
+  30 W, and 20–50 ms documented startup. That startup value is not an explicit
+  capacitive-inrush guarantee, so cold-start testing remains required. A RECOM
+  `R-78B5.0-2.0` supplies the 5 V radar/aggregator domain from 12–14 V. Its data
+  sheet lists 2 A typical inrush and 10 ms typical startup under nominal-input
+  test conditions, not maximum values at 12–14 V, so test it too. The
+  Brainboxes `SW-005` and 10–25 V Soberton amplifier can use 12–14 V directly.
+  The 24 V full-pack converter, dedicated replacement Jetson converter, and
+  full-pack camera converter previously researched are no longer purchase items.
 - The roof is approximately 4 ft wide by 8 ft long and its upper surface is
   solar panels. Mounts and cable routes must not shade, drill, bond to, obstruct,
   or trap heat against the panels without the panel manufacturer's approval.
@@ -141,13 +121,15 @@ not assumptions. Revisit them explicitly if Neko's use or hardware changes.
   Orin Nano Developer Kit itself is manufacturer-rated only for 0–35 C, so the
   current developer-kit build must monitor enclosure temperature and degrade or
   shut down above its validated range; airflow cannot make a 40 C ambient meet a
-  35 C rating.
+  35 C rating. The owner approves orderly optional-worker shedding and shutdown
+  at 35 C.
 - The full electrical and weather integration decision, evidence requirements,
   and manufacturer-source ledger are in
   [`docs/research/2026-07-13-power-weather.md`](../research/2026-07-13-power-weather.md).
 - Speakers and the body transducer together must be rated at **100 W or less**.
-  The current one-speaker/one-puck recommendation totals 30 W RMS and is limited
-  to about 27 W combined program output.
+  The current one-speaker/one-puck recommendation totals 30 W RMS. Initially
+  target about 14 W combined clean output at 12 V; treat 16–20 W combined as a
+  14 V bench target, not a guaranteed output.
 - One voice speaker is sufficient for revision one.
 
 ## Interaction, voice, and stories
@@ -202,13 +184,10 @@ not assumptions. Revisit them explicitly if Neko's use or hardware changes.
   camera/audio data local and avoid storing it.
 - There is no separate requested radio/offline switch. The owner intends the
   hard electrical system switch to make Neko fully offline by removing power,
-  but its contacts and timing have not been inspected. If it immediately cuts
-  the traction supply, it is only a candidate service/emergency disconnect until
-  a qualified installer verifies its DC voltage/current/interrupt rating,
-  topology, location, and intended duty. Add a separate normal control that
-  requests Linux shutdown before hardware-delayed converter cutoff. This does
-  not remove the need for visible microphone/cloud state and recommended
-  hardware microphone mute/camera shutters for bystander privacy.
+  while ordinary software operation should request a clean Linux shutdown where
+  practical. Upstream switch and wiring design are owner-managed. This does not
+  remove the need for visible microphone/cloud state and recommended hardware
+  microphone mute/camera shutters for bystander privacy.
 
 ## Authorized upstream action
 
@@ -218,15 +197,14 @@ not assumptions. Revisit them explicitly if Neko's use or hardware changes.
 
 ## Still open before hardware purchase or field use
 
-- Exact battery models/BMS, full/rest/loaded voltage, configured limits and
-  controlled shutdown threshold; whether each incompatible generic converter is
-  presently connected across the full bank, a midpoint, or another rail;
-  protection/grounding, measured rail noise, sustained power/thermal budget, and
-  enclosure airflow.
-- Storage temperature, overnight exposure, solar-panel/controller/mounting
-  details, and whether safe shutdown/degraded operation from 35–40 C is acceptable.
+- Measured rail noise, sustained power/thermal budget, and enclosure airflow at
+  the three owner-provided interfaces. Upstream battery and wiring information is
+  outside this recommendation scope.
+- Storage temperature, overnight exposure, and solar-panel/structural mounting
+  details. Orderly shutdown at 35 C is approved.
 - Checkout-confirmed arrival to British Columbia postal code **V9G 1L8** and the
-  exact full-pack converter, downstream 12 V, switch, protection and cable BOM.
+  exact camera 12 V converter, sensor 5 V converter, switch, downstream
+  protection, weather, mount, and cable BOM.
 - Exact cooldown behavior and treatment of groups, pets, and partial occlusion;
   parked-only greeting and the <=10-ft interaction radius are decided.
 - Checkout-confirmed camera/radar/microphone/speaker/amplifier/transducer stock,

@@ -1365,3 +1365,106 @@ Independent read-only audits caught several integration details before commit:
 - `neko-gemma.service` remains enabled and active with zero restarts. Its
   loopback-only `/v1/models` endpoint returned only `gemma-4-e2b-it`, and a
   bounded chat request returned exactly `meow`. No service setting was changed.
+
+## 2026-07-13 — supplied power-interface scope correction
+
+The owner clarified that this project is recommending hardware, not designing or
+approving the cart's upstream wiring. The controlling interfaces are now:
+
+- regulated 24 V, up to 3 A; existing lights draw 1–2 A;
+- regulated 19 V, up to 3 A; the Jetson currently draws about 1 A; and
+- 12–14 V, up to 20 A, for accessories.
+
+Battery labels, BMS/charger details, a wiring diagram, generic-converter input
+tracing, full-pack protection, grounding, fusing, disconnect design, and upstream
+wiring are owner scope and no longer block hardware recommendations. The owner
+also approved orderly optional-worker shedding and shutdown at 35 C. Earlier
+full-pack analysis is preserved as chronological research but labelled
+superseded in current guidance.
+
+### Revised downstream hardware recommendation
+
+Current manufacturer and Canadian distributor evidence was refreshed on
+2026-07-13:
+
+| Item | Current role and evidence | Price/stock observed |
+| --- | --- | --- |
+| RECOM `REC30K-2412SZ` | Feed from 12–14 V; nominal 12 V/2.5 A/30 W for both Reolink cameras; 9–36 V input, 88% typical full-load efficiency at nominal input, 20 ms typical/50 ms maximum startup, silicone-potted aluminium case, and MIL-STD-810F shock/vibration claims | DigiKey CAD 36.29, 141 stocked |
+| RECOM `R-78B5.0-2.0` | Feed from 12–14 V; 5 V/2 A/10 W for four C4001 radars and their aggregator; 6.5–32 V input, published full-load efficiency of 94% at minimum input/90% at maximum input, 2 A typical inrush and 10 ms typical startup at the stated nominal-input test condition, silicone potting, and 2 G vibration qualification; those startup figures are not maximums at 12–14 V | DigiKey CAD 18.72, 5,943 stocked |
+| Brainboxes `SW-005` | Feed directly from 12–14 V; five 10/100 ports, 5–30 V input, 1.1 W maximum | DigiKey CAD 81.31, previously observed 616 stocked |
+| Soberton `XPCB-12BT` | Feed directly from 12–14 V; official board range is 10–25 V | Existing selected DigiKey line |
+
+The Jetson remains directly on regulated 19 V. The 24 V interface carries only
+the existing lights. Cameras are not powered directly from 12–14 V because
+Reolink specifies 12.0 V rather than a 12–14 V range. Both new converter modules,
+the SW-005 and Soberton instead use the higher-current 12–14 V interface.
+
+The originally considered Mean Well RSD pair was rejected as the primary path
+after checking startup: both data sheets publish 20 A typical inrush at 24 V.
+That is a poor fit beside lights on a 24 V/3 A interface, and the RSD-60's value
+at 12–14 V is not specified. The REC30K does not publish a separate capacitive-
+inrush maximum, so its 20–50 ms startup figure is not a soft-start guarantee. The
+R-78B's 2 A inrush and 10 ms startup values are typical at the stated nominal-
+input condition, not maximums at 12–14 V. Repeated cold-start tests remain an
+acceptance gate. Both active RECOM parts are board-level modules and require
+mechanically supported carriers with retained connections in protected space.
+
+Soberton's 2 x 25 W claim is at 20 V and 10% THD. The underlying TDA7492P
+specifies 7.2 W per 8-ohm channel at 12 V/1% THD and 9.5 W at 10% THD. The
+12–14 V choice therefore safely de-rates the two 15 W drivers but needs an actual
+SPL/vibration bench test. Target about 7 W clean per channel at 12 V, treat
+8–10 W as a 14 V bench target rather than a guarantee, and never exceed either
+15 W driver.
+
+### Revised rail and budget arithmetic
+
+The deliberately conservative interface allocation remains 135 W:
+
+```text
+19 V: Jetson/NVMe/cooling, USB mic/data, reserve          45 W / 2.37 A
+24 V: no new Neko load; existing lights only               0 W new load
+12-14 V: cameras/network, radar/control, audio, reserve    90 W / 7.50 A at 12 V
+--------------------------------------------------------------------------
+Neko simultaneous supplied-interface planning total     135 W
+```
+
+At the reported 2 A maximum lighting load, the 24 V/3 A interface retains 1 A of
+stated headroom because Neko adds no new load there. Neko retains 65 W of planning
+margin below its required, to-be-measured 200 W running cap.
+
+The active REC30K, R-78B and SW-005 lines total CAD 136.32 pre-tax/CAD 152.68
+after assumed 12% BC tax. Retaining the conservative CAD 350–650 weather,
+mounting, cable, downstream-protection, and fabrication allowance yields:
+
+```text
+provisional landed hardware addition     CAD 1,399.68..1,722.08
+headroom below CAD 2,000                  CAD   277.92..600.32
+```
+
+No part was ordered, installed, wired, disconnected, or powered during this
+scope correction. No package, service, model, firewall, or operating-system state
+was changed.
+
+### Post-correction validation
+
+- System Python and the pinned ZipDepth export environment each passed all 29
+  unit tests.
+- `git diff --check` passed. The CommonMark parser accepted all eight changed
+  Markdown files without literal unmatched emphasis markers. An internal-link
+  audit covered 23 Markdown files and 56 relative links with no missing or
+  repository-escaping target.
+- Independent arithmetic reproduced CAD 136.32 pre-tax/CAD 152.68 taxed for the
+  active REC30K/R-78B/SW-005 lines, CAD 1,399.68–1,722.08 for the provisional
+  landed build, CAD 277.92–600.32 headroom, and 45 + 0 + 90 = 135 W with 65 W
+  below the required 200 W acceptance limit.
+- Credential-signature, raw private-photo link/identifier, and tracked-media
+  scans were clean. The owner-provided postal code remains intentionally present
+  for checkout ETA research.
+- Headless state still matched the recorded configuration: `multi-user.target`,
+  inactive display manager, and no exact Xorg, GNOME Shell, or Firefox process.
+  `neko-gemma.service` remained enabled/active with zero restarts; its loopback
+  model list contained only `gemma-4-e2b-it`, and a bounded health prompt returned
+  exactly `meow`.
+
+These checks were read-only except for the bounded local inference request. They
+did not change any service setting, package, model, network rule, or hardware.

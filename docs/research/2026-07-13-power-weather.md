@@ -7,37 +7,26 @@
 > this note remain research references, but they do not override the current
 > two-Reolink/four-radar/XVF3000 build or its scoped 200 W ceiling.
 
-> **Immediate safety correction — 2026-07-13:** the owner has now identified both
-> installed adjustable modules only by an advertised **4–38 V input, 1.25–36 V
-> output, 5 A** specification. They are incompatible with a nominal 48 V series
-> bank and are not approved full-pack converters. Do not operate either module
-> across the complete string. A two-battery/midpoint input is also prohibited
-> because it unbalances the string. Trace and isolate both inputs before further
-> operation; the replacement architecture below supersedes every earlier “reuse
-> the existing converter” statement in this note.
+> **Recommendation-boundary correction — 2026-07-13:** the owner is not asking
+> this project to design or approve upstream battery wiring. Treat regulated
+> **24 V/3 A**, regulated **19 V/3 A**, and **12–14 V/20 A** as supplied black-box
+> interfaces. Battery, BMS, charger, converter-input, grounding, fuse, disconnect,
+> and upstream wiring details are owner scope and no longer block hardware
+> recommendations. The full-pack analysis retained below is historical research.
 
 This note records the owner's latest physical constraints and converts them into
-purchase and field-test gates. It is a design record, not a certification of the
-cart's existing wiring. No electrical hardware was opened, measured, or changed
-while preparing it.
+downstream component and field-test guidance. It is not a certification of the
+cart's wiring. No electrical hardware was opened, measured, or changed while
+preparing it.
 
 ## Owner-supplied facts
 
-- The traction bank is LiFePO4 and described as 48 V, using four 270 Ah batteries
-  **in series**. The owner has resolved the topology; the individual labels,
-  series/BMS permission, physical wiring, configured limits, and protection have
-  not yet been inspected.
-- Two generic adjustable buck modules currently produce 24 V for lights and
-  accessories and 19 V for the Jetson. Each is advertised as 4–38 V input,
-  1.25–36 V output and 5 A. Their input wiring has not been traced, and no
-  manufacturer data sheet, isolation rating, continuous thermal rating,
-  protection certification or ingress rating is available.
-- The owner reports approximately 1–2 A on the 24 V lighting output and
-  approximately 1 A on the 19 V Jetson output. Those observations do not make a
-  38 V-maximum converter safe on a 48 V-class pack and do not validate the
-  marketplace 5 A claim as a continuous rating.
-- New accessories should use 24 V where practical. A 12 V rail is acceptable
-  only when a chosen device actually requires it.
+- Regulated 24 V is available up to 3 A. Existing lights draw 1–2 A from it.
+- Regulated 19 V is available up to 3 A. The Jetson currently draws about 1 A.
+- A 12–14 V accessory interface is available up to 20 A.
+- New accessories should use 24 V where practical, but the existing lighting
+  load leaves only 1 A guaranteed headroom. Cameras and audio therefore use the
+  higher-current 12–14 V interface.
 - The roof is approximately 4 ft wide by 8 ft long and is covered by solar
   panels.
 - Intended ambient operation is 0–40 C. There is no salt exposure. Moisture,
@@ -46,52 +35,66 @@ while preparing it.
   washer.
 - The primary child audience is ages 5–10.
 
-The series topology is now an owner decision, not an open series/parallel
-question. It still does not approve protection or establish actual nominal/full/
-loaded voltage: record all four labels, manufacturer series/BMS rules, and the
-physical wiring before connecting new loads. **No overall traction-pack energy,
-cart-runtime, or endurance calculation is required or authorized for this
-revision.**
+No overall traction-pack energy, cart-runtime, upstream protection, or endurance
+calculation is required for this recommendation.
 
 ## Current scoped power decision
 
 The Jetson, NVMe/cooling, two Reolink Duo 3V cameras, four C4001 radars and wired
 aggregator, microphone, local network/data electronics, limited amplifier,
 15 W RMS voice driver, and 15 W RMS body transducer must draw **no more than
-200 W while running**. The revised Canadian one-week plan allocates approximately
-135 W simultaneously at the pack side, including 35 W for the limited audio
-domain, three full-pack conversion paths, downstream sensor/audio regulation,
-and conversion/thermal/measurement contingency. Those are design allocations,
-not measurements.
+200 W while running**. The current unmeasured planning allocation is **135 W
+across the supplied interfaces**:
 
-Measure all three proposed full-pack converter inputs during the maximum approved
-simultaneous story/purr, wake/ASR, Gemma, camera, radar, network, and sampled
-ZipDepth workload. Keep lights and all non-Neko accessories positively off for
-the scoped test; then repeat with lights operating as a separate
-rail-sag/ripple/thermal/EMI coexistence test. Do not use a guessed baseline
-subtraction. The Neko build fails if any post-start running mode or ordinary
-workload transient exceeds 200 W at the pack side. A provisional 180 W software
-load-shedding threshold creates warning margin, but it first needs a selected
-isolated voltage/current measurement path. Neither it nor the 200 W scope cap
-sizes conductors, fuses, converters, or disconnects; each circuit still uses its
-audited worst-case electrical requirements.
+| Interface | Conservative Neko allocation |
+| --- | ---: |
+| 19 V/3 A | 45 W / 2.37 A for Jetson, NVMe, fan, USB mic/data, and reserve |
+| 24 V/3 A | 0 W new Neko load; reserved for existing lights |
+| 12–14 V/20 A | 90 W / 7.50 A at 12 V for cameras/network, radar/control conversion, audio, controls/cooling, and reserve |
 
-Converter startup inrush is a separate electrical acceptance test. The published
-typical input pulses are 30 A for the DDR-240C-24 and 20 A for each 60 W
-candidate, so uncontrolled simultaneous application could briefly approach
-70 A. This is not a continuous-load estimate. Sequence/precharge or limit the
-inputs, measure the pulse with a suitable current probe, and coordinate BMS,
-switch/contactor making duty, wiring, and fuse time-current curves. A slow
-software watt meter cannot own that protection.
+With lights at their reported 2 A maximum, the 24 V interface retains 1 A of
+stated headroom. Measure all three interfaces during the maximum approved
+story/purr, wake/ASR, Gemma, camera, radar, network, and sampled ZipDepth workload.
+Repeat with lights operating for rail-sag/ripple/thermal/EMI coexistence. The Neko
+build fails if its combined running draw exceeds 200 W.
 
-## Immediate electrical decision
+## Current downstream hardware decision
 
-Retire the generic modules from primary cart service. Keep **24 V as the
-accessory distribution standard**, but generate it with a documented
-full-pack-rated isolated converter. Power the Jetson and exterior camera/network
-domain from separate documented 12 V converters. Twelve volts is selected only
-where the actual devices require or officially accept it; it is not a new
-general-purpose passenger-accessible rail.
+- Connect the Jetson directly to regulated 19 V; the official barrel input accepts
+  9–20 V and up to 3.5 A.
+- Feed a RECOM [`R-78B5.0-2.0`](https://recom-power.com/pdf/Innoline/R-78Bxx-2.0.pdf)
+  from 12–14 V for the radars and aggregator. It provides 5 V/2 A/10 W and
+  lists 2 A typical inrush and 10 ms typical startup under stated nominal-input
+  test conditions. Neither is a maximum at 12–14 V, so cold-start testing remains
+  mandatory despite the source's large current margin.
+- Feed a RECOM [`REC30K-2412SZ`](https://recom-power.com/pdf/Econoline/REC30K%28-Z%29.pdf)
+  from 12–14 V for the two cameras. It provides nominal 12 V/2.5 A/30 W. Reolink
+  specifies 12.0 V, so do not apply the raw 12–14 V interface directly.
+- Feed the Brainboxes SW-005 and Soberton XPCB-12BT directly from 12–14 V. The
+  switch accepts 5–30 V and the amplifier accepts 10–25 V.
+- The earlier Mean Well RSD pair is not active: each specifies 20 A typical
+  inrush at 24 V, which is a poor match for a 24 V/3 A interface and unquantified
+  at the proposed lower camera-supply input. The REC30K instead specifies a
+  20 ms typical/50 ms maximum startup but no separate capacitive-inrush maximum;
+  repeated cold-start testing on 12–14 V remains mandatory.
+- Solder both RECOM board-level modules to mechanically supported carriers. Keep
+  them, the SW-005, amplifier, aggregator, and exposed connections in the
+  protected electronics space; their component qualifications are not an
+  assembled outdoor IP rating.
+- The Jetson developer kit is rated only 0–35 C. The owner approves orderly
+  optional-worker shedding and shutdown at 35 C.
+
+## Historical full-pack converter analysis — superseded
+
+Everything from this heading through the explicitly superseded shortlist below
+records earlier research. It is not the active purchase path and does not request
+battery or wiring evidence from the owner.
+
+The superseded recommendation was to retire the generic modules, retain **24 V as
+the accessory distribution standard**, and generate it with a documented
+full-pack-rated isolated converter. It also proposed separate documented 12 V
+converters for the Jetson and exterior camera/network domain. This paragraph is
+archival and does not describe the current supplied-interface design.
 
 The intended topology is:
 
@@ -184,9 +187,9 @@ platform. Hot-sun shutdown/restart tests are hard gates.
 
 ### How to use the 24 V and camera branches
 
-For the active one-week build, the 24 V domain supports the existing lights,
-regulated 5 V for four C4001 modules and their wired aggregator, and the
-separately limited audio branch. The candidate
+In that superseded one-week design, the 24 V domain supported the existing lights,
+regulated 5 V for four C4001 modules and their wired aggregator, and a separately
+limited audio branch. The historical candidate
 [Mean Well DDR-240C-24](https://www.meanwell.com/Upload/PDF/DDR-240/DDR-240-SPEC.pdf)
 provides 24 V/10 A/240 W with 91% typical efficiency, 4 kV DC isolation,
 remote on/off and DC-OK, and a three-second 15 A peak. Its input is 33.6–67.2 V,
@@ -271,12 +274,12 @@ are additional and still unknown. If a new clean electronics rail is necessary,
 a hot-derated 200–300 W class converter provides useful startup and future
 margin; this is not permission to make the amplifier or transducer louder.
 
-Research candidates to evaluate only after the battery audit:
+Historical candidates that were to be evaluated only after the battery audit:
 
 | Candidate | Relevant manufacturer facts | Blocking concern |
 | --- | --- | --- |
 | Existing generic 4–38 V modules | None acceptable | **Rejected** across the full pack and at a series midpoint. Do not mistake an observed output voltage/current for input compatibility or a continuous rating. |
-| Historical shortlist candidate: Mean Well [DDR-240C-24](https://www.meanwell.com/Upload/PDF/DDR-240/DDR-240-SPEC.pdf) | 33.6–67.2 V input, 24 V/10 A/240 W, 91% typical efficiency, 4 kV isolation, remote on/off/DC-OK, railway vibration qualifications | Current controlling blockers also include FG-to-PE/Pollution Degree 2, combined startup inrush, downstream 5 V, and audio regulation/OVP; use the active BOM, not this row alone. |
+| Historical shortlist candidate: Mean Well [DDR-240C-24](https://www.meanwell.com/Upload/PDF/DDR-240/DDR-240-SPEC.pdf) | 33.6–67.2 V input, 24 V/10 A/240 W, 91% typical efficiency, 4 kV isolation, remote on/off/DC-OK, railway vibration qualifications | Historical blockers included FG-to-PE/Pollution Degree 2, combined startup inrush, downstream 5 V, and audio regulation/OVP; this is no longer an active purchase row. |
 | Weather-tolerant fallback: Victron [Orion-Tr 48/24-12 isolated](https://www.victronenergy.com/upload/documents/Datasheet-Orion-Tr-DC-DC-converters-isolated-100-250-400W-EN.pdf) | 32–70 V input, nominal 24.2 V/12 A/280 W at 40 C, 89% typical efficiency, remote on/off, isolated | IP43 only terminals-down, derates 3%/C above 40 C, and Canadian arrival is less certain. Its nominal output is also too close to the 25 V-maximum Soberton to waive downstream margin/OVP. |
 | Mean Well [RSD-300C-24](https://www.meanwell.com/Upload/PDF/RSD-300/RSD-300-SPEC.PDF) | 33.6–62.4 V continuous input, 24 V/12.5 A/300 W, 4 kV input/output withstand, semi-potted | The 62.4 V continuous ceiling must exceed the real charger/transient maximum with margin; it has no assembled outdoor IP rating and needs a thermal/enclosure design. |
 
@@ -291,7 +294,11 @@ For 24 V USB distribution, the proposed StarTech hub accepts the rail directly;
 for the S2L, use local regulated 5 V rated at least 3 A and validate voltage and
 ripple at the device during cold start.
 
-## Protection and wiring acceptance gate
+## Historical upstream protection research — owner scope
+
+This section is retained as general reference only. It neither blocks hardware
+recommendations nor asks the owner for battery, BMS, charger, fuse, disconnect,
+grounding, or wiring evidence.
 
 LiFePO4 batteries can supply very high fault current. The current Victron
 [DC-wiring reference](https://www.victronenergy.com/media/pg/The_Wiring_Unlimited_book/en/dc-wiring.html)
@@ -301,7 +308,7 @@ prospective short-circuit current. It also notes that common blade, MIDI, ANL,
 and many MEGA fuses are only 32 V DC; a familiar automotive fuse is therefore
 not automatically safe on the full-pack side of a nominal-48 V LiFePO4 bank.
 
-Before connecting Neko hardware, record and photograph:
+The superseded upstream checklist called for recording and photographing:
 
 1. each battery label, data sheet, BMS, series/parallel permission, terminal
    torque, and the actual interconnect diagram;
@@ -418,7 +425,7 @@ coverage geometry. Because its top face is solar:
 - preserve panel service/removal, rain runoff, passenger head clearance, and a
   downward drip loop before every enclosure entry;
 - record roof height, post locations, cat-body occlusion, seated passenger
-  envelopes, and panel/controller cable routes on the dimensioned survey.
+  envelopes, and solar-panel/frame and cable geometry on the dimensioned survey.
 
 The active value perception concept is one Reolink Duo 3V below the front roof
 edge, one below the rear edge, and four sealed C4001 radar pods around the roof
@@ -436,8 +443,9 @@ spreader or a sealed air-to-air approach; add a replaceable filtered/pressurized
 air path only if testing shows passive cooling cannot hold margins. Exposed fins
 must be cleanable and must not become touch or snag hazards.
 
-Log enclosure ambient, Jetson thermal zones, every converter case temperature,
-camera/radar health, the 24 V and both 12 V rails, and total branch current during:
+Log enclosure ambient, Jetson thermal zones, both downstream RECOM module case
+temperatures, camera/radar health, the 19 V, 24 V and 12–14 V interfaces, and
+current during:
 
 - cold start and hot restart;
 - midday sun with the solar system charging;
@@ -456,30 +464,21 @@ fallback overrides an electrical or thermal shutdown.
 
 ## Remaining information needed
 
-The following items still block final converter, fuse, enclosure, and mount
-orders:
+The following still blocks final enclosure and mount selection or field use:
 
-1. clear photos and make/model of all four battery labels, plus a simple wiring
-   diagram verifying the owner-confirmed series links, BMS, shunt, main fuse/disconnect,
-   charger and solar controller;
-2. an urgent trace showing whether each incompatible generic converter input is
-   across the full string, a two-battery midpoint, or another regulated source,
-   plus current fuse/switch/wire information;
-3. measured full/rest/loaded pack voltage and current output rails, manufacturer/
-   configured BMS limits, and Neko's controlled low-voltage shutdown threshold;
-4. storage temperature, overnight condensation/rain exposure, and whether
-   orderly degraded shutdown between 35 and 40 C is acceptable; 0–40 C ambient,
-   no salt, cloth cleaning and protection from direct rain are decided;
-5. complete front/rear/both-side empty and occupied survey images or a drawing
+1. measured voltage, ripple, sustained load, and temperature at the three supplied
+   interfaces during the combined workload; upstream implementation is owner scope;
+2. storage temperature and overnight condensation/rain exposure; 0–40 C ambient,
+   no salt, cloth cleaning, protection from direct rain, and orderly shutdown at
+   35 C are decided;
+3. complete front/rear/both-side empty and occupied survey images or a drawing
    with dimensions. The first occupied side/rear image establishes the slat/post
    occlusion risk but not every camera seam or bracket dimension;
-6. where a shaded, serviceable electronics bay can fit and its available outer
+4. where a shaded, serviceable electronics bay can fit and its available outer
    dimensions;
-7. solar-panel/controller make/model and approved structural attachment points;
-8. full-pack source cable lengths/gauges and the battery/BMS prospective fault
-   current needed to select >=80 V DC branch protection and interrupt ratings;
-9. manufacturer-compliant DDR/RSD FG/PE/chassis treatment, startup-inrush
-   sequencing/limiting, isolated runtime metering, the 24-to-5 V sensor stage,
-   and the lower-voltage audio regulator/OVP or replacement amplifier.
+5. approved structural attachment points that do not drill, shade, or load the
+   solar panels;
+6. final downstream cable lengths, connectors, owner-selected branch protection,
+   REC30K/R-78B carrier and placement details, and optional runtime metering.
 
 These are evidence requests, not reasons to pause software and story work.
