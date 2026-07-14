@@ -5,8 +5,9 @@
 > [`2026-07-13-canadian-one-week-bom.md`](2026-07-13-canadian-one-week-bom.md).
 > Where this longer note recommends an OAK-D W, RPLIDAR S2L, existing C922, or
 > three C4001 sectors, that recommendation is historical research rather than the
-> current order. The active build uses **two opposing Reolink Duo 3V PoE cameras
-> and four C4001 sectors**. No lidar is purchased this week.
+> current order. The active build uses **two opposing Reolink Duo 3V PoE-model
+> cameras powered from dedicated 12 V, one SW-005 switch, and four C4001
+> sectors**. No lidar is purchased this week.
 
 ## Current one-week decision
 
@@ -14,9 +15,24 @@ Mount one Reolink Duo 3V PoE below the front roof edge and one below the rear
 edge, with their 180-degree panoramas facing in opposite directions. Add **four**
 DFRobot C4001 sectors at nominal yaws 0, 90, 180, and 270 degrees. Radar provides
 anonymous presence/range hints; a camera-confirmed person is still required
-before a spoken greeting. Both cameras remain local-only on an isolated wired
-network with recording, microphones, speakers, sirens, P2P, cloud, UPnP, email,
-and FTP disabled.
+before a spoken greeting. Both cameras remain local-only on a private wired
+network with no default route; recording, microphones, speakers, sirens, P2P,
+cloud, UPnP, email, and FTP are disabled.
+
+The owner-provided occupied side/rear photograph confirms that roof posts/slats,
+passengers and bodywork will block sensors placed inside the passenger envelope.
+Put both panorama optical faces below and just outside the front/rear post plane
+and put all four radar faces outside the slats. Attach brackets only to structural
+roof members, not solar panels or the LED strip. The photograph contained people
+and embedded location metadata; it was inspected transiently, deleted and not
+committed. Complete empty/occupied front/rear/both-side geometry remains a
+pre-drill gate.
+
+Revision-one proactive greetings are parked-only and use a <=10-ft interaction
+radius. The C4001's documented ranging floor is about 1.2 m/4 ft, so begin with
+a camera-confirmed approach/dwell in the 4–10 ft annulus. Inside 4 ft, suppress
+repeat solicitation and rely on the wake phrase/camera policy rather than
+invented radar precision.
 
 The owner-reported roof underside is about 7 ft (2.13 m). A roof-mounted 2D lidar has
 the wrong geometry: level rays pass above children, and tilting one scan plane
@@ -65,8 +81,8 @@ The recommended USB/OV9782 perception configuration is approximately
 **US$1,098–1,283 installed before tax, shipping, and duty**, prudently rounded to
 US$1,100–1,300. Combined with the separate audio subsystem's US$280–445 range,
 the same arithmetic gives approximately **US$1,378–1,728**, rounded to
-**US$1,380–1,730**, against the owner's approximate US$2,000 combined added-system
-ceiling. The separate economy configuration can approach US$1,010 for perception
+**US$1,380–1,730**, against the then-used working US$2,000 combined-system
+assumption. The separate economy configuration can approach US$1,010 for perception
 only by using the base camera and reusing some infrastructure. The PoE/OV9782
 camera is currently US$150 more than USB; its observed M12/RJ45 cable adds
 [US$24.99](https://shop.luxonis.com/products/ethernet-cable-m12-rj45-3m-cable),
@@ -74,10 +90,10 @@ and budget US$40–80 as an estimate for the active 24 V-input 802.3af injector.
 That makes the provisional PoE perception range **US$1,313–1,538** and the
 combined audio/perception range **US$1,593–1,983**, before tax, shipping, and
 duty. Use PoE when exact-SKU ingress evidence or the measured exterior route
-requires the more robust link, then re-cost the assembled system. Ask whether
-the US$2,000 ceiling includes tax, shipping, duty, and fabrication. Do not order
-or rewire power until the existing 24 V converter and full battery topology are
-audited.
+requires the more robust link, then re-cost the assembled system. This historical
+US-dollar option is superseded: the ceiling is now known to be CAD 2,000 landed,
+and the existing 4–38 V converter is rejected across the full pack and at a
+midpoint.
 
 If no useful lidar mounting plane exists, the lowest-cost practical fallback is
 one OAK-D W plus three distributed 24 GHz presence/range modules. It costs less
@@ -489,9 +505,10 @@ cooldowns, privacy, and whether a greeting is allowed.
   sensors support interaction.
 - Prefer lidar/radar to decide that “someone may be nearby”; require visual
   confirmation before person-specific speech.
-- Suggested starting behavior bands: awareness at 4 m, sustained approach/dwell
-  for 0.8–1.5 s, spoken greeting at 1–3 m only after person confirmation, and a
-  per-sector/person cooldown. Tune from field tests.
+- Suggested starting behavior bands: awareness at 3.05 m/10 ft, sustained
+  approach/dwell for 0.8–1.5 s, spoken greeting in the approximate 1.2–3.05 m
+  annulus only after person confirmation, and a per-sector/person cooldown.
+  Proactive speech is parked-only. Tune from field tests.
 - An unconfirmed side event may produce one soft meow. It must not repeatedly
   solicit a passerby or claim to recognize them.
 - No perception result in this revision is valid for braking, steering, safe
@@ -502,9 +519,11 @@ cooldowns, privacy, and whether a greeting is allowed.
 ### Phase 0 — geometry and electrical survey
 
 Before ordering, map the cart body and an occupied cart at 15-degree yaw
-increments. Record the front/rear panorama faces, seams, roof posts, four radar
-pods, protected electronics bay, solar cabling, full/rest/loaded series-string
-voltage, configured BMS limits, both converter labels, and maximum underside-roof
+increments. Complete the first side/rear occupied view with empty/occupied
+front/rear/both-side geometry. Record the front/rear panorama faces outside the
+post plane, seams, four outboard radar pods, protected electronics bay, solar
+cabling, full/rest/loaded series-string voltage, configured BMS limits, current
+generic converter input wiring, and maximum underside-roof
 temperature after a parked full-sun soak. The roof-height 2D-lidar geometry is
 already rejected for this revision; do not make S2L purchase depend on another
 survey.
@@ -523,7 +542,7 @@ machine, sensor health checks, and no-frame logging.
 Test the final mounts with real adults and children, passengers in every seat,
 motor and accessories on/off, daylight and night, and stationary/slow manual
 operation. Tune panorama seams, camera/radar association, dwell, and cooldown.
-Then install the exact rated seals/guards, protected 24 V distribution, secured
+Then install the exact rated seals/guards, documented protected conversion, secured
 cabling, dirty-window health checks, and boot health reporting.
 
 ### Phase 3 — local camera inference hardening
@@ -599,7 +618,7 @@ Orin power mode, and mounted geometry for every test.
 - Run at least a two-hour combined perception + wake/ASR + TTS + Gemma soak.
   Record peak/steady DRAM, CPU/GPU load, total input watts, temperatures,
   throttling, dropped frames/events, and response latency.
-- Validate the two-camera PoE/network branch and four-radar/aggregator branch at
+- Validate the two-camera direct-12 V/SW-005 branch and four-radar/aggregator branch at
   full and loaded series-string voltage and during all allowed simultaneous
   workloads.
 - Packet-capture or firewall-audit the perception service to prove that frames
@@ -611,30 +630,32 @@ Orin power mode, and mounted geometry for every test.
 1. Cart outer width/length, roof height, roof overhang/cat-head geometry,
    windshield and pillar locations, solar panel/controller/cable layout,
    structural attachment points, and intended sensor mounting surfaces.
-2. Photos or a dimensioned sketch with an adult and child seated in every
-   position, showing both panorama seams and all four radar sightlines.
-3. Minimum child height within the fixed 5–10-year-old audience, desired
-   interaction radius, and
-   whether proactive interaction is permitted while the cart is moving or only
-   parked/very slow.
+2. Complete empty/occupied front/rear/both-side photos or a dimensioned sketch
+   with an adult and child seated in every position, showing both panorama seams
+   and all four radar sightlines. One occupied side/rear photograph has already
+   established the post/slat occlusion risk.
+3. Minimum child height within the fixed 5–10-year-old audience and greeting
+   cooldowns. The <=10-ft radius and parked-only proactive policy are decided.
 4. All four battery make/models and topology/BMS; measured full/rest/loaded pack
-   voltage, configured BMS limits, and controlled shutdown threshold; both
-   converter models, full-pack input wiring, isolation,
-   protection, output tolerance/noise, connector type, and available continuous/
-   peak watts on the existing 24 V and 19 V branches.
-5. Minimum/maximum/storage temperature, rain while operating/parked, overnight
-   exposure, washing method, coastal salt, dust/mud, and maximum measured
-   underside-roof temperature in full sun.
+   voltage, configured BMS limits, and controlled shutdown threshold; an urgent
+   trace of whether each incompatible generic 4–38 V converter input is
+   full-pack, midpoint or downstream of another rail; protection, output
+   tolerance/noise, connector type and source cable/fault-current data.
+5. Storage temperature, overnight exposure, maximum measured underside-roof
+   temperature in full sun, and acceptance of Jetson degraded shutdown above
+   35 C. Ambient 0–40 C, no salt, moisture/rain/dust, cloth cleaning and direct-
+   rain shelter for key components are decided.
 6. Whether an inverted hemispherical 3D lidar under the roof should be revisited
    after revision one; a roof-mounted 2D lidar is not a current option.
 7. Acceptable blind sectors and whether “near-360 anonymous awareness with front/
    rear semantic confirmation” meets the experience, or whether every side
    person must be visually classified.
-8. Final Ethernet/power cable lengths and routes, isolated switch location, and
-   the exact active-PoE or qualified 24-to-12 V camera topology.
+8. Final Ethernet/power cable lengths and routes, SW-005 location, output fuses
+   and connector terminations. Direct 12 V camera power and the onboard-NIC
+   switch topology are selected provisionally.
 9. Expected operating light at night and whether visible/IR illumination is
    acceptable.
-10. Postal-code delivery confirmation and checkout totals for the Canadian
+10. Checkout-confirmed arrival to BC V9G 1L8 and totals for the Canadian
     one-week bill; the active ceiling is CAD 2,000 landed, including tax and
     shipping.
 
@@ -642,6 +663,11 @@ Orin power mode, and mounted geometry for every test.
 
 Primary manufacturer/project sources used in this cut:
 
+- Active Reolink, camera-power and network specifications:
+  <https://reolink.com/ca/product/reolink-duo-3v-poe/>,
+  <https://support.reolink.com/articles/12972721694617-Getting-Started-with-Power-Adapter/>,
+  <https://www.meanwell.com/Upload/PDF/DDR-60/DDR-60-spec.pdf>,
+  <https://www.brainboxes.com/products/industrial-ethernet-switches/page/fast-ethernet>
 - Luxonis OAK-D W product and hardware documentation:
   <https://shop.luxonis.com/products/oak-d-w>,
   <https://docs.luxonis.com/hardware/products/OAK-D%20W>

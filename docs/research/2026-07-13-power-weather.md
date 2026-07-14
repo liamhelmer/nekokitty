@@ -7,6 +7,15 @@
 > this note remain research references, but they do not override the current
 > two-Reolink/four-radar/XVF3000 build or its scoped 200 W ceiling.
 
+> **Immediate safety correction — 2026-07-13:** the owner has now identified both
+> installed adjustable modules only by an advertised **4–38 V input, 1.25–36 V
+> output, 5 A** specification. They are incompatible with a nominal 48 V series
+> bank and are not approved full-pack converters. Do not operate either module
+> across the complete string. A two-battery/midpoint input is also prohibited
+> because it unbalances the string. Trace and isolate both inputs before further
+> operation; the replacement architecture below supersedes every earlier “reuse
+> the existing converter” statement in this note.
+
 This note records the owner's latest physical constraints and converts them into
 purchase and field-test gates. It is a design record, not a certification of the
 cart's existing wiring. No electrical hardware was opened, measured, or changed
@@ -18,13 +27,23 @@ while preparing it.
   **in series**. The owner has resolved the topology; the individual labels,
   series/BMS permission, physical wiring, configured limits, and protection have
   not yet been inspected.
-- Two DC/DC branches already come from that array: one regulated to 24 V for
-  lights and accessories and one regulated to 19 V for the Jetson.
+- Two generic adjustable buck modules currently produce 24 V for lights and
+  accessories and 19 V for the Jetson. Each is advertised as 4–38 V input,
+  1.25–36 V output and 5 A. Their input wiring has not been traced, and no
+  manufacturer data sheet, isolation rating, continuous thermal rating,
+  protection certification or ingress rating is available.
+- The owner reports approximately 1–2 A on the 24 V lighting output and
+  approximately 1 A on the 19 V Jetson output. Those observations do not make a
+  38 V-maximum converter safe on a 48 V-class pack and do not validate the
+  marketplace 5 A claim as a continuous rating.
 - New accessories should use 24 V where practical. A 12 V rail is acceptable
   only when a chosen device actually requires it.
 - The roof is approximately 4 ft wide by 8 ft long and is covered by solar
   panels.
-- Rain, dirt/dust, temperature exposure, and direct sun are all in scope.
+- Intended ambient operation is 0–40 C. There is no salt exposure. Moisture,
+  rain, dirt/dust, vibration and direct sun are in scope, while key components
+  will be protected from direct rain. Cleaning is by cloth, not hose or pressure
+  washer.
 - The primary child audience is ages 5–10.
 
 The series topology is now an owner decision, not an open series/parallel
@@ -39,45 +58,63 @@ revision.**
 The Jetson, NVMe/cooling, two Reolink Duo 3V cameras, four C4001 radars and wired
 aggregator, microphone, local network/data electronics, limited amplifier,
 15 W RMS voice driver, and 15 W RMS body transducer must draw **no more than
-200 W while running**. The Canadian one-week plan allocates approximately 129 W
-simultaneously, including 35 W for the limited audio domain and 25 W for
-conversion/thermal contingency. Those are design allocations, not measurements.
+200 W while running**. The revised Canadian one-week plan allocates approximately
+135 W simultaneously at the pack side, including 35 W for the limited audio
+domain, three full-pack conversion paths, downstream sensor/audio regulation,
+and conversion/thermal/measurement contingency. Those are design allocations,
+not measurements.
 
-Measure the 19 V converter input and either the 24 V converter input with lights
-and all non-Neko accessories positively isolated/off, or a dedicated metered
-Neko 24 V sub-feed plus separately measured incremental converter loss, during
-the maximum approved simultaneous story/purr, wake/ASR, Gemma, camera, radar,
-network, and sampled ZipDepth workload. Lights are outside the scoped 200 W cap;
-test them simultaneously in a separate rail-sag/ripple/thermal/EMI test and do
-not use a guessed baseline subtraction. The Neko build fails if steady or allowed
-transient operation exceeds 200 W. A provisional 180 W software
-load-shedding threshold creates warning margin, but neither it nor the 200 W
-scope cap sizes conductors, fuses, converters, or disconnects; each circuit still
-uses its audited worst-case electrical requirements.
+Measure all three proposed full-pack converter inputs during the maximum approved
+simultaneous story/purr, wake/ASR, Gemma, camera, radar, network, and sampled
+ZipDepth workload. Keep lights and all non-Neko accessories positively off for
+the scoped test; then repeat with lights operating as a separate
+rail-sag/ripple/thermal/EMI coexistence test. Do not use a guessed baseline
+subtraction. The Neko build fails if any post-start running mode or ordinary
+workload transient exceeds 200 W at the pack side. A provisional 180 W software
+load-shedding threshold creates warning margin, but it first needs a selected
+isolated voltage/current measurement path. Neither it nor the 200 W scope cap
+sizes conductors, fuses, converters, or disconnects; each circuit still uses its
+audited worst-case electrical requirements.
+
+Converter startup inrush is a separate electrical acceptance test. The published
+typical input pulses are 30 A for the DDR-240C-24 and 20 A for each 60 W
+candidate, so uncontrolled simultaneous application could briefly approach
+70 A. This is not a continuous-load estimate. Sequence/precharge or limit the
+inputs, measure the pulse with a suitable current probe, and coordinate BMS,
+switch/contactor making duty, wiring, and fuse time-current curves. A slow
+software watt meter cannot own that protection.
 
 ## Immediate electrical decision
 
-Keep the existing **19 V Jetson branch** and make **24 V the accessory
-distribution standard**. Do not add a general 12 V rail now.
+Retire the generic modules from primary cart service. Keep **24 V as the
+accessory distribution standard**, but generate it with a documented
+full-pack-rated isolated converter. Power the Jetson and exterior camera/network
+domain from separate documented 12 V converters. Twelve volts is selected only
+where the actual devices require or officially accept it; it is not a new
+general-purpose passenger-accessible rail.
 
 The intended topology is:
 
 ```text
 complete traction bank, BMS and main disconnect
   -> protected full-pack distribution
-       -> DC-rated branch protection -> verified 48-to-19 V converter
-            -> local protection/disconnect -> Jetson barrel input
-       -> DC-rated branch protection -> verified 48-to-24 V converter
+       -> DC-rated branch protection -> Mean Well DDR-240C-24 candidate
             -> fused 24 V accessory sub-distribution
                  -> lighting branch
-                 -> audio branch
-                 -> sensor/industrial-USB branch
+                 -> fused regulated/protected audio sub-branch
+                 -> fused regulated 5 V radar/aggregator branch
                  -> future low-power accessory branches
+       -> DC-rated branch protection -> Mean Well RSD-60L-12 candidate
+            -> local output protection -> Jetson 5.5 x 2.5 mm barrel input
+       -> DC-rated branch protection -> Mean Well DDR-60L-12 candidate
+            -> fused 12 V front-camera branch
+            -> fused 12 V rear-camera branch
+            -> fused Brainboxes SW-005 branch
 ```
 
-Both converter inputs must be connected across the **complete pack output**,
-after the pack's approved BMS/disconnect arrangement. A 24 V load must never be
-taken from the midpoint of a series battery string. Victron's current
+Every converter input must be connected across the **complete pack output**,
+after the pack's approved BMS/disconnect arrangement. A 12, 19 or 24 V load must
+never be taken from the midpoint of a series battery string. Victron's current
 [battery-bank wiring guidance](https://www.victronenergy.com/media/pg/The_Wiring_Unlimited_book/en/battery-bank-wiring.html)
 warns that a midpoint load creates a large imbalance and says to use a DC/DC
 converter instead. Its
@@ -86,9 +123,17 @@ is even stricter for its own series/parallel batteries: do not connect anything
 at the midpoints. The
 actual battery manufacturer's series/parallel and BMS rules take precedence.
 
+This is still a conditional candidate design, not authorization to energize it.
+The DDR-240C-24 accepts 33.6–67.2 V DC, the RSD-60L-12 accepts 18–72 V DC, and
+the DDR-60L-12 accepts 18–75 V DC. Record the actual battery/charger maximum and
+switching transients and preserve engineering margin below every selected upper
+limit. A conventional four-by-12.8 V LiFePO4 example would be about 51.2 V
+nominal and 58.4 V if each battery permits 14.6 V charging, but Neko's battery
+labels—not that example—control the design.
+
 ### Boot and hard-switch behavior
 
-Applying the verified 19 V supply automatically powers on the developer kit by
+Applying the verified 12 V supply automatically powers on the developer kit by
 default, according to NVIDIA's current
 [power-on guidance](https://docs.nvidia.com/jetson/orin-nano-devkit/user-guide/latest/howto.html).
 That matches Neko's boot requirement; systemd owns model/application startup.
@@ -96,9 +141,9 @@ That matches Neko's boot requirement; systemd owns model/application startup.
 Normal “off/offline” operation should not abruptly remove NVMe power. Make the
 user control request an orderly Linux shutdown, hold the converters on until the
 measured shutdown-complete signal/state, and then let a small hardware supervisor
-drop their remote-enable or supply. Monitor the pack/19 V branch early enough to
-do the same before converter or BMS undervoltage cutoff. NVIDIA likewise directs
-users to complete Ubuntu shutdown before disconnecting power. The required
+drop their remote-enable or supply. Monitor the pack/12 V Jetson branch early
+enough to do the same before converter or BMS undervoltage cutoff. NVIDIA likewise
+directs users to complete Ubuntu shutdown before disconnecting power. The required
 hold-up time and supervisor circuit must be measured with this build; do not
 invent a fixed delay and assume it is safe.
 
@@ -110,34 +155,83 @@ installer verifies its DC voltage/current/interrupt rating, topology, location,
 and manufacturer-intended duty. Add a separate normal shutdown input. No
 software interlock may prevent the verified immediate electrical disconnect.
 
-### Why retain 19 V for the Jetson
+### Why use a dedicated 12 V Jetson converter
 
 NVIDIA's current [Orin Nano developer-kit guide](https://docs.nvidia.com/jetson/orin-nano-devkit/user-guide/latest/quick_start.html)
 specifies the included 19 V supply. The official
 [carrier-board specification](https://developer.nvidia.com/downloads/assets/embedded/secure/jetson/orin_nano/docs/jetson_orin_nano_devkit_carrier_board_specification_sp.pdf)
 allows 9–20 V at the DC jack, specifies a 5.5 mm barrel accepting a 2.5 mm
-center-positive pin, and limits the jack to 3.5 A. Preserve that interface and
-respect the connector limit even though a separate internal allocation table is
-higher. Do not place the amplifier, lighting, or other noisy/peaky loads on the
-Jetson converter output. Verify the existing converter, cable, connector, and
-fuse even though the current software profile uses a 15 W module power mode.
-The same specification gives the developer kit only a 0–35 C operating range,
-making the shaded enclosure and hot-sun shutdown tests hard gates.
+center-positive pin, and limits the jack to 3.5 A. A documented 12 V supply is
+therefore valid and avoids pretending the unsafe adjustable module must remain
+at 19 V. Preserve that interface and connector limit. Do not place the amplifier,
+lighting, cameras or other noisy/externally faultable loads on the Jetson output.
 
-### How to use the 24 V branch
+The candidate [Mean Well RSD-60L-12](https://www.meanwell.com/Upload/PDF/RSD-60/RSD-60-SPEC.PDF)
+provides 12 V/5 A/60 W from 18–72 V input at 93% typical efficiency, with 4 kV
+input/output isolation, railway vibration qualification, and full output through
+55 C before derating. It has no assembled outdoor IP rating and no remote-enable
+input, so keep it in the dry ventilated bay and use an externally supervised,
+DC-rated delayed cutoff after Linux halts. The current 15 W Jetson mode leaves
+margin below the 42 W barrel-interface limit at 12 V, but validate the complete
+NVMe/USB load and use a strain-relieved center-positive lead.
 
-For the active one-week build, the 24 V domain must support a qualified active
-PoE or 24-to-12 V path for the two Reolink cameras, regulated 5 V for four C4001
-modules and their wired aggregator, USB 5 V for the XVF3000, and a separately
-limited audio branch. Never feed passive 24 V into an 802.3af camera.
+The same NVIDIA specification gives the developer kit only a **0–35 C operating
+range**. The owner wants 0–40 C ambient operation, but airflow cannot cool below
+ambient. Instrument the protected bay and Jetson thermal zones; above the tested
+35 C enclosure-ambient boundary, stop optional workers and perform an orderly
+shutdown unless the developer kit is replaced by a validated industrial thermal
+platform. Hot-sun shutdown/restart tests are hard gates.
+
+### How to use the 24 V and camera branches
+
+For the active one-week build, the 24 V domain supports the existing lights,
+regulated 5 V for four C4001 modules and their wired aggregator, and the
+separately limited audio branch. The candidate
+[Mean Well DDR-240C-24](https://www.meanwell.com/Upload/PDF/DDR-240/DDR-240-SPEC.pdf)
+provides 24 V/10 A/240 W with 91% typical efficiency, 4 kV DC isolation,
+remote on/off and DC-OK, and a three-second 15 A peak. Its input is 33.6–67.2 V,
+so battery-label/transient verification is mandatory. It is not IP-rated, and no
+conformal-coating claim was found in the cited manufacturer documents. Its
+installation manual requires vertical input-down mounting, specified clearances,
+a dry Pollution Degree 2 environment, and FG connected to PE. The mobile PE/
+chassis solution is unresolved and must be accepted by a qualified installer or
+the candidate rejected.
+
+Do **not** connect the 25 V-maximum Soberton directly based only on a nominal
+24 V setpoint. The DDR-240 adjusts from 24–28 V with ±1% tolerance and its own
+overvoltage trip begins at 28.8 V, too high to protect the amplifier. Use a
+selected, separately fused lower-voltage regulator with adequate margin and
+coordinated hardware OVP, or replace the amplifier. Measure startup/turn-off
+overshoot and the maximum loaded rail before connection. The protected 24-to-5 V
+radar/aggregator converter is also still to be selected and costed inside the
+installation allowance.
+
+The cameras instead use a dedicated
+[Mean Well DDR-60L-12](https://www.meanwell.com/Upload/PDF/DDR-60/DDR-60-spec.pdf)
+and a [Brainboxes SW-005](https://www.brainboxes.com/products/industrial-ethernet-switches/page/fast-ethernet).
+The converter accepts 18–75 V and provides isolated 12 V/5 A/60 W at 91%
+typical efficiency. The switch accepts 5–30 V, draws at most 1.1 W, operates
+from -10 to 60 C, and needs no extra 5 V converter. Each Reolink gets an
+individual fused 18 AWG tinned-copper 12 V run; do not use a barrel Y-splitter.
+Give the switch its own protected branch. Set and tamper-mark the adjustable
+converter at 12.0 V, then verify startup, loaded voltage and polarity at each
+received camera before connection. The converter, switch, output fuse
+distribution and DC joints stay in the protected bay because none is an
+exposed-weather assembly.
+
+The Jetson onboard Ethernet port connects to the switch, which connects to both
+cameras. A crossover cable is unnecessary. Wi-Fi remains the optional Internet
+uplink. This uses less published power and fewer conversion stages than active
+PoE. If later cabling experience justifies PoE, use only active IEEE 802.3af/at;
+never feed passive 24 V into these cameras.
 
 The following table records compatibility work for the earlier component set;
 where it names OAK/S2L/XVF3800/KAB hardware, it is not the current purchase list:
 
 | Load | Proposed supply | Gate |
 | --- | --- | --- |
-| Dayton KAB-215v2 amplifier | Existing 24 V branch | The board's documented range ends at 24 V. Measure regulator tolerance, startup/turn-off behavior, ripple, and load-dump behavior at the amplifier terminals. If it can exceed the amplifier limit, use a dedicated lower regulated output instead. |
-| StarTech ST7300USBME industrial hub | Existing 24 V branch | Its manufacturer specifies a 7–48 V DC input, 0–70 C operation, and non-condensing humidity. It still belongs inside the protected electronics bay; the hub itself has no stated outdoor ingress rating. |
+| Dayton KAB-215v2 amplifier | Historical verified 24 V branch | The board's documented range ends at 24 V. This is not the selected amplifier; retain only the tolerance/startup/ripple lesson. |
+| StarTech ST7300USBME industrial hub | Historical verified 24 V branch | Its manufacturer specifies a 7–48 V DC input, 0–70 C operation, and non-condensing humidity. It is not the active one-week network switch. |
 | OAK/lidar/USB peripherals | Hub-regulated 5 V, not raw 24 V | Retain the S2L's documented 5 V startup headroom and USB current budget. |
 | XVF3800 microphone array | USB 5 V | Bare/acoustically exposed hardware needs its own rain, wind, drainage, and condensation design. |
 | 12 V-only future device | Dedicated small 24-to-12 V branch | Add only for a selected load, with its own protection and quiescent-current measurement. |
@@ -148,16 +242,17 @@ branch protection, short returns, measured filtering, and—only if the test dat
 requires it—a dedicated isolated regulator. Do not describe a rail as “clean”
 or “isolated” until its converter data sheet and oscilloscope tests establish it.
 
-An optional replacement/isolated converter cannot be selected from “48 V
+No replacement/isolated converter can be finally approved or ordered from “48 V
 nominal” alone. As one documented example, the current Mean Well
 [DDR-60L family](https://www.meanwell.com/Upload/PDF/DDR-60/DDR-60-spec.pdf)
 accepts 18–75 V DC and provides 4 kV DC input/output withstand, while the G
 family accepts only 9–36 V. That illustrates why the exact suffix and the pack's
-maximum charged voltage matter; it is not a recommendation to order that part.
+maximum charged voltage matter. The selected `DDR-60L-12` camera candidate still
+requires the pack audit despite its wider input range.
 
 ### Superseded preliminary 24 V sizing and shortlist
 
-This earlier generic accessory envelope predates the fixed one-week 129 W scoped
+This earlier generic accessory envelope predates the revised one-week 135 W scoped
 allocation and 200 W measured ceiling. Retain it for converter comparison only;
 do not add it to the current allocation or use it for cart-runtime estimates.
 
@@ -180,8 +275,9 @@ Research candidates to evaluate only after the battery audit:
 
 | Candidate | Relevant manufacturer facts | Blocking concern |
 | --- | --- | --- |
-| Reuse existing 24 V converter | Lowest cost and complexity | Must prove full-pack input, adequate maximum input voltage, isolation/grounding, at least the measured hot-load capacity, protection, and acceptable sag/ripple/EMI with lights and traction active. |
-| Victron [Orion-Tr 48/24-12 isolated](https://www.victronenergy.com/upload/documents/Datasheet-Orion-Tr-DC-DC-converters-isolated-100-250-400W-EN.pdf) | 32–70 V input, nominal 24.2 V/12 A/280 W at 40 C, remote on/off, isolated | IP43 only in the specified terminals-down orientation, derates above 40 C, and 24.2 V is above the KAB amplifier's nominal 24 V upper endpoint; use local regulation or a different audio supply unless Dayton approves/tests it. |
+| Existing generic 4–38 V modules | None acceptable | **Rejected** across the full pack and at a series midpoint. Do not mistake an observed output voltage/current for input compatibility or a continuous rating. |
+| Historical shortlist candidate: Mean Well [DDR-240C-24](https://www.meanwell.com/Upload/PDF/DDR-240/DDR-240-SPEC.pdf) | 33.6–67.2 V input, 24 V/10 A/240 W, 91% typical efficiency, 4 kV isolation, remote on/off/DC-OK, railway vibration qualifications | Current controlling blockers also include FG-to-PE/Pollution Degree 2, combined startup inrush, downstream 5 V, and audio regulation/OVP; use the active BOM, not this row alone. |
+| Weather-tolerant fallback: Victron [Orion-Tr 48/24-12 isolated](https://www.victronenergy.com/upload/documents/Datasheet-Orion-Tr-DC-DC-converters-isolated-100-250-400W-EN.pdf) | 32–70 V input, nominal 24.2 V/12 A/280 W at 40 C, 89% typical efficiency, remote on/off, isolated | IP43 only terminals-down, derates 3%/C above 40 C, and Canadian arrival is less certain. Its nominal output is also too close to the 25 V-maximum Soberton to waive downstream margin/OVP. |
 | Mean Well [RSD-300C-24](https://www.meanwell.com/Upload/PDF/RSD-300/RSD-300-SPEC.PDF) | 33.6–62.4 V continuous input, 24 V/12.5 A/300 W, 4 kV input/output withstand, semi-potted | The 62.4 V continuous ceiling must exceed the real charger/transient maximum with margin; it has no assembled outdoor IP rating and needs a thermal/enclosure design. |
 
 For a PoE OAK, use an **active standards-compliant 802.3af** converter/injector
@@ -218,9 +314,11 @@ Before connecting Neko hardware, record and photograph:
    derating, ingress rating, remote-enable behavior, and protection modes;
 4. main and branch fuse type, DC voltage rating, interrupt rating, current
    rating, location, conductor gauge/temperature rating, and disconnect rating;
-5. whether either converter input or accessory return touches a battery
-   midpoint, chassis, solar-controller return, or another grounded path;
-6. 24 V and 19 V waveforms during key-on, key-off, charging, lights/dimmer
+5. whether either current or proposed converter input, FG, output, or accessory
+   return touches a battery midpoint, chassis, solar-controller return, or
+   another grounded path;
+6. 24 V, both 12 V, regulated sensor/audio, and inrush waveforms during key-on,
+   key-off, charging, lights/dimmer
    switching, motor operation, regenerative events if any, and maximum allowed
    accessory load.
 
@@ -253,6 +351,13 @@ that does not create return current through data-cable shields. Victron's curren
 explains why converter isolation and interface references must be considered as
 one system.
 
+The DDR-240 manual explicitly requires FG connected to PE, and the metal-case
+RSD-60 exposes an FG terminal. Do not silently rename the cart chassis “PE.” The
+installer must reconcile those manufacturer interfaces with a mobile, possibly
+floating battery system and document the protective/equipotential bond and fault
+clearing path. If that cannot be done to the applicable instructions, select a
+different converter architecture.
+
 This audit should be performed by someone qualified for high-current mobile DC
 systems. The assistant project must not modify the traction bank, BMS, solar
 controller, or chassis bonding based only on a software-side drawing.
@@ -266,14 +371,14 @@ Use three physical zones:
 | --- | --- | --- |
 | Exposed optical/range surfaces | Reolink cameras, C4001 pods; later 3D-lidar window | Buy or build the exact ingress-rated configuration; use specified mating cable/connectors, downward cable exits or drip loops, replaceable guards that do not enter the FOV/beam, and accessible cleaning paths. |
 | Acoustically exposed | microphone ports, speaker front | Rain lip, hydrophobic/acoustic vent solution validated for response, drainage below electronics, UV-stable windscreen, gasketed front-rated speaker baffle, and no upward-facing water pocket. |
-| Protected electronics bay | Jetson, amp, hub, converters, fuse distribution | UV-stable enclosure with an appropriate certified outdoor rating—start from IP66 and add a NEMA 4X/corrosion requirement where the exact exposure warrants it—plus protected cable glands/connectors, touch guards, condensation management, drainage outside the electrical volume, and a heat path proven in sun. |
+| Protected electronics bay | Jetson, amp, camera switch, converters, fuse distribution | UV-stable enclosure with an appropriate certified outdoor rating—start from IP66 and add a NEMA 4X/corrosion requirement where the exact exposure warrants it—plus protected cable glands/connectors, touch guards, condensation management, drainage outside the electrical volume, and a heat path proven in sun. |
 
 An enclosure's IP label does not certify the assembled system. Every gland,
 connector, fastener, optical window, speaker opening, service cover, and cable
 entry must preserve the intended ingress level. “Waterproof” also does not mean
-pressure-washer safe, permanently submerged, or condensation-free. Until the
-washing method and temperature range are known, design for rain and road spray
-but explicitly prohibit pressure washing the electronics/sensor apertures.
+pressure-washer safe, permanently submerged, or condensation-free. Design for
+the stated rain/moisture and 0–40 C ambient range; clean only by cloth and
+explicitly prohibit hosing or pressure washing electronics/sensor apertures.
 
 The following Luxonis/S2L paragraphs are retained for later alternatives and do
 not describe the active one-week Reolink/C4001 order. Current Luxonis
@@ -325,14 +430,14 @@ and landed cost.
 
 ## Thermal and environmental acceptance
 
-The Jetson, converter, and hub should not sit in a sealed sun-heated box with no
+The Jetson, converters, and camera switch should not sit in a sealed sun-heated box with no
 measured heat path. Start with passive conduction to a shaded external heat
 spreader or a sealed air-to-air approach; add a replaceable filtered/pressurized
 air path only if testing shows passive cooling cannot hold margins. Exposed fins
 must be cleanable and must not become touch or snag hazards.
 
-Log enclosure ambient, Jetson thermal zones, converter case temperature, camera/
-radar health, 24/19 V rails, and total branch current during:
+Log enclosure ambient, Jetson thermal zones, every converter case temperature,
+camera/radar health, the 24 V and both 12 V rails, and total branch current during:
 
 - cold start and hot restart;
 - midday sun with the solar system charging;
@@ -356,17 +461,25 @@ orders:
 
 1. clear photos and make/model of all four battery labels, plus a simple wiring
    diagram verifying the owner-confirmed series links, BMS, shunt, main fuse/disconnect,
-   charger, solar controller, and both converter inputs;
-2. make/model, settings, wiring, and fuse information for both DC/DC converters;
-3. measured full/rest/loaded pack voltage and both output rails, manufacturer/
+   charger and solar controller;
+2. an urgent trace showing whether each incompatible generic converter input is
+   across the full string, a two-battery midpoint, or another regulated source,
+   plus current fuse/switch/wire information;
+3. measured full/rest/loaded pack voltage and current output rails, manufacturer/
    configured BMS limits, and Neko's controlled low-voltage shutdown threshold;
-4. lowest/highest ambient, storage temperature, coastal/salt exposure, rain
-   while parked, and whether cleaning means a damp cloth, garden hose, or
-   pressure washer;
-5. roof height and structural-member/post/body/seat geometry, not just roof
-   footprint;
+4. storage temperature, overnight condensation/rain exposure, and whether
+   orderly degraded shutdown between 35 and 40 C is acceptable; 0–40 C ambient,
+   no salt, cloth cleaning and protection from direct rain are decided;
+5. complete front/rear/both-side empty and occupied survey images or a drawing
+   with dimensions. The first occupied side/rear image establishes the slat/post
+   occlusion risk but not every camera seam or bracket dimension;
 6. where a shaded, serviceable electronics bay can fit and its available outer
    dimensions;
-7. solar-panel/controller make/model and approved structural attachment points.
+7. solar-panel/controller make/model and approved structural attachment points;
+8. full-pack source cable lengths/gauges and the battery/BMS prospective fault
+   current needed to select >=80 V DC branch protection and interrupt ratings;
+9. manufacturer-compliant DDR/RSD FG/PE/chassis treatment, startup-inrush
+   sequencing/limiting, isolated runtime metering, the 24-to-5 V sensor stage,
+   and the lower-voltage audio regulator/OVP or replacement amplifier.
 
 These are evidence requests, not reasons to pause software and story work.

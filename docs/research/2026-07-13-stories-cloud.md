@@ -4,8 +4,10 @@
 > summarized in
 > [`2026-07-13-canadian-one-week-bom.md`](2026-07-13-canadian-one-week-bom.md).
 > For the first release, every story is **five minutes or shorter**, light, and
-> non-scary. Earlier longer, frightening, predation-heavy, or violent seed leads
-> below are retained as research but are not approved first-release assets.
+> non-scary. Age-appropriate conflict and reviewed folklore/religion are allowed;
+> serious grief and extreme bathroom humour are excluded. Earlier longer,
+> frightening, predation-heavy, or violent seed leads below are retained as
+> research but are not approved first-release assets.
 
 Research and planning date: 2026-07-13, America/Vancouver. Source catalog
 counts and provider terms were checked against the linked official sources on
@@ -25,7 +27,7 @@ The plan incorporates these owner decisions:
 - The cart is strictly personal and noncommercial in this revision.
 - Internet-independent behavior is mandatory. A cloud-only story feature is not
   worth building.
-- English is required; French and Spanish are desirable.
+- English is required; French is the second priority and Spanish the third.
 - The audience is ages 5–10. The UI/content system should expose separate 5–7
   and 8–10 presentation lanes without assuming age equals reading level.
 - Stories are about cats of all kinds, not only domestic cats. A feline must be
@@ -33,6 +35,8 @@ The plan incorporates these owner decisions:
 - First-release tellings are at most five minutes and use light, non-scary
   content. Longer or frightening leads are held for a later explicit policy
   change rather than silently edited into compliance.
+- Age-appropriate conflict and reviewed folklore/religion are permitted. Serious
+  grief and extreme bathroom humour are excluded.
 - A child decides whether a story is altered.
 - Text may leave the cart under policy. Audio and images may leave only with
   explicit human-in-the-loop consent.
@@ -44,6 +48,10 @@ The plan incorporates these owner decisions:
 - A separately billed, text-only API may be enabled by an authorized adult after
   authentication, visible online-mode indication, provider/destination
   allowlisting, redaction, spend/rate limits, timeouts, and local fallback exist.
+- Local adult enablement may use a physical control, preferably a keyed switch or
+  one inside a locked compartment. Remote enablement is acceptable through an
+  authenticated administration channel with expiry, visible cart-side state and
+  immediate local revoke. A plain exposed button is not authentication.
 - Neko should be cute, motherly, playful, and a little mischievous, without
   presenting itself as a human caregiver.
 - A few seconds of interaction latency is acceptable, but a child should receive
@@ -432,7 +440,10 @@ playback would therefore violate the desired interaction latency.
 
 Use these constraints:
 
-- Prefer short source stories of roughly 300--900 words.
+- Prefer source stories that measure at **300 seconds or less** with the exact
+  approved local voice, speaking rate, pauses, attribution, and interaction
+  cues. The lane word ranges above are curation heuristics, never permission for
+  a longer telling.
 - Give the model a compact reviewed story card, not the complete library or an
   unbounded transcript.
 - Generate one bounded scene or paragraph, approximately 100--200 words or less,
@@ -451,7 +462,8 @@ Use these constraints:
   than imitating protected characters or living people.
 
 For the first multilingual release, prefer existing human translations over live
-machine translation. English generative remix should mature first. The owner has
+machine translation. English generative remix should mature first, then French,
+then Spanish. The owner has
 accepted an explicitly labeled **lower-assurance prototype** in which French and
 Spanish outputs receive language-specific tests plus independent LLM review when
 no fluent human is available. Record the reviewing model/prompt/result, never
@@ -484,10 +496,12 @@ Always reject or safely redirect requests involving:
 - Instructions embedded in source material that attempt to override runtime
   policy or operate devices.
 
-For the first release, reject scary presentation, predation threat, violence,
-death/grief, and sustained peril even when they are mild by adult standards.
-Keep tone light. Religion/folklore, conflict, and bathroom humor still need
-explicit content rules, but no rule may bypass the non-scary first-release gate.
+For the first release, reject scary presentation, predation threat, graphic or
+celebratory violence, serious death/grief, and sustained peril even when they
+are mild by adult standards. Keep tone light. Reviewed, respectful
+religion/folklore and age-appropriate conflict are allowed. Mild silliness can
+include bathroom humour, but extreme or sustained bathroom humour is excluded;
+none of these permissions bypasses the non-scary gate.
 
 Neko should explicitly identify itself as an AI kitty cart. Its warmth and
 motherly character must not become a claim that it is human, a caregiver, a
@@ -547,6 +561,9 @@ Unauthenticated child activation of cloud mode remains disabled. An authorized
 adult may enable the bounded text-only route for a session or configured mode;
 the active state and spend must remain visible, and the adult can revoke it
 immediately. Owner-run cloud pre-generation remains the lowest-risk first use.
+Use a keyed switch or locked-compartment control as the default local authority.
+Remote activation requires authenticated administration, automatic expiry,
+visible cart-side indication and local revocation.
 
 ## Z.AI and OpenAI subscription/API findings
 
@@ -638,7 +655,7 @@ For either provider:
 - Cache only reviewed or successfully policy-checked placeholder variants.
 - Complete adversarial testing and retain immediate original-story fallback.
 
-### Phase 3: French and Spanish remix
+### Phase 3: French first, then Spanish remix
 
 - Prefer human translations already present in approved catalogs.
 - Add language-specific grammar metadata, policy rules, test prompts, and fluent
@@ -682,36 +699,38 @@ For either provider:
 - Every retained generated version links to its parent, license, changes, model,
   runtime, prompt/policy revisions, safety result, and output hash.
 - Every telling is no longer than 300 seconds and passes the light/non-scary gate.
+- Allowed conflict and folklore/religion remain age-appropriate and respectful;
+  serious grief and extreme bathroom humour fail the first-release gate.
 - French and Spanish runtime content records either fluent-human validation or
   the owner-accepted, explicitly lower-assurance LLM-only prototype review path.
 - Network packet-capture testing confirms that the story feature sends only
   allowlisted, redacted text JSON and has no audio/image egress path.
 - Session deletion and retention tests prove that child names and transient choices
   expire as configured.
-- Attribution is spoken briefly and full credits are accessible locally.
+- Full credits are accessible locally; if the owner approves spoken attribution,
+  its brief ending is included in the measured 300-second limit.
 
 ## Remaining owner decisions
 
 1. Is the proposed 30-work pilot and 8/9/6/4/3 shelf balance acceptable, and
-   which French/Spanish versions should be prioritized?
-2. What adult authentication mechanism enables the authorized text-only API, and
-   what per-session/daily spend cap and online-state indicator should it use?
+   what English/French balance should precede the lower-priority Spanish shelf?
+2. Which exact keyed/locked local adult control and authenticated remote-admin
+   mechanism should be used, and what per-session/daily spend cap and visible
+   online-state indicator should they control?
 3. Should child names and settings always be session-only by default, and who may
    save a favorite variant?
-4. Within the fixed light/non-scary policy, what rules apply to brief conflict,
-   religion/folklore, and bathroom humor? What additional themes are excluded?
-5. Should Neko offer the same “original / change names or place / surprise-safe
+4. Should Neko offer the same “original / change names or place / surprise-safe
    remix” menu every time, or remember a session preference?
-6. May the first release strictly exclude NC, SA, and ND material despite its
+5. May the first release strictly exclude NC, SA, and ND material despite its
    current personal/noncommercial use?
-7. Will story corpus artifacts ever be distributed from the project Git repository
+6. Will story corpus artifacts ever be distributed from the project Git repository
    or carried across the US border? The recommended default is to keep all blobs
    outside Git and clear classics for both Canada and the US.
-8. Is a brief spoken attribution at the end of each story acceptable?
-9. Should traditional, Indigenous, and sacred stories always be original-only
+7. Is a brief spoken attribution at the end of each story acceptable?
+8. Should traditional, Indigenous, and sacred stories always be original-only
     unless a source and cultural reviewer explicitly approve adaptation?
-10. When might fluent French and Spanish review replace or audit the accepted
+9. When might fluent French and Spanish review replace or audit the accepted
     lower-assurance prototype path?
-11. Should a distress disclosure only prompt the child to tell a nearby trusted
+10. Should a distress disclosure only prompt the child to tell a nearby trusted
     adult, or should Neko notify the owner? Notification materially changes the
     privacy design.

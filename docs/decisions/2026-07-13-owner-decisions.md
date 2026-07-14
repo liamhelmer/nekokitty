@@ -56,6 +56,27 @@ not assumptions. Revisit them explicitly if Neko's use or hardware changes.
   plus four inexpensive radar sectors, with no lidar in the one-week build. A
   roof-inverted Unitree-class 3D lidar remains the first later lidar experiment.
   No part has been ordered yet.
+- With documented replacement power and the low-power camera switch included,
+  the safety-revised **provisional** planning range is **CAD
+  1,625.13–1,947.53 landed**, leaving only **CAD 52.47–374.87** under the fixed
+  ceiling. This is not an evidence-backed upper bound until unselected protection,
+  grounding, inrush, metering, regulation, and fabrication lines are quoted. The
+  simultaneous pack-side design allocation is **135 W**, still subject to a
+  measured 200 W Neko-only acceptance cap.
+- Proactive greetings are **parked-only** in revision one. The desired social
+  interaction radius is no more than 10 ft (3.05 m). Because the selected C4001
+  radar does not provide documented ranging below about 1.2 m (3.9 ft), its
+  initial spoken-greeting gate is an approach/dwell in the approximate 4–10 ft
+  annulus plus camera person confirmation; very-close interaction relies on the
+  wake phrase and camera policy rather than invented radar precision.
+- An owner-provided occupied-cart photograph confirms that roof posts/slats,
+  passengers, and bodywork can block views from inside the passenger envelope.
+  Put the two panorama optical faces below and just outside the front/rear post
+  plane on structural roof-frame brackets, and put radar pods outside rather
+  than behind the slats. The raw photograph was inspected transiently, contained
+  identifiable people and embedded location metadata, and was not retained or
+  committed. Empty and occupied front/rear/side survey photographs are still
+  required before drilling.
 - ZipDepth remains required for evaluation but is not accepted as metric range
   or a safety sensor. Sensor selection will use a costed prototype/premium ladder
   and measured blind-zone, latency, power, weather, and compute results.
@@ -70,32 +91,73 @@ not assumptions. Revisit them explicitly if Neko's use or hardware changes.
   BMS rules, interconnects and protection remain unverified. The project does not
   need an overall cart energy/runtime calculation; it still needs those facts for
   safe converter, fuse and shutdown design.
-- Two DC/DC circuits already exist from the array: a 24 V output for lights and
-  accessories and a 19 V output for the Jetson. Both must be confirmed as
-  full-pack-fed converter outputs, never loads from a series-string midpoint.
-- Prefer 24 V distribution for new accessories. Add a 12 V branch only for an
-  identified 12 V-only device. Keep the Jetson on its separate regulated 19 V
-  branch and do not share that output with lighting or audio loads.
+- Two generic adjustable DC/DC modules currently produce 24 V for lights and
+  19 V for the Jetson. The owner identifies each only by a marketplace title
+  advertising **4–38 V input, 1.25–36 V output and 5 A**. A nominal 48 V bank is
+  already outside that input range, so neither module is approved on the full
+  series string. Do not reconnect or operate either one across the complete
+  pack. If either input uses a two-battery midpoint, shut that accessory path
+  down too: midpoint loading is not an acceptable workaround because it
+  unbalances the series bank. Their exact present input wiring remains an urgent
+  inspection item.
+- The current loads reported by the owner are approximately 1–2 A on the 24 V
+  lighting output and approximately 1 A on the 19 V Jetson output. These are
+  observations, not converter qualifications; the advertised 5 A is not accepted
+  as continuous capability without a real data sheet and thermal test.
+- The 200 W requirement is a **running-load** cap. The three conditional
+  full-pack converters publish typical startup inrush values of 30 A, 20 A, and
+  20 A; simultaneous input application could briefly approach 70 A. That
+  separate electrical transient requires measured sequencing/precharge or
+  inrush limiting plus BMS, contactor, wiring, and fuse time-current
+  coordination. It is not evidence of a 70 A continuous load and is not governed
+  by a slow software watt limit.
+- Preserve 24 V as the preferred accessory distribution voltage, but create it
+  with a properly protected, full-pack-rated converter whose complete input
+  range exceeds the measured battery/charger range. Give the Jetson its own
+  independently protected full-pack-rated supply. Camera 12 V may be a dedicated
+  downstream branch because the selected cameras explicitly require 12 V or
+  standards-compliant active PoE. The recorded converter candidates may not be
+  finally approved, ordered, or energized until battery labels, maximum charge/
+  transient voltage, grounding, and protection are known.
+- The provisional lowest-power camera topology is a dedicated isolated
+  full-pack-to-12 V converter feeding two individually fused camera power runs
+  and a low-power non-PoE switch. The Jetson onboard Ethernet port connects to
+  that switch and Wi-Fi remains the optional online uplink. A crossover cable,
+  USB Ethernet adapter and PoE boost stage are unnecessary in the primary path.
+- Final electrical approval still needs a manufacturer-compliant DDR-240/RSD FG
+  and mobile PE/chassis-bonding disposition, protected 24-to-5 V sensor
+  regulation, an isolated runtime power-measurement path, and either a regulated
+  lower-voltage audio branch with coordinated OVP or a wider-margin amplifier.
+  A nominal 24 V rail is too close to the selected Soberton's 25 V maximum to be
+  treated as a complete protection design.
 - The roof is approximately 4 ft wide by 8 ft long and its upper surface is
   solar panels. Mounts and cable routes must not shade, drill, bond to, obstruct,
   or trap heat against the panels without the panel manufacturer's approval.
-- Rain, dust/dirt, temperature, and direct sun are all normal design conditions.
+- Operation is intended from 0–40 C, with no salt exposure. Moisture, rain,
+  dust/dirt, sun and vibration remain normal; key electronics will be sheltered
+  from direct rain and cleaning is by cloth rather than hose or pressure washer.
   Exposed parts, connectors, apertures, enclosures, drainage, condensation, UV,
-  cleaning, and hot-sun soak therefore require explicit acceptance tests.
+  cleaning, and hot-sun soak still require explicit acceptance tests. The Jetson
+  Orin Nano Developer Kit itself is manufacturer-rated only for 0–35 C, so the
+  current developer-kit build must monitor enclosure temperature and degrade or
+  shut down above its validated range; airflow cannot make a 40 C ambient meet a
+  35 C rating.
 - The full electrical and weather integration decision, evidence requirements,
   and manufacturer-source ledger are in
   [`docs/research/2026-07-13-power-weather.md`](../research/2026-07-13-power-weather.md).
 - Speakers and the body transducer together must be rated at **100 W or less**.
   The current one-speaker/one-puck recommendation totals 30 W RMS and is limited
   to about 27 W combined program output.
+- One voice speaker is sufficient for revision one.
 
 ## Interaction, voice, and stories
 
 - A response within a few seconds is acceptable.
 - **`Neko Neko` is the approved activation phrase.** “Hello Kitty” is retired
   from the revision-one wake-word plan.
-- English is required. French and Spanish are desirable and must be evaluated
-  with local ASR/TTS, not silently delegated to cloud-only services.
+- English is required. French is the second priority and Spanish the third; all
+  must be evaluated with local ASR/TTS rather than silently delegated to a
+  cloud-only service.
 - Neko's character is cute, motherly, slightly mischievous, and playful. The
   owner is willing to create consented source recordings for a local custom
   voice.
@@ -108,8 +170,10 @@ not assumptions. Revisit them explicitly if Neko's use or hardware changes.
   level. The collection theme is cats of all kinds, including wild felids; a cat
   must be central to each enabled story rather than an incidental keyword hit.
 - Every story is at most five minutes. The default tone is light and explicitly
-  non-scary; suspense, threat and predation need conservative content flags and
-  an approved fallback rather than surprise improvisation.
+  non-scary. Age-appropriate conflict and reviewed folklore/religion are allowed;
+  serious grief and extreme bathroom humour are excluded. Suspense, threat and
+  predation still need conservative content flags and an approved fallback
+  rather than surprise improvisation.
 - For the prototype, the owner accepts LLM-based French and Spanish review rather
   than fluent-human review. This is a lower-assurance validation state and must
   be labelled as such in manifests and UI; it does not remove deterministic
@@ -127,6 +191,12 @@ not assumptions. Revisit them explicitly if Neko's use or hardware changes.
   This does not authorize raw audio/images, an embedded consumer-subscription
   credential, or unattended live child-cloud interaction. Adult authentication,
   visible state, redaction, provider and spend limits remain implementation gates.
+- Adult mode may be enabled locally by a physical control or remotely while
+  online. The recommended local authority is a keyed switch or a control inside
+  a locked compartment; an exposed momentary button alone is not authentication.
+  Remote enablement must use an authenticated administration channel, expire
+  automatically, show a visible cart-side indicator, and remain locally
+  revocable.
 - Transcript text may leave the cart under policy. Images and audio may leave
   only after explicit human-in-the-loop consent. Default operation must keep raw
   camera/audio data local and avoid storing it.
@@ -148,21 +218,21 @@ not assumptions. Revisit them explicitly if Neko's use or hardware changes.
 
 ## Still open before hardware purchase or field use
 
-- Exact battery models/BMS, full/rest/loaded voltage, configured BMS
-  limits and controlled shutdown threshold, both
-  converter models and input wiring, protection/grounding, measured rail noise,
-  sustained power/thermal budget, and enclosure airflow.
-- Exact minimum/maximum/storage temperature, rain/overnight exposure, washing
-  method, salt exposure, and solar-panel/controller/mounting details.
-- Delivery province/postal-code ETA for the one-week parts order and the exact
-  24-to-12 V or active-PoE camera power/network topology.
-- Exact social distance/cooldown behavior, operation while moving, and treatment
-  of children, groups, pets, and partial occlusion.
+- Exact battery models/BMS, full/rest/loaded voltage, configured limits and
+  controlled shutdown threshold; whether each incompatible generic converter is
+  presently connected across the full bank, a midpoint, or another rail;
+  protection/grounding, measured rail noise, sustained power/thermal budget, and
+  enclosure airflow.
+- Storage temperature, overnight exposure, solar-panel/controller/mounting
+  details, and whether safe shutdown/degraded operation from 35–40 C is acceptable.
+- Checkout-confirmed arrival to British Columbia postal code **V9G 1L8** and the
+  exact full-pack converter, downstream 12 V, switch, protection and cable BOM.
+- Exact cooldown behavior and treatment of groups, pets, and partial occlusion;
+  parked-only greeting and the <=10-ft interaction radius are decided.
 - Checkout-confirmed camera/radar/microphone/speaker/amplifier/transducer stock,
   delivery, converter compatibility and final mounting.
-- Story language mix, finer content boundaries within the fixed light/non-scary
-  five-minute policy, owner controls, generated-history retention, and final
-  cat-story manifest.
+- The preferred 5–7 versus 8–10 French/English mix, owner controls,
+  generated-history retention, and final cat-story manifest.
 - Mic electrical kill, camera shutters, visible privacy indicators, raw-data log
-  policy, administration/update/recovery policy, adult-authentication method,
-  and cloud API budget/provider.
+  policy, administration/update/recovery policy, exact keyed/local and remote
+  adult-control implementation, and cloud API budget/provider.

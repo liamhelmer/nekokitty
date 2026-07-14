@@ -22,10 +22,22 @@ limited audio domain in the scoped system power budget; enforce approximately
 limiters, and fail-silent behavior. The amplifier's 2 x 25 W nameplate is not an
 allowed output setting.
 
+One voice speaker is sufficient for revision one. Feed the amplifier from its own
+fused, regulated downstream branch of the proposed documented DDR-240C-24 rail,
+or replace it with an amplifier having adequate supply margin. The Soberton's
+input maximum is 25 V, while the DDR-240 output adjusts through 28 V and its own
+overvoltage shutdown begins far above the amplifier limit. A nominal 24 V label
+and a fuse do not protect against overvoltage; select and test the downstream
+regulator/OVP, startup and turn-off overshoot before connection. The current
+generic 4–38 V input module is rejected on the full series string and at a battery
+midpoint.
+
 `Neko Neko` is the fixed wake phrase for revision one. The owner is willing to
 source a consenting adult voice; the recording/release and voice-model rights
 gates below still apply. Route playback through the selected reSpeaker device so
-its echo canceller receives the far-end reference.
+its echo canceller receives the far-end reference. Validate English first,
+French second, and Spanish third; every shipped language retains a useful local
+ASR/TTS path.
 
 ## Superseded overseas recommendation
 
@@ -35,23 +47,21 @@ full-range speaker, and one body-mounted tactile transducer. Use the microphone
 array's playback path for all sound so its hardware acoustic echo canceller has
 the correct far-end reference.
 
-The owner later confirmed an existing 24 V accessory converter and a separate
-19 V Jetson converter. The amplifier accepts 12–24 V, so the preferred design
-uses a separately protected 24 V accessory branch after electrical/noise tests
-instead of adding a general 12 V rail. The Jetson branch remains dedicated.
+The owner later identified the existing 24 V and 19 V outputs as generic
+adjustable 4–38 V input modules. The earlier reuse assumption is superseded.
+The audio domain still begins at a separately protected 24 V accessory branch,
+but the selected 25 V-maximum amplifier needs a lower regulated downstream
+supply or a different amplifier with adequate margin. The Jetson uses its own
+documented 12 V converter.
 
 The exact listed hardware subtotal excluding a not-yet-justified new DC/DC
 converter was **US$146.00** on 2026-07-13. A practical installed audio subsystem
-is expected to cost **US$280–445** before Canadian
-tax, depending on outdoor enclosure, protected distribution, wiring, shipping,
-and whether a spare microphone array is purchased. The owner's approximately
-US$2,000 ceiling applies to the
-combined added system. With the recommended OV9782 perception BOM's exact
-installed estimate, audio plus perception is approximately **US$1,378–1,728**,
-rounded to **US$1,380–1,730**, before Canadian tax/shipping, for the USB camera
-path. If outdoor evidence requires PoE/M12, the provisional combined range is
-**US$1,593–1,983** before tax, shipping, and duty; see the perception BOM for
-the estimate and confirm what the US$2,000 ceiling includes.
+was estimated at **US$280–445** before Canadian tax, depending on outdoor
+enclosure, protected distribution, wiring, shipping, and a spare microphone
+array. That superseded study used a working **US$2,000** combined-system ceiling;
+it was not the owner's final constraint. The controlling limit is now **CAD
+2,000 landed including tax and shipping**, with the active Canadian arithmetic
+in the one-week BOM.
 
 The software path remains applicable, with XVF3000 used for the one-week bench
 and XVF3800 retained as the long-term target:
@@ -96,7 +106,7 @@ order list; use the Canadian one-week note linked above.
 | [Visaton FR 10 WP, 4 ohm, black](https://www.visaton.de/index.php/en/products/drivers/fullrange-systems/fr-10-wp-4-ohm-black) | Neko's voice, meows, cues, and stories | [US$28.16 at DigiKey](https://www.digikey.com/en/products/detail/visaton-gmbh-co-kg/fr-10-wp-4-ohm-black/9842332) | 4-inch full-range driver, 20 W rated/30 W maximum, 80 Hz–16 kHz, 85 dB at 1 W/1 m. Vendor describes saltwater, corrosion, and UV resistance. IP66 applies from the front only when installed with a correct gasket in a sealed enclosure. |
 | [Dayton Audio TT25-8 Puck](https://www.daytonaudio.com/product/1104/tt25-8-puck-tactile-transducer-mini-bass-shaker) | Body purr and gentle tactile cues | US$23.99 MSRP | 8 ohms, 15 W RMS/30 W maximum, 40 Hz resonance, approximately 20–80 Hz useful range. No outdoor ingress rating is documented; it requires a dry protected cavity or a suitably rated substitute. |
 | [Dayton Audio SMRK-2 mounting ring](https://www.daytonaudio.com/product/1656/smrk-2-surface-mounting-ring-kit-for-tt25-puck-mini-bass-shaker) | Serviceable transducer mounting | US$5.99 MSRP | Surface-mount ring for the TT25 puck. |
-| Existing 24 V accessory output | Amplifier source after audit | Already installed | Verify full-pack input wiring, converter model/input range, output tolerance, isolation/grounding, ripple/transients, derating, protection, and current headroom. The KAB's documented range ends at 24 V, so a nominal label alone is insufficient. Keep lighting on a separate fused sub-branch and test its switching noise. |
+| Existing 24 V accessory output | **Historical/rejected source** | Already installed but incompatible | The identified 4–38 V input module is rejected across the full pack and at a midpoint. Do not reuse it; this row survives only to preserve the earlier KAB test rationale. |
 | Dedicated isolated regulator, only if tests require one | Contingency for a noisy/out-of-range accessory rail | Not selected | Select from measured pack full/loaded voltage, manufacturer/configured limits, and the required lower output. The current Mean Well [DDR-60 data sheet](https://www.meanwell.com/Upload/PDF/DDR-60/DDR-60-spec.pdf) illustrates the suffix risk: L variants accept 18–75 V, while G variants accept only 9–36 V. Do not order from the “48 V” label alone. |
 
 Exact arithmetic for one of each listed item:
@@ -115,17 +125,17 @@ Case](https://www.seeedstudio.com/ReSpeaker-XVF3800-USB-4-Mic-Array-With-Case-p-
 was US$62.99 and is an optional bench unit or spare; the Flex version is the
 better final mechanical fit.
 
-Do not order another DC/DC converter until the four batteries' exact model,
-series/parallel topology, BMS rules/limits, measured fully charged/loaded
-voltages, controlled shutdown threshold, and
-both existing converter data sheets are recorded. Both converter inputs must be
-across the complete pack output, not a series-string midpoint. The detailed
-audit is in [`2026-07-13-power-weather.md`](2026-07-13-power-weather.md).
+The earlier “reuse if audited” assumption is superseded. Isolate the two generic
+4–38 V modules and select the documented replacement candidates only after the
+four batteries' exact models, BMS rules/limits, measured fully charged/loaded
+voltages and controlled shutdown threshold are recorded. Every replacement input
+belongs across the protected complete pack output, never a series midpoint. The
+detailed audit is in [`2026-07-13-power-weather.md`](2026-07-13-power-weather.md).
 
 ### Power planning
 
 The table below describes the earlier XVF3800/KAB path. The active one-week path
-has 30 W RMS of installed drivers and a roughly 35 W scoped audio allocation,
+has 30 W RMS of selected/planned drivers and a roughly 35 W scoped audio allocation,
 subject to measured per-channel limits.
 
 The following are **estimates**, not measurements:
@@ -145,10 +155,12 @@ in standby when quiet if its turn-on transient can be made inaudible. These
 figures exclude the Jetson, which remains in its existing 15 W power mode until
 the full system is characterized.
 
-At the final 24 V supply, establish separate measured RMS and peak voltage/power
-limits for the 4-ohm speaker channel and 8-ohm shaker channel. The audio scheduler
-and fixed DSP/limiter configuration must enforce both limits independently; a
-single master-volume cap is insufficient.
+For the old KAB/FR-10 bench path at its historical 24 V supply, establish
+separate measured RMS and peak limits for the 4-ohm speaker and 8-ohm shaker.
+The active Soberton/FR 8 WP/TT25 path instead has two 8-ohm loads and must be
+tested at its finally selected protected audio voltage. In both cases, fixed
+DSP/limiter settings enforce each channel independently; a master-volume cap is
+insufficient.
 
 ## Long-term XVF3800 signal-routing research
 
@@ -229,9 +241,9 @@ treatment before fabrication.
 - Mechanical purr vibration is not ordinary acoustic echo and may survive AEC.
   Initially pause wake recognition during purrs, or use a separately measured
   purr threshold profile, until full-duplex tests demonstrate reliable results.
-- Provision cable and mounting space for a second rear speaker but purchase it
-  only if real all-around audibility testing shows one front/downward speaker is
-  inadequate.
+- Purchase and install only the one approved voice speaker. A later second-speaker
+  change requires measured all-around audibility evidence and a new owner
+  decision; do not reserve one-week power or budget for it now.
 
 The vendor's nominal far-field/circular-pickup claims are not evidence of usable
 speech recognition at five metres in wind and motor noise. Treat conversation
@@ -478,29 +490,30 @@ transducer temperatures at the maximum configured purr duty cycle. A measured
 volume cap suitable for nearby children is required; do not expose raw
 amplifier maximum to the language model or ordinary UI. Verify independent RMS/
 peak limits, clipping behavior, and fail-silent shutdown for both the 8-ohm voice
-speaker and 8-ohm shaker at the final rail maximum.
+speaker and 8-ohm shaker at the final protected audio-supply maximum.
 
 ## Remaining owner decisions
 
 1. Exact make/model and physical verification of the owner-confirmed four-battery
    series string;
    measured pack full/rest/loaded voltage, configured BMS limits, and controlled
-   shutdown threshold; both converter models/input wiring; protection, grounding,
-   and 24 V rail tolerance/noise measurements.
-2. Exact roof height/posts/overhang, mouth, shaded electronics-bay, structural
-   mounts, solar panel/controller, and body-panel geometry; temperature range,
-   rain/overnight exposure, washing method, and available mounting distances.
+   shutdown threshold; trace of both known-incompatible 4–38 V module inputs;
+   protection, grounding, and replacement 24 V rail tolerance/noise measurements.
+2. Complete roof/posts/overhang, mouth, shaded electronics-bay, structural
+   mounts, solar panel/controller, and body-panel geometry; storage/overnight
+   exposure and available mounting distances. Ambient 0–40 C, no salt, cloth
+   cleaning and protection from direct rain are decided.
 3. Whether conversation is explicitly parked/slow-only and whether a physical
    push-to-talk button is acceptable while moving.
-4. Target maximum SPL at 1 m, quiet hours, and whether the rear arc must hear
-   stories at full intelligibility. This determines whether to add a second
-   speaker and amplifier channel.
+4. Target maximum SPL at 1 m, quiet hours, and the required rear-arc
+   intelligibility from the already-approved single voice speaker.
 5. Final `Neko Neko` wake-model training corpus and acceptance threshold; the
    wake phrase itself is decided.
 6. Identity of the consenting adult voice source, recording schedule, written
    release, and whether the first ship date uses that voice or a licensed preset.
 7. Desired consistency of the same character voice across EN/FR/ES, and whether
-   accented French/Spanish is acceptable for revision one.
+   accented French/Spanish is acceptable for revision one. French is the second
+   priority and Spanish the third.
 8. Source and licensing policy for meows, purr loops, music, and story assets.
 9. Exact privacy indicator/button design if any future audio-upload workflow is
    desired. The present recommendation is no off-cart audio.
