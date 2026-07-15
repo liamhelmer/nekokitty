@@ -653,7 +653,7 @@ Orin power mode, and mounted geometry for every test.
    onboard-NIC switch topology are selected provisionally.
 9. Expected operating light at night and whether visible/IR illumination is
    acceptable.
-10. Checkout-confirmed arrival to BC V9G 1L8 and totals for the Canadian
+10. Checkout-confirmed arrival to the owner-supplied BC destination and totals for the Canadian
     one-week bill; the active ceiling is CAD 2,000 landed, including tax and
     shipping.
 

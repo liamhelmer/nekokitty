@@ -190,7 +190,7 @@ The provisional added-system planning range is **CAD 1,399.68–1,722.08 landed*
 leaving **CAD 277.92–600.32** under the owner's fixed CAD 2,000 landed ceiling.
 This uses an assumed British Columbia 5% GST plus 7% PST and includes planning
 allowances for power, network, weather protection, cabling, and mechanics. It is
-not a checkout quote: confirm arrival to the supplied BC postal code V9G 1L8
+not a checkout quote: confirm arrival to the owner-supplied BC destination
 within seven days, taxes, shipping, stock, cable lengths, converters, and mounts
 before buying.
 Do not consume the reserve until those items are known.
@@ -425,7 +425,7 @@ operations rollback are recorded.
 - Finalize privacy indicators/mutes and owner/history controls. The story policy
   allows reviewed conflict and folklore/religion, excludes serious grief and
   extreme bathroom humour, and prioritizes French before Spanish.
-- At checkout, confirm arrival to BC V9G 1L8 within seven
+- At checkout, confirm arrival to the owner-supplied BC destination within seven
   days, taxes/shipping, and stock for every camera, radar, audio, power, network,
   and enclosure line. Dispatch time alone is not sufficient.
 
@@ -538,7 +538,7 @@ credential is embedded; raw media cannot egress through the text route.
 
 The core hardware recommendation is complete. Before ordering, confirm:
 
-1. checkout-confirmed arrival within seven days to the supplied BC V9G 1L8
+1. checkout-confirmed arrival within seven days to the owner-supplied BC
    destination for the Reolink pair, four radars, XVF3000, amplifier, speaker,
    transducer, converters, switch, enclosures and fabrication dependencies;
 2. complete empty/occupied front/rear/both-side photos or sketch showing the
