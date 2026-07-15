@@ -1777,3 +1777,27 @@ also passed. No new systemd unit was installed or enabled. Complete runtime
 rollback is removal of the two export venvs and `/home/neko/models/rfdetr-nano`
 plus `/home/neko/models/yolo26`; source rollback removes the corresponding
 requirements, RF-DETR/runtime modules, camera script, tests, and these notes.
+
+## 2026-07-14 — MIT public release
+
+Committed the complete local conversation/proximity bench as `7cac2be`, pushed
+`agent/local-conversation-proximity`, opened GitHub PR 2, and merged it to
+`main` as `ae63d3b6cee10b0f82467d5cecdaaa55f3e300a6`:
+
+<https://github.com/liamhelmer/nekokitty/pull/2>
+
+The PR was mergeable and GitHub reported no configured checks; the local 63-test
+and integration gates above were therefore controlling. After merge, changed
+`liamhelmer/nekokitty` visibility from private to public. Both authenticated
+GitHub metadata and an unauthenticated request to
+`https://api.github.com/repos/liamhelmer/nekokitty` reported `private: false`,
+default branch `main`, and SPDX licence `MIT`.
+
+Before publication, scans found no current-tree credential signatures, raw
+media, model/engine files, or tracked blob larger than 5 MB. The exact delivery
+postal code was removed from the current tree. It remains in an older Git commit;
+the owner explicitly authorized public release and the history was deliberately
+preserved rather than destructively rewritten. Rollback of repository visibility
+is `gh repo edit liamhelmer/nekokitty --visibility private`; that does not retract
+copies already fetched while public. Reverting the merge is a separate Git
+operation and does not remove the external NVMe model/runtime artifacts.
