@@ -50,9 +50,11 @@ System-wide changes must be documented with exact commands, versions, paths,
 validation, and rollback.
 
 The project is now the top-level Git repository with `main` as its default/base
-branch and private remote `https://github.com/liamhelmer/nekokitty.git`. The
-current worktree is on `main`. An accidental empty nested
-clone was preserved outside the worktree at
+branch and public MIT-licensed remote
+`https://github.com/liamhelmer/nekokitty.git`. PR 2 merged the local
+conversation/proximity bench at commit
+`ae63d3b6cee10b0f82467d5cecdaaa55f3e300a6`. An accidental empty nested clone
+was preserved outside the worktree at
 `/home/neko/repos/nekokitty-empty-clone-backup-20260713`. `CLAUDE.md` points
 Claude Code back to this file so assistants share one durable source of truth.
 
@@ -593,3 +595,8 @@ For every future model or service, add:
   non-recording C922 detector/ephemeral tracker loop, and kept YOLO26 isolated as
   an AGPL licensing benchmark. A concurrent Gemma + RF-DETR + live Nemotron ASR
   run peaked at 3,618/7,486 MB RAM, 8.27 W input, and 48.72 C; all 63 tests passed.
+- 2026-07-14: Merged the conversation/proximity work through public PR 2 and
+  changed `liamhelmer/nekokitty` from private to public. GitHub and an
+  unauthenticated API request both reported public visibility, `main` as the
+  default branch, and MIT licence detection. No Git history rewrite was done;
+  the regional delivery postal code remains visible in older commits as noted.
