@@ -26,8 +26,9 @@ The perception evaluation must include ZipDepth: <https://zipdepth.github.io/>.
 
 ## Current phase and change policy
 
-Status on 2026-07-13: the host/model foundation is deployed and hardware/software
-integration planning is current. The machine permanently targets headless
+Status on 2026-07-14: the host/model foundation is deployed, the owner reports
+that the production hardware has been ordered, and pre-arrival integration work
+is active. The machine permanently targets headless
 `multi-user.target`; GDM, X, GNOME Shell, and Firefox are absent. CUDA 13.2
 compiler/development components and TensorRT 10.16.2 are installed from the
 Jetson R39 repository. The bounded CPU Gemma service is installed, enabled,
@@ -49,8 +50,8 @@ System-wide changes must be documented with exact commands, versions, paths,
 validation, and rollback.
 
 The project is now the top-level Git repository with `main` as its default/base
-branch and private remote `https://github.com/liamhelmer/nekokitty.git`. Work is
-currently on `agent/power-weather-story-constraints`. An accidental empty nested
+branch and private remote `https://github.com/liamhelmer/nekokitty.git`. The
+current worktree is on `main`. An accidental empty nested
 clone was preserved outside the worktree at
 `/home/neko/repos/nekokitty-empty-clone-backup-20260713`. `CLAUDE.md` points
 Claude Code back to this file so assistants share one durable source of truth.
@@ -83,7 +84,13 @@ Inventory was collected locally on 2026-07-12 in America/Vancouver.
 ### Connected devices seen during discovery
 
 - Logitech C922 Pro Stream Webcam at `/dev/video0` and `/dev/video1`; its USB
-  microphone is ALSA capture card 0.
+  microphone uses ALSA card ID `Webcam` (the numeric card index can vary).
+- Ora GQ Headphone paired, bonded, trusted, and reconnectable through the onboard
+  Bluetooth controller. PipeWire exposes a Bluetooth sink and source; the active
+  profile observed during pairing was HSP/HFP with mSBC, so it is suitable for
+  temporary duplex testing but not representative of final wired playback or
+  high-quality A2DP latency. Its unique Bluetooth address is intentionally not
+  recorded here.
 - HDMI audio outputs on the Jetson and NVIDIA APE/ADMAIF endpoints. No dedicated
   USB speaker/DAC or body transducer output was identifiable from the initial ALSA
   listing.
@@ -135,6 +142,10 @@ Read these before changing the system:
   runtime profiles, offline/online architecture, delivery phases, and general
   acceptance gates. Its earlier hardware purchase sections are superseded by the
   Canadian one-week decision.
+- [Conversation and camera-proximity MVP](docs/plan/2026-07-14-conversation-proximity-mvp.md)
+  — current two-loop implementation order for C922/reSpeaker audio, streaming
+  ASR, Gemma, TTS, person detection, calibrated camera proximity, social state,
+  production swap-over, memory constraints, and acceptance gates.
 - [Owner decisions](docs/decisions/2026-07-13-owner-decisions.md) — durable
   answers for licensing, model residency, headless/Git authority, manual-motion
   scope, character/languages/stories, offline-first behavior, and media privacy.
@@ -160,6 +171,9 @@ Read these before changing the system:
   exact R39.2 reproduction comment and upstream URL.
 - [Setup log](docs/operations/setup-log.md) — every installation/attempt, exact
   versions/paths/hashes, sudo/headless status, rollback, and current model table.
+- [Pre-hardware smoke tests](docs/operations/2026-07-14-pre-hardware-smoke-tests.md)
+  — privacy-preserving temporary webcam/USB-audio harness, production swap-over
+  contracts, current test boundary, and commands to repeat after device changes.
 - [Owner questions](docs/questions.md) — original 52-question discovery backlog;
   answered constraints are superseded by the decisions file and plan.
 - [Bounded Gemma server](scripts/serve_gemma_litert.py) and
@@ -235,7 +249,22 @@ the smaller, proven LiteRT CPU resident.
   under `/home/neko/models/Nemotron-Labs-Audex-2B`; five major weight hashes are
   in the setup log. No Audex code has been executed or runtime installed.
 - No PATH file was changed; use absolute paths in scripts/systemd.
-- No Audex runtime, Pipecat, ASR, TTS, or Neko application service is installed.
+- Isolated sherpa-onnx 1.13.4 and Supertonic 1.3.1 environments plus their exact
+  pinned model artifacts are installed on NVMe. Standalone multilingual
+  benchmarks pass; neither is a service or boot dependency yet. Pipecat remains
+  uninstalled because its current release has no native sherpa-onnx adapter and
+  is unnecessary for the first bounded integration loop.
+- The deterministic behavior core, fixed Gemma client, text-conversation tool,
+  and memory-only live ASR tool are in the repository with unit coverage. No
+  Neko application service is boot-enabled.
+- RF-DETR 1.8.3 export tooling, its exact Nano checkpoint/ONNX, and the locally
+  built TensorRT FP16 plan are pinned on NVMe. The hash-verifying, non-recording
+  C922 loop and metadata-only tracker pass. YOLO26/Ultralytics 8.4.95 exists only
+  in an external export environment for the recorded AGPL comparison; it is not
+  imported by Neko, distributed, or boot-enabled.
+- `scripts/smoke_test_devices.py` is a dependency-free bench harness over the
+  existing GStreamer/ALSA/PipeWire tools. Its default suite retains no camera or
+  microphone media and never plays sound unless explicitly requested.
 
 ## Research standards and evidence ledger
 
@@ -246,7 +275,7 @@ hardware context, precision/quantization, input/output lengths, warm/cold state,
 power mode, and software commit/version for every benchmark. Never present an x86
 GPU result as a Jetson result.
 
-Current-source research was refreshed through 2026-07-13 and is recorded in the
+Current-source research was refreshed through 2026-07-14 and is recorded in the
 linked notes. Important conclusions:
 
 - Gemma 4 E2B is the default local candidate. Its Google-supported 2.59 GB LiteRT
@@ -277,6 +306,28 @@ linked notes. Important conclusions:
 - Pipecat is the provisional voice orchestrator; use a deterministic intent/policy
   and social state layer, separate streaming ASR/TTS, curated meows/purrs, and
   cloud text routing only when explicitly allowed.
+- The installed sherpa/Nemotron 560 ms INT8 profile cold-loads in 3.53 s and
+  decoded the supplied French/Spanish clips at 0.393/0.382 real-time factor with
+  about 1.35 GiB peak process RSS. Supertonic 3 cold-loaded in 1.41 s and
+  generated English/French/Spanish at 0.662/0.674/0.655 real-time factor with
+  about 492 MiB peak process RSS. These standalone publisher-text/clip results
+  are not far-field or combined-workload acceptance.
+- Neko-authored code/documentation now has an MIT root licence and explicit
+  third-party notices. Ultralytics' current terms do not permit an integrated
+  YOLO26 dependency to be represented as MIT merely because the repository is
+  public: project-wide AGPL-3.0 compatibility or an Enterprise licence is still
+  required. YOLO26 evaluation artifacts remain external and licensing-gated.
+- The pre-hardware conversation MVP keeps the measured CPU LiteRT Gemma service
+  and reserves GPU/TensorRT capacity for perception. A 2026-07-14 live audit with
+  Gemma loaded found 6,065,396 KiB available and no swap; Gemma led at 1,669,854
+  KiB PSS. Install and benchmark only one ASR/TTS/detector candidate at a time.
+  The first current-source stack is sherpa-onnx's June 2026 INT8 Nemotron 3.5
+  streaming ASR, Supertonic 3 CPU/ONNX TTS, and RF-DETR Nano FP16 TensorRT.
+  RF-DETR Nano's local 384x384 FP16 plan measured 9.48 ms model-only and 9.63 ms
+  with transfers. YOLO26n measured 3.19/3.37 ms but remains an external
+  comparison because public MIT publication does not satisfy Ultralytics'
+  project-wide AGPL requirement. RF-DETR's Apache-2.0 path is the selected
+  runtime: it has ample 5–10 fps headroom and preserves Neko's MIT licence.
 - The one-week audio purchase path uses the Canadian-stocked Seeed reSpeaker USB
   four-mic/XVF3000 array, Soberton XPCB-12BT two-channel amplifier, Visaton FR 8
   WP 15 W RMS voice speaker, and a protected Dayton TT25-8 15 W RMS body puck.
@@ -381,7 +432,7 @@ These are constraints, not yet final component choices:
 The electrical source boundary is resolved for recommendation purposes: use the
 owner-provided 24 V/3 A, 19 V/3 A, and 12–14 V/20 A interfaces and do not require
 battery or upstream wiring evidence. Before ordering, the project still needs
-checkout-confirmed seven-day arrival to the known BC V9G 1L8 destination and
+checkout-confirmed seven-day arrival to the owner-supplied BC destination and
 final stock for every BOM line. Field use still needs complete empty/occupied
 front/rear/side geometry, protected electronics space, storage/overnight exposure,
 a simultaneous under-200 W power test at the supplied interfaces, and accepted
@@ -494,7 +545,7 @@ For every future model or service, add:
   safety allowance and conservative shipping tax. Inspected the occupied cart
   image transiently, deleted it without committing people or embedded precise-
   location metadata, and moved cameras/radars outside the slat plane. Also
-  recorded BC V9G 1L8,
+  recorded the owner-supplied BC delivery region,
   parked-only <=10-ft greeting, 0–40 C/no-salt/cloth-cleaning environment, one
   speaker, French priority, story boundaries and keyed/remote adult-mode options.
   No wiring, package, service, order or model state changed.
@@ -509,3 +560,36 @@ For every future model or service, add:
   range. Historical
   electrical research remains labelled and preserved. No wiring, package,
   service, order, or model state changed.
+- 2026-07-14: Added a privacy-preserving pre-hardware smoke-test harness for
+  temporary V4L2 cameras, ALSA USB microphones/playback, synthetic media, and the
+  bounded Gemma API. It records no media by default and makes audible playback
+  explicit. Added unit coverage and a runbook separating reusable software
+  contracts from production camera/radar/audio/power/weather acceptance.
+- 2026-07-14: Paired, bonded, trusted, connected, and reconnect-tested an owner-
+  supplied Ora GQ Bluetooth headset. The adapter was returned to non-pairable and
+  non-discovering state. PipeWire exposed both playback and microphone endpoints
+  under its mSBC headset profile; no package or service configuration changed.
+- 2026-07-14: Refreshed current official voice/perception research and fixed the
+  pre-hardware implementation sequence. Recorded a live 8 GB coexistence audit,
+  retained CPU LiteRT Gemma, selected sherpa-onnx INT8 Nemotron 3.5 ASR and
+  Supertonic 3 for first benchmarks, and chose Apache-2.0 RF-DETR Nano over an
+  AGPL YOLO26 default for the private repository. Defined calibrated camera-only
+  social proximity as an estimate, with radar confirmation still required later.
+- 2026-07-14: Added an MIT root licence and third-party notice, removed the exact
+  delivery postal code from the current worktree before public-release review,
+  and implemented the typed deterministic wake/session/social-greeting core plus
+  a fixed local Gemma client. Public release was authorized; the historical
+  regional postal code remains in prior Git commits because history was not
+  destructively rewritten.
+- 2026-07-14: Installed hash-locked isolated sherpa-onnx/Nemotron streaming ASR
+  and Supertonic 3 TTS profiles, verified model hashes, and passed French,
+  Spanish, and three-language synthesis benchmarks. Added a memory-only C922 ASR
+  tool and an opt-in-audio local conversation tool; no new service was enabled.
+- 2026-07-14: Attempted two read-only Claude Code reviews through z.ai; both
+  failed at the provider with HTTP 529 and reproduced the broken SessionEnd hook,
+  so they produced no findings or edits.
+- 2026-07-14: Benchmarked locally built RF-DETR Nano and YOLO26n FP16 TensorRT
+  engines. Selected Apache-2.0 RF-DETR for the MIT runtime, added a hash-checked
+  non-recording C922 detector/ephemeral tracker loop, and kept YOLO26 isolated as
+  an AGPL licensing benchmark. A concurrent Gemma + RF-DETR + live Nemotron ASR
+  run peaked at 3,618/7,486 MB RAM, 8.27 W input, and 48.72 C; all 63 tests passed.

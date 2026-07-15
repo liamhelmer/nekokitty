@@ -9,7 +9,7 @@ Those longer notes remain the component and acceptance-test research record.
 No part was ordered, installed, wired, or configured while preparing this
 update. Prices and stock were observed on 2026-07-13 and must be checked at the
 actual checkout. The arithmetic below uses the British Columbia planning rate of
-5% GST plus 7% PST. The owner supplied British Columbia destination **V9G 1L8**;
+5% GST plus 7% PST. The owner supplied a British Columbia destination;
 the exact checkout arrival date remains a purchase gate.
 
 ## Fixed owner constraints
@@ -388,7 +388,7 @@ No traction-pack runtime calculation is required or authorized by this note.
 ## Purchase and acceptance gates
 
 1. Confirm checkout arrival within seven days to the supplied British Columbia
-   postal code V9G 1L8 for every line; “ships in two days” is not “arrives within
+   destination for every line; “ships in two days” is not “arrives within
    a week.”
 2. Confirm the received REC30K-2412SZ, R-78B5.0-2.0, SW-005, camera, and amplifier
    voltage/current compatibility against the supplied 19 V/3 A, 24 V/3 A, and

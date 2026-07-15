@@ -1191,7 +1191,7 @@ powered. No package, model, service, firewall or operating-system setting change
 
 ### New owner facts
 
-- Destination: British Columbia, postal code `V9G 1L8`; every critical line must
+- Destination: owner-supplied British Columbia delivery region; every critical line must
   still show checkout arrival within seven days.
 - Both installed adjustable modules are described by the marketplace title
   `[2 Pack] DC-DC 5A Buck Converter 4-38V to 1.25-36V Step-Down Voltage
@@ -1306,14 +1306,14 @@ installation instructions, NVIDIA's carrier-board specification, Reolink's
 camera/power documentation, Brainboxes specifications, DFRobot documentation,
 and the already-recorded Victron series-bank guidance. Canadian price/stock came
 from Mouser and DigiKey product pages. Exact links are in the controlling BOM and
-power/weather notes. Checkout arrival to `V9G 1L8` could not be guaranteed
+power/weather notes. Checkout arrival to the owner-supplied destination could not be guaranteed
 without entering the cart/checkout flow, so no seven-day delivery claim was made.
 
 The temporary image path `/tmp/neko-cart-drive` was removed and verified absent.
 Repository policy remains: never commit raw owner/bystander media, recordings,
 transcripts, street addresses, GPS coordinates, embedded media-location metadata,
-credentials or model weights. The owner-supplied postal code is intentionally
-retained in this private repository only for tax/delivery research.
+credentials or model weights. The exact owner-supplied postal code was removed
+before public-release preparation; it is not required for durable research notes.
 
 ### Final electrical/document consistency review
 
@@ -1458,8 +1458,8 @@ was changed.
   landed build, CAD 277.92–600.32 headroom, and 45 + 0 + 90 = 135 W with 65 W
   below the required 200 W acceptance limit.
 - Credential-signature, raw private-photo link/identifier, and tracked-media
-  scans were clean. The owner-provided postal code remains intentionally present
-  for checkout ETA research.
+  scans were clean. The exact owner-provided postal code has since been removed
+  for public-release preparation.
 - Headless state still matched the recorded configuration: `multi-user.target`,
   inactive display manager, and no exact Xorg, GNOME Shell, or Firefox process.
   `neko-gemma.service` remained enabled/active with zero restarts; its loopback
@@ -1468,3 +1468,312 @@ was changed.
 
 These checks were read-only except for the bounded local inference request. They
 did not change any service setting, package, model, network rule, or hardware.
+
+## 2026-07-14 — pre-hardware USB camera/audio and Gemma smoke path
+
+The owner reported that the production parts were ordered and authorized using
+on-hand USB equipment before they arrive. No new package, model, service, system
+unit, or boot setting was installed or changed. The existing host tools used by
+the new harness were:
+
+```text
+Python 3.12.3
+GStreamer 1.24.2
+ALSA arecord/aplay 1.2.9
+PipeWire client/library 1.0.5
+```
+
+Added `scripts/smoke_test_devices.py`, its standard-library unit tests, and
+`docs/operations/2026-07-14-pre-hardware-smoke-tests.md`. The harness enumerates
+V4L2, ALSA and PipeWire endpoints, runs synthetic audio/video, decodes live UVC
+frames to ZipDepth's `672x384 RGB` geometry, measures 16 kHz mono microphone RMS,
+and calls the fixed loopback Gemma API. Camera and microphone streams end at
+GStreamer `fakesink`; playback requires an explicit flag/command and is capped at
+0.1 software amplitude. The harness never retains media by default.
+
+The first C922 video run exposed a real compatibility issue: generic `decodebin`
+selected Jetson `nvjpegdec` for the camera's default MJPEG output and the pipeline
+failed negotiation. The final test path pins the C922's supported uncompressed
+`640x360 YUY2 @ 30 fps` source, centre-crops to 7:4, then performs colour
+conversion and resize. Validations:
+
+```text
+synthetic: 60 video/audio buffers, pass
+C922 camera: 60 frames in 2.866 s, 20.94 wall fps, pass
+C922 camera longer run: 180 frames in 12.647 s, 14.23 wall fps, pass
+C922 microphone: 3.024 s, 27 level samples, -44.43..-32.38 dBFS, pass
+combined safe suite: synthetic + 60 camera frames + 29 mic samples + Gemma, pass
+combined Gemma persona response: 2.177 s, pass
+audible USB playback: not run; no USB playback peripheral was connected
+media/results retained: none
+```
+
+The camera rate includes process/device setup and teardown and varied materially;
+it is an integration observation, not an accepted real-time rate or a proxy for
+Reolink RTSP latency. The temporary C922/headphone path cannot accept production
+AEC, far-field, panoramic coverage, radar, amplifier, SPL/vibration, ingress,
+power, or thermal requirements. Rollback is only removal of the added script,
+test, runbook, and corresponding documentation entries; host runtime state is
+unchanged.
+
+Final repository validation passed 38 system-Python unit tests, Python
+byte-compilation, `git diff --check`, and an internal Markdown-link audit. A
+deliberately missing explicit
+playback selector failed closed with exit status 1. The post-crop live C922 path
+also passed 30 frames without retaining media, and a final one-second C922
+microphone run produced seven RMS samples without retaining audio. Gemma remained
+active with zero service restarts. Re-run the full unit suite after any
+subsequent edit.
+
+## 2026-07-14 — temporary Ora GQ Bluetooth headset
+
+The owner put an unidentified headset into pairing mode and authorized pairing.
+A 20-second scan found one unambiguous audio-headphone candidate, `Ora GQ
+Headphone`, advertising A2DP Audio Sink plus headset/hands-free services. The
+device's unique Bluetooth address is omitted from committed documentation. The
+equivalent commands were:
+
+```bash
+bluetoothctl --timeout 20 scan on
+bluetoothctl info <headphone-address>
+bluetoothctl pairable on
+bluetoothctl --timeout 35 pair <headphone-address>
+bluetoothctl trust <headphone-address>
+bluetoothctl connect <headphone-address>
+bluetoothctl pairable off
+```
+
+Pairing produced a bonded, trusted connection. After one spontaneous disconnect
+during profile inspection, an explicit reconnect succeeded. The controller was
+left powered, non-discoverable, non-pairable, and not scanning. PipeWire 1.0.5 /
+WirePlumber 0.4.17 created an Ora sink and source and selected the
+`headset-head-unit-msbc` HSP/HFP profile. The owner reported that it was working.
+No controlled PCM tone was played and A2DP did not appear in the current
+PipeWire profile enumeration, so high-quality playback remains an investigation,
+not a passed gate. The C922 remains available as the higher-quality temporary
+capture source.
+
+No package, service, global PipeWire/WirePlumber setting, or boot setting was
+changed. To undo the persistent device state, run `bluetoothctl remove
+<headphone-address>` while the adapter is available. Pairing can be repeated from
+the same procedure if needed.
+
+## 2026-07-14 — conversation/proximity integration readiness audit
+
+Ran the installed Jetson memory-audit and inference-memory-tuning skills before
+selecting a combined audio/vision sequence. The audit was read-only; its temporary
+JSON was deleted after summarization:
+
+```text
+board/profile: Orin Nano 8 GB, L4T R39.2, 15 W
+RAM total: 7,665,220 KiB
+RAM available: 6,065,396 KiB
+RAM free: 3,141,236 KiB
+cache: 2,955,248 KiB
+swap: none
+leading process: deployed Gemma Python service, 1,669,854 KiB PSS
+quiet sample: 1,435/7,486 MB RAM, GPU 0%, about 4.50 W, hottest zone 46.16 C
+NvMap per-process attribution: unavailable without privileged debugfs
+```
+
+The generic tuner recommended llama.cpp Q4 with `-ngl 28 -c 4096 --no-mmap` as
+the lowest-memory new LLM server. That did not supersede the project's already
+measured CPU LiteRT service: retaining LiteRT avoids an unnecessary runtime
+change and reserves GPU capacity for the first detector/ZipDepth experiments.
+
+Refreshed official sources for NVIDIA Nemotron 3.5 streaming ASR, sherpa-onnx's
+June 11 INT8 exports, Supertonic 3, Pipecat, openWakeWord, RF-DETR, Ultralytics
+YOLO26/TensorRT, and current Ultralytics licensing. The resulting architecture,
+source URLs, model sizes, licensing boundary, ground-plane calibration method,
+service order, and gates are in
+`docs/plan/2026-07-14-conversation-proximity-mvp.md`.
+
+No ASR, TTS, Pipecat, wake-word, detector, tracker, model weight, service, or
+system package was installed in this step. Rollback is removal of the new plan
+and its documentation-map/conclusion/changelog entries; host state is unchanged.
+
+## 2026-07-14 — local streaming ASR installation and benchmark
+
+Installed sherpa-onnx 1.13.4 into the dedicated user environment
+`/home/neko/.local/share/neko/venvs/asr`; no system Python package changed. The
+source input and generated ARM64/hash-locked dependency set are
+`deploy/requirements/neko-asr.in` and `neko-asr.lock`. The installed ARM64
+sherpa wheels were 1.13.4; the selected wheel hashes are
+`f709e6dd02ebf7d37dcb02d5eadc5fb66c9922dd5809df770c1ef5d625ae7a44`
+for `sherpa-onnx` and
+`b4e4d17eb0d5c569bf4c9effcbc3daef57cf7e2b8418e07ae90f90c9b60b35d5`
+for `sherpa-onnx-core`. sherpa-onnx is Apache-2.0.
+
+Downloaded the official k2-fsa June 11, 2026 Nemotron 3.5 0.6B 560 ms INT8
+streaming bundle to `/home/neko/models/sherpa-onnx-nemotron`. The archive is
+475,271,763 bytes with SHA-256
+`c6bf5e0df765f9d5b43bc9e0536d4b4b3e7d40bdf5ecf13e45f134c51c05ae3a`.
+The archive path list was checked for absolute and parent-traversal paths before
+extraction. Extracted model files include a 657,601,403-byte INT8 encoder,
+14,978,075-byte decoder, 9,504,438-byte joiner, and 131,440-byte token table.
+The archive only links its source model and does not map itself to an exact
+Hugging Face commit; that is a provenance gap. NVIDIA's source weights are
+OpenMDW-1.1, not Apache-2.0.
+
+Exact installation/download commands were:
+
+```bash
+/home/neko/.local/bin/uv venv --python /usr/bin/python3 \
+  /home/neko/.local/share/neko/venvs/asr
+/home/neko/.local/bin/uv pip install \
+  --python /home/neko/.local/share/neko/venvs/asr/bin/python \
+  'sherpa-onnx==1.13.4'
+curl --fail --location --continue-at - --output \
+  /home/neko/models/sherpa-onnx-nemotron/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-560ms-int8-2026-06-11.tar.bz2 \
+  https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-nemotron-3.5-asr-streaming-0.6b-560ms-int8-2026-06-11.tar.bz2
+```
+
+With four CPU threads and the deployed Gemma service still resident, cold ASR
+construction took 3.533 s. The bundled 22.05 kHz French clip decoded in 1.952 s
+for 4.969 s of audio (RTF 0.393); Spanish decoded in 2.036 s for 5.329 s (RTF
+0.382). Peak process `ru_maxrss` was 1,414,756 KiB. Both produced intelligible
+language-correct transcripts, with small word/punctuation errors. These are
+publisher clips, not a C922 accuracy acceptance set.
+
+Added `scripts/neko_asr_transcribe.py`. A bounded live ALSA capture is raw PCM
+held only in process memory and never written to disk; file and microphone runs
+emit timing plus the final text. No ASR service is enabled. Complete rollback:
+remove `/home/neko/.local/share/neko/venvs/asr` and
+`/home/neko/models/sherpa-onnx-nemotron`, then remove the two ASR requirement
+files and integration script if reverting project code.
+
+## 2026-07-14 — Supertonic 3 local TTS installation and benchmark
+
+Installed `supertonic==1.3.1` into
+`/home/neko/.local/share/neko/venvs/tts`. The exact source/tag commit is
+`908a56486e821e833a80530ff0cae3ad0b046fce`; its universal wheel is 51,871
+bytes with SHA-256
+`0079c9d4166008b8a6eeae95f20c092148786b7232192dd3dd9f358960c6c077`.
+The SDK code is MIT. The generated ARM64/hash-locked dependency set is recorded
+in `deploy/requirements/neko-tts.in` and `neko-tts.lock`; notable installed
+packages are ONNX Runtime 1.27.0, NumPy 2.5.1, SoundFile 0.14.0, and Hugging Face
+Hub 1.23.0.
+
+The SDK downloaded `Supertone/supertonic-3` at its internally pinned revision
+`724fb5abbf5502583fb520898d45929e62f02c0b` to
+`/home/neko/models/supertonic-3`. The four major ONNX SHA-256 values are:
+
+```text
+duration_predictor  c3eb91414d5ff8a7a239b7fe9e34e7e2bf8a8140d8375ffb14718b1c639325db
+text_encoder        c7befd5ea8c3119769e8a6c1486c4edc6a3bc8365c67621c881bbb774b9902ff
+vector_estimator    883ac868ea0275ef0e991524dc64f16b3c0376efd7c320af6b53f5b780d7c61c
+vocoder             085de76dd8e8d5836d6ca66826601f615939218f90e519f70ee8a36ed2a4c4ba
+```
+
+The weights are BigScience OpenRAIL-M and are not relicensed by the repository.
+With four intra-op threads, one inter-op thread, F1 voice, six synthesis steps,
+and Gemma resident, model load took 1.406 s and peak process `ru_maxrss` was
+503,752 KiB. English produced 3.831 s of audio in 2.538 s (RTF 0.662), French
+4.807 s in 3.239 s (RTF 0.674), and Spanish 4.319 s in 2.830 s (RTF 0.655).
+Outputs were generated in memory for timing and were not retained or auditioned;
+voice/persona quality remains an owner acceptance test.
+
+Added `neko/gemma_client.py` and `scripts/neko_text_conversation.py`. The latter
+routes typed wake/session events through the fixed loopback Gemma service and
+can opt in to transient Supertonic WAV generation and local playback. Its normal
+test does not save a transcript or audio. A real local request, `Neko Neko,
+introduce yourself in one short sentence`, passed and returned an in-persona
+one-sentence reply. No TTS or conversation service is boot-enabled. Complete
+runtime rollback is removal of `/home/neko/.local/share/neko/venvs/tts` and
+`/home/neko/models/supertonic-3`; remove the TTS lock/input and integration files
+only when reverting source changes.
+
+## 2026-07-14 — Claude review retries
+
+Two read-only Claude Code review attempts were made with the absolute executable
+`/home/neko/.local/bin/claude`. Both reached the configured z.ai gateway and
+failed with HTTP 529 overload before producing review findings. Both also
+reproduced the previously known broken local `SessionEnd` hook fallback to
+`/home/neko/.claude/helpers/hook-handler.cjs`. Claude made no edits. Dependency
+research and implementation review therefore used local tests, official-source
+checks, and a separate read-only Codex sub-agent; do not attribute findings to
+Claude for this run.
+
+## 2026-07-14 — detector comparison, camera worker, and combined smoke
+
+Installed two export-only environments without modifying system Python:
+
+```text
+/home/neko/.local/share/neko/venvs/rfdetr-export  RF-DETR 1.8.3
+/home/neko/.local/share/neko/venvs/yolo26-export  Ultralytics 8.4.95
+```
+
+Their exact dependency inputs and ARM64/hash-locked resolutions are in
+`deploy/requirements/rfdetr-export.in`, `rfdetr-export.lock`,
+`yolo26-export.in`, and `yolo26-export.lock`. RF-DETR tag 1.8.3 resolves to
+commit `3bd6bffbcb13cac3a5b1c37da5a0fd5453b50c86`; Ultralytics tag v8.4.95
+resolves to `de2f6061c7efd65c33b0fc41c2f6c2af87a7044a`. The generic torchvision
+ARM64 wheel attempted to resolve CUDA packages, so both isolated environments
+use the official CPU wheel for torchvision 0.27.1 with CPU torch 2.12.1 during
+export only. Neither export environment is a boot dependency.
+
+RF-DETR Nano artifacts are under `/home/neko/models/rfdetr-nano`:
+
+```text
+rf-detr-nano.pth                         d8d6b9ee57d4d0ed2b1f305163624712a0532cb7bce0c747317984fc5457440d
+export-384/rfdetr-nano.onnx              c71a399cf163eb212a9a8e7831c1409014887bd25f71528c76b7275e21e12304
+export-384/rfdetr-nano-b1-384-fp16.plan  4b61a08b03cc63889ec590414c3b4d5fef696b4da33ede6bfb2b675a7b656c00
+```
+
+The checkpoint is 350 MiB, ONNX is 115,276,721 bytes, and the TensorRT plan is
+57 MiB. Export reported an absent `_kp_active_mask` key and initialized that
+keypoint-only value; detection outputs still require a larger field-quality set
+before acceptance. The locally built TensorRT 10.16.2 engine has static FP32 I/O
+`input (1,3,384,384)`, `dets (1,300,4)`, and `labels (1,300,91)`. FP16 build took
+190.20 s. It measured 9.478 ms model-only (105.48 qps) and 9.631 ms including
+synthetic host transfers. A live C922 PyTorch reference run detected one person
+at 0.898 confidence; the transient frame was not retained.
+
+YOLO26n external comparison artifacts are under `/home/neko/models/yolo26`:
+
+```text
+yolo26n.pt                     9b09cc8bf347f0fc8a5f7657480587f25db09b34bf33b0652110fb03a8ad4fef
+yolo26n-b1-384-fp16.plan       13087e69c4fb61d092c04c066b4784b140fd5b27830479c45aa16dcd8b65ef95
+```
+
+The 7.4 MiB FP16 plan built in 401.57 s and measured 3.191 ms model-only and
+3.367 ms with transfers. This speed advantage is unnecessary at Neko's bounded
+5–10 fps and does not outweigh licensing. Ultralytics states that its code and
+models are AGPL-3.0 unless an Enterprise licence applies; making the Neko GitHub
+repository public and MIT does not relicense an integrated YOLO dependency.
+YOLO26 remains an uncommitted, external lab artifact and must not be imported by
+the Neko runtime or represented as MIT.
+
+Added `neko/rfdetr.py`, `neko/tensorrt_engine.py`, and
+`scripts/neko_camera_proximity.py`. The camera loop verifies the exact board-
+built engine hash before loading, decodes C922 YUY2 to RGB through GStreamer,
+matches RF-DETR's bilinear/ImageNet preprocessing, runs at a bounded requested
+rate, tracks only centroids in memory, and emits JSON metadata. It never writes
+a frame. Metric distance remains `null` unless explicit measured camera
+calibration points are supplied; therefore the spoken-greeting distance gate
+fails closed until the production camera poses are calibrated.
+
+The first live TensorRT loop ran for eight seconds at 5 Hz. No person occupied
+the current view; the maximum person confidence was 0.087, while the most likely
+non-person class scored 0.673. This is a valid empty-scene smoke, not a positive
+quality set. The prior live PyTorch result supplies the positive C922 semantic
+check.
+
+The first memory-only live ASR attempt exposed two integration errors: the ALSA
+card short name is `Webcam`, not the earlier assumed `C922`, and this arecord
+version accepts `--file-type`, not `--type`. The script now reports capture
+stderr clearly. A five-second C922 capture then passed, decoded an intentionally
+silent interval at RTF 0.386, produced an empty transcript, and retained no
+audio. A concurrent run kept the deployed Gemma service, 5 Hz RF-DETR camera
+worker, and four-thread Nemotron ASR active together. `tegrastats` observed a
+peak of 3,618/7,486 MB RAM, 8.266 W input, and 48.718 C. ASR remained RTF 0.399;
+the detector loop completed normally. This is a short bench result, not the
+required thermal/power soak or production-device acceptance.
+
+All 63 system-Python unit tests passed, including RF-DETR preprocessing/decoding,
+ephemeral tracking, social policy, Gemma, ASR helpers, device smoke tests, and
+ZipDepth export/validation logic. Python byte-compilation and `git diff --check`
+also passed. No new systemd unit was installed or enabled. Complete runtime
+rollback is removal of the two export venvs and `/home/neko/models/rfdetr-nano`
+plus `/home/neko/models/yolo26`; source rollback removes the corresponding
+requirements, RF-DETR/runtime modules, camera script, tests, and these notes.

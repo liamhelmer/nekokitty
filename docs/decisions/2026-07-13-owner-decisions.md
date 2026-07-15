@@ -202,7 +202,7 @@ not assumptions. Revisit them explicitly if Neko's use or hardware changes.
   outside this recommendation scope.
 - Storage temperature, overnight exposure, and solar-panel/structural mounting
   details. Orderly shutdown at 35 C is approved.
-- Checkout-confirmed arrival to British Columbia postal code **V9G 1L8** and the
+- Checkout-confirmed arrival to the owner-supplied British Columbia destination and the
   exact camera 12 V converter, sensor 5 V converter, switch, downstream
   protection, weather, mount, and cable BOM.
 - Exact cooldown behavior and treatment of groups, pets, and partial occlusion;

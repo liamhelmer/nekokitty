@@ -17,7 +17,20 @@ loopback-only Gemma 4 E2B unit is enabled; readiness and warm restart tests pass
 but an actual cold-reboot acceptance test is still pending. Audex is staged on
 NVMe for stopped, sequential evaluation. ZipDepth's source, checkpoints, isolated
 export environment, faithful ONNX, and board-built FP32/FP16 TensorRT engines are
-provisioned. Deterministic PyTorch/FP32/FP16 numerical gates pass; the real camera
-pipeline, scene-quality review, and combined soak remain pending. This is a
-research prototype. Perception is for social behavior and is
+provisioned. Local Nemotron streaming ASR, Supertonic 3 TTS, deterministic
+wake/social behavior, and an RF-DETR Nano TensorRT webcam loop now pass bounded
+bench tests. Camera ground calibration, a trained wake-word model, production
+audio integration, systemd worker units, and soak tests remain pending. This is
+a research prototype. Perception is for social behavior and is
 not a vehicle safety or motion-control system.
+
+While production peripherals are in transit, use the non-recording bench harness
+described in
+[`docs/operations/2026-07-14-pre-hardware-smoke-tests.md`](docs/operations/2026-07-14-pre-hardware-smoke-tests.md)
+to exercise temporary V4L2/USB audio devices, synthetic media paths, and the
+local Gemma API.
+
+Neko-authored source and documentation are licensed under the [MIT License](LICENSE).
+External model/runtime terms remain controlling; see
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). In particular, YOLO26 is an
+isolated benchmark and is not part of the MIT runtime.
