@@ -7,6 +7,7 @@ from pathlib import Path
 import socket
 import subprocess
 import threading
+from typing import Callable
 import wave
 from typing import Any, BinaryIO
 
@@ -61,6 +62,7 @@ class TtsClient:
         output: Path | None = None,
         play: bool = False,
         cancel_event: threading.Event | None = None,
+        on_first_pcm: Callable[[], None] | None = None,
     ) -> dict[str, Any]:
         if not text.strip():
             raise ValueError("TTS text must not be empty")
@@ -79,26 +81,12 @@ class TtsClient:
         if output is not None:
             output.parent.mkdir(parents=True, exist_ok=True)
             wav_file = wave.open(str(output), "wb")
-            wav_file.setnchannels(1)
-            wav_file.setsampwidth(2)
-            wav_file.setframerate(24_000)
-        if play:
-            player = subprocess.Popen(
-                [
-                    "/usr/bin/pw-cat",
-                    "--playback",
-                    "--rate=24000",
-                    "--channels=1",
-                    "--channel-map=MONO",
-                    "--format=s16",
-                    "-",
-                ],
-                stdin=subprocess.PIPE,
-            )
 
         result: dict[str, Any] | None = None
         cancelled = False
         terminal = False
+        first_pcm_delivered = False
+        sample_rate: int | None = None
 
         def state() -> tuple[bool, bool]:
             with state_lock:
@@ -162,6 +150,8 @@ class TtsClient:
                     event = read_json(stream)
                     kind = event.get("event")
                     if kind == "audio":
+                        if sample_rate is None:
+                            raise RuntimeError("TTS worker sent audio before start")
                         pcm = read_exact(stream, int(event.get("bytes", -1)))
                         if state()[0]:
                             break
@@ -170,16 +160,39 @@ class TtsClient:
                         if player is not None and player.stdin is not None:
                             player.stdin.write(pcm)
                             player.stdin.flush()
+                        if not first_pcm_delivered:
+                            first_pcm_delivered = True
+                            if on_first_pcm is not None:
+                                on_first_pcm()
                     elif kind == "complete":
                         result = event
                         break
                     elif kind == "error":
                         raise RuntimeError(str(event.get("message", "TTS worker failed")))
                     elif kind == "start":
-                        if event.get("sample_rate") != 24_000:
+                        announced_rate = event.get("sample_rate")
+                        if not isinstance(announced_rate, int) or not 8_000 <= announced_rate <= 48_000:
                             raise RuntimeError("TTS worker returned an unsupported sample rate")
                         if event.get("sample_format") != "s16le":
                             raise RuntimeError("TTS worker returned an unsupported sample format")
+                        sample_rate = announced_rate
+                        if wav_file is not None:
+                            wav_file.setnchannels(1)
+                            wav_file.setsampwidth(2)
+                            wav_file.setframerate(sample_rate)
+                        if play and player is None:
+                            player = subprocess.Popen(
+                                [
+                                    "/usr/bin/pw-cat",
+                                    "--playback",
+                                    f"--rate={sample_rate}",
+                                    "--channels=1",
+                                    "--channel-map=MONO",
+                                    "--format=s16",
+                                    "-",
+                                ],
+                                stdin=subprocess.PIPE,
+                            )
                     else:
                         raise RuntimeError(f"unknown TTS protocol event: {kind!r}")
         except (BrokenPipeError, ConnectionError, EOFError, OSError):

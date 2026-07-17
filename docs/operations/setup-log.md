@@ -2806,3 +2806,198 @@ Final milestone verification compiled `neko`, `scripts`, and `tests`, ran all 95
 repository tests successfully, and passed `git diff --check`. Both enabled
 dependencies were active/running with zero restarts; no attended voice assistant
 or `arecord` process remained.
+
+## 2026-07-16 — 16K low-latency conversation profile
+
+The owner set two seconds from end of speech to playback as the requirement and
+later relaxed the desired 64K context to a hard 16K minimum. No private replay
+fixture name, path, hash, metadata, recording, or transcript is included here.
+The already-authorized local Hugging Face token was read only by the download
+client; it was never printed, copied into Git, or installed in a unit.
+
+### Baseline and model decision
+
+LiteRT-LM's existing SSE endpoint was measured before changing the selected
+worker. Two realistic warm requests produced first content at 9.398 and 10.883
+seconds and a first complete sentence at 9.559 and 11.067 seconds. Text
+streaming therefore could not repair the CPU model's time to first token.
+
+The existing official Gemma 4 E2B QAT Q4_0 GGUF and the selected LFM artifact
+were tested with the NVIDIA Jetson benchmark skill's required wrapper. The
+equivalent benchmark shape was 128 prompt tokens, 32 generated tokens, four CPU
+threads and all layers offloaded. The board remained in its intended 15 W mode;
+the wrapper warned that MAXN would be better for cross-device comparison.
+
+| Model | TTFT/prompt proxy | token interval | generation |
+| --- | ---: | ---: | ---: |
+| Gemma 4 E2B Q4_0 | 219.45 ms | 53.39 ms | 18.73 tok/s |
+| LFM2.5-1.2B Q5_K_M | 105.58 ms | 29.82 ms | 33.54 tok/s |
+
+A real Gemma 4 16K server using Q4_0 K/V cache reached first text in
+0.139–0.443 seconds and first complete sentence in 0.533–0.860 seconds. It
+failed the more important combined-residency gate: Gemma llama.cpp plus
+ASR/KWS/VAD and Kiki left about 199,464 KiB available on the no-swap host.
+That transient server was stopped.
+
+Official primary-source research selected LiquidAI LFM2.5-1.2B-Instruct as the
+first smaller candidate because the publisher supplies a llama.cpp GGUF,
+documents 1.17B parameters and 32,768-token context, and includes English,
+French and Spanish among its supported languages. Alternatives were recorded in
+the low-latency plan but were not downloaded after LFM passed. LFM Open 1.0
+terms remain controlling; the model is an external personal-use artifact.
+
+The pinned artifact is:
+
+- repository: `LiquidAI/LFM2.5-1.2B-Instruct-GGUF`;
+- revision: `047e06635fbe71469926b35ea414537245218200`;
+- file: `LFM2.5-1.2B-Instruct-Q5_K_M.gguf`;
+- destination:
+  `/home/neko/models/LFM2.5-1.2B-Instruct-GGUF/047e06635fbe71469926b35ea414537245218200`;
+- bytes: 843,354,944;
+- SHA-256:
+  `fa03f3ac4da941a53a0cd4450aacf6a80804c6a1ff885d2fdcbe9406c03215c4`.
+
+The download was performed with `huggingface-cli download` using an environment
+variable populated from the existing mode-restricted token file, an exact
+revision, and the single GGUF filename. No credential was passed on a command
+line that is recorded in this repository.
+
+### LFM service
+
+The server uses the already-built local NVIDIA llama.cpp image by immutable
+digest:
+
+`neko/llama_cpp@sha256:5e2963c6e0a59a866f0d9ec79d9690bc8b40eb35be6ba50b936951e827e2b96a`
+
+The effective llama-server settings are:
+
+```text
+--host 127.0.0.1 --port 9380 --ctx-size 16384
+--cache-type-k q4_0 --cache-type-v q4_0
+--n-gpu-layers 99 --threads 4 --parallel 1
+--flash-attn on --no-mmap --cache-ram 256
+```
+
+The live server reported 54 MiB K/V cache, 0.16 MiB recurrent state, 136 MiB
+CUDA compute, 40 MiB host compute, 802 MiB CUDA model and 105 MiB CPU model
+buffers. Its Docker cgroup used about 1,004–1,018 MiB after warmup. With the
+ASR, KWS, VAD, Kiki and Piper workers loaded, a live memory audit still reported
+about 2,967,384 KiB available. With only normal boot workers idle after
+deployment, about 3,996,396 KiB was available.
+
+`deploy/systemd/neko-llm.service` was installed verbatim to
+`/etc/systemd/system/neko-llm.service`, followed by daemon reload and
+`systemctl enable --now neko-llm.service`. It uses loopback-only host networking,
+a read-only container root and model mount, no added privileges, all
+capabilities dropped, no-new-privileges, a 64-PID limit, and a 2.5 GB Docker
+memory/swap limit. `ExecStartPost` waits for `/health`. The health and model
+endpoints passed. The old `neko-gemma.service` was disabled and stopped, not
+removed. It remains a bounded 2K rollback/lab profile.
+
+### Fast TTS service
+
+KittenTTS Micro/Kiki remains the owner's preferred quality voice, but resident
+first PCM measurements were about 0.675 seconds for `Hi!`, 1.163 seconds for a
+short greeting, 1.539 seconds for a normal seven-word question, and up to 1.874
+seconds for the longer test. Nano INT8 did not improve the latency-critical
+short line. Its ONNX graph emits a whole sentence waveform and has no supported
+model-native incremental PCM interface.
+
+Pocket TTS 2.1 was identified from its official repository as the best next
+quality/latency experiment, with upstream claims of CPU streaming and about
+200 ms to first chunk. Its weights require separate Hugging Face contact-sharing
+acceptance. That gate was not accepted or downloaded without owner authority.
+
+Piper was installed as the immediate low-latency profile:
+
+```bash
+/home/neko/.local/bin/uv venv /home/neko/.local/share/neko/venvs/piper
+/home/neko/.local/bin/uv pip install \
+  --python /home/neko/.local/share/neko/venvs/piper/bin/python \
+  piper-tts==1.4.2
+```
+
+The generated complete environment lock is
+`deploy/requirements/neko-piper.lock`; the direct input is
+`deploy/requirements/neko-piper.in`. Piper code is GPL-3.0-or-later and runs as
+a separate service, not MIT library code. The Arm64 wheel hash from PyPI is
+`6736329f1ef58c39272215849dffdacae601201480b08a0c892938fa4d7c8c67`.
+
+The external Lessac medium voice is pinned from `rhasspy/piper-voices` at
+revision `82999b670b06c78cabeb830d535b63a31cd0ca22` under
+`/home/neko/models/piper-voices/82999b670b06c78cabeb830d535b63a31cd0ca22/en_US-lessac-medium`.
+The ONNX is 63,201,294 bytes with SHA-256
+`5efe09e69902187827af646e1a6e9d269dee769f9877d17b16b1b46eeaaf019f`;
+the config hash is
+`efe19c417bed055f2d69908248c6ba650fa135bc868b0e6abb3da181dab690a0`;
+the model-card hash is
+`ce49eb457742208166d399a40cdec2c7fa9db77960930031564ab56f12882645`.
+The voice's own model-card and dataset terms remain controlling.
+
+`scripts/serve_piper_tts.py` verifies the configured model and config hashes,
+preloads and warms the voice, sends systemd readiness, and exposes the existing
+bounded JSON/PCM protocol through `/run/neko/tts-fast.sock`.
+`deploy/systemd/neko-tts-fast.service` was installed verbatim under `/etc/systemd/system`,
+then enabled and started. It uses private networking/devices, an owner-only Unix
+socket and explicit resource/restart bounds. Warm resident first PCM was
+0.099–0.122 seconds for a very short line, 0.149–0.166 seconds for a short
+sentence, and 0.198–0.218 seconds for the longer cat sentence. The worker uses
+about 120 MiB after warmup. The owner heard a primed Lessac sample, but quality
+acceptance is still pending. `neko-tts.service` remains enabled for Kiki A/B and
+rollback.
+
+### Pipeline changes and end-to-end result
+
+`ContinuousSpeechInput` now starts a Nemotron stream at detected speech onset,
+feeds 512 ms of in-memory pre-roll, decodes ready frames while capture continues,
+and finalizes only outstanding work at VAD end. The LLM client consumes
+OpenAI-compatible SSE and closes generation after the first complete sentence.
+The normal prompt asks for a direct two-to-four-word first sentence; story mode
+must use a separate queued-narration policy. The TTS protocol now honors the
+worker-announced 8–48 kHz sample rate and exposes a first-PCM callback. Barge-in
+and sleep remain owned by the deterministic controller.
+
+One private owner wake/request fixture passed without logging its identity or
+transcript:
+
+| Event | Result |
+| --- | ---: |
+| ASR/KWS/VAD load | 5.251 s, startup only |
+| streaming ASR finalize after VAD | less than 0.001 s rounded |
+| first complete LFM sentence | 0.515 s |
+| VAD finalize to first PCM write | 0.709 s |
+| estimated speech end to first PCM write | 1.309 s |
+
+The estimate adds the configured 600 ms VAD trailing silence to the measured
+VAD-finalize-to-PCM interval. Playback completed through the Bluetooth output.
+This is not yet a direct electrical or acoustic onset measurement, nor a P95.
+The integrated always-listening assistant remains attended and not boot-enabled
+pending multi-turn latency distribution, production AEC/false-wake, production
+output, cold reboot, perception contention and soak tests.
+
+Final repository validation compiled `neko`, `scripts`, and `tests`, passed all
+99 unit tests, and passed `git diff --check`. Both installed new unit files
+matched their repository sources byte-for-byte and passed `systemd-analyze
+verify`; unrelated NVIDIA units emitted only their pre-existing obsolete-syslog
+warnings. A simultaneous warm restart completed in 3.6 seconds, both services
+returned active/running with zero restarts, `/health` and `/v1/models` passed,
+and a 16-token LFM smoke generated at 33.44 tok/s. A post-restart Piper smoke
+returned the expected mono PCM s16le at 22,050 Hz: 1.695 seconds of audio, first
+frame/total synthesis at 0.244 seconds after restart. The old Gemma unit remained
+disabled/inactive, and no attended assistant or `arecord` process remained.
+
+### Rollback and removal
+
+Select the old Gemma/Kiki profile without deleting artifacts:
+
+```bash
+sudo systemctl disable --now neko-llm.service neko-tts-fast.service
+sudo systemctl enable --now neko-gemma.service neko-tts.service
+```
+
+Then run the attended assistant with explicit old endpoint, model, audio route
+and Kiki socket as shown in the low-latency plan. To remove only the new profile,
+disable its services, remove `/etc/systemd/system/neko-llm.service` and
+`neko-tts-fast.service`, reload systemd, and remove the external Piper venv,
+Piper voice root, and LFM artifact root. Do not remove Gemma, Kiki, Supertonic,
+ASR/VAD/KWS, private fixtures or cat sounds as part of this rollback.

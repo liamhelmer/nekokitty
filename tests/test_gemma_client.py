@@ -25,10 +25,33 @@ class FakeResponse:
         return json.dumps(self.payload).encode()
 
 
+class FakeSseResponse:
+    def __init__(self, deltas: list[str], status: int = 200) -> None:
+        lines: list[bytes] = []
+        for delta in deltas:
+            event = {"choices": [{"delta": {"content": delta}}]}
+            lines.append(f"data: {json.dumps(event)}\n\n".encode())
+        lines.append(b"data: [DONE]\n\n")
+        self.stream = io.BytesIO(b"".join(lines))
+        self.status = status
+        self.closed = False
+
+    def __enter__(self) -> "FakeSseResponse":
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        self.closed = True
+
+    def readline(self) -> bytes:
+        return self.stream.readline()
+
+
 class GemmaClientTests(unittest.TestCase):
     @patch("neko.gemma_client.request.urlopen")
     def test_ready_checks_fixed_model(self, opened: object) -> None:
-        opened.return_value = FakeResponse({"data": [{"id": "gemma-4-e2b-it"}]})
+        opened.return_value = FakeResponse(
+            {"data": [{"id": "LFM2.5-1.2B-Instruct-Q5_K_M.gguf"}]}
+        )
         self.assertTrue(GemmaClient().ready())
 
     @patch("neko.gemma_client.request.urlopen")
@@ -39,12 +62,30 @@ class GemmaClientTests(unittest.TestCase):
         self.assertEqual(GemmaClient().reply("Bonjour", "fr"), "Miaou, bonjour!")
         req = opened.call_args.args[0]
         payload = json.loads(req.data)
-        self.assertEqual(payload["model"], "gemma-4-e2b-it")
+        self.assertEqual(payload["model"], "LFM2.5-1.2B-Instruct-Q5_K_M.gguf")
         self.assertEqual(payload["messages"][0]["role"], "system")
         self.assertIn("contractions", payload["messages"][0]["content"])
         self.assertIn("silliness", payload["messages"][0]["content"])
+        self.assertIn("Do not use emoji", payload["messages"][0]["content"])
         self.assertIn("français", payload["messages"][1]["content"])
         self.assertEqual(payload["max_completion_tokens"], 96)
+        self.assertEqual(payload["temperature"], 0.1)
+
+    @patch("neko.gemma_client.request.urlopen")
+    def test_first_sentence_returns_before_later_streamed_text(self, opened: object) -> None:
+        response = FakeSseResponse(["Cats ", "purr!", " This is later."])
+        opened.return_value = response
+        answer = GemmaClient().reply_first_sentence("Why?")
+        self.assertEqual(answer, "Cats purr!")
+        self.assertTrue(response.closed)
+        payload = json.loads(opened.call_args.args[0].data)
+        self.assertTrue(payload["stream"])
+        self.assertEqual(payload["max_completion_tokens"], 64)
+
+    @patch("neko.gemma_client.request.urlopen")
+    def test_first_sentence_uses_final_unpunctuated_stream(self, opened: object) -> None:
+        opened.return_value = FakeSseResponse(["Soft ", "paws"])
+        self.assertEqual(GemmaClient().reply_first_sentence("Tell me"), "Soft paws")
 
     @patch("neko.gemma_client.request.urlopen")
     def test_empty_reply_fails_closed(self, opened: object) -> None:

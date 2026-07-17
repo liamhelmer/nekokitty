@@ -9,6 +9,7 @@ environment documented in ``docs/operations/setup-log.md``.
 from __future__ import annotations
 
 import argparse
+from collections import deque
 from dataclasses import dataclass
 import json
 from pathlib import Path
@@ -31,14 +32,18 @@ from neko.events import (  # noqa: E402
     SpeakText,
     TranscriptEvent,
 )
-from neko.gemma_client import ConversationHistory, GemmaClient  # noqa: E402
+from neko.gemma_client import (  # noqa: E402
+    DEFAULT_BASE_URL,
+    DEFAULT_MODEL,
+    ConversationHistory,
+    GemmaClient,
+)
 from neko.tts_protocol import TtsClient  # noqa: E402
 from scripts.neko_asr_transcribe import (  # noqa: E402
     DEFAULT_MODEL as DEFAULT_ASR_MODEL,
     build_recognizer,
     pcm16_to_float,
     read_wav,
-    transcribe,
 )
 
 
@@ -48,6 +53,7 @@ DEFAULT_KWS_MODEL = Path(
     "sherpa-onnx-kws-zipformer-zh-en-3M-2025-12-20"
 )
 DEFAULT_KEYWORDS = Path(__file__).resolve().parents[1] / "config/asr/neko-keywords.txt"
+DEFAULT_TTS_SOCKET = Path("/run/neko/tts-fast.sock")
 SAMPLE_RATE = 16_000
 VAD_WINDOW_SAMPLES = 512
 VAD_WINDOW_BYTES = VAD_WINDOW_SAMPLES * 2
@@ -60,6 +66,9 @@ class SpeechSegment:
     wake_detected: bool = False
     sleep_detected: bool = False
     sequence: int = 0
+    transcript: str = ""
+    asr_steps: int = 0
+    asr_finalize_seconds: float = 0.0
 
 
 class ContinuousSpeechInput:
@@ -70,6 +79,8 @@ class ContinuousSpeechInput:
         device: str,
         vad: object,
         keyword_spotter: object,
+        recognizer: object,
+        language: str,
         on_speech_start: Callable[[], None],
         on_wake: Callable[[], None],
         *,
@@ -79,6 +90,8 @@ class ContinuousSpeechInput:
         self.vad = vad
         self.keyword_spotter = keyword_spotter
         self.keyword_stream = keyword_spotter.create_stream()
+        self.recognizer = recognizer
+        self.language = language
         self.on_speech_start = on_speech_start
         self.on_wake = on_wake
         self.segments: queue.Queue[SpeechSegment] = queue.Queue(maxsize=queue_size)
@@ -92,6 +105,9 @@ class ContinuousSpeechInput:
         self._was_speech = False
         self._wake_for_segment = False
         self._sleep_for_segment = False
+        self._asr_pre_roll: deque[tuple[float, ...]] = deque(maxlen=16)
+        self._asr_stream: object | None = None
+        self._asr_steps = 0
 
     def start(self) -> None:
         if self.thread is not None:
@@ -119,6 +135,9 @@ class ContinuousSpeechInput:
         samples: tuple[float, ...],
         wake_detected: bool,
         sleep_detected: bool,
+        transcript: str,
+        asr_steps: int,
+        asr_finalize_seconds: float,
     ) -> None:
         if not samples:
             return
@@ -128,6 +147,9 @@ class ContinuousSpeechInput:
             wake_detected,
             sleep_detected,
             self.speech_sequence,
+            transcript,
+            asr_steps,
+            asr_finalize_seconds,
         )
         try:
             self.segments.put_nowait(segment)
@@ -138,6 +160,39 @@ class ContinuousSpeechInput:
             except queue.Empty:
                 pass
             self.segments.put_nowait(segment)
+
+    def _decode_asr_ready(self) -> int:
+        stream = self._asr_stream
+        if stream is None:
+            return 0
+        steps = 0
+        while self.recognizer.is_ready(stream):
+            self.recognizer.decode_stream(stream)
+            steps += 1
+        self._asr_steps += steps
+        return steps
+
+    def _start_streaming_asr(self) -> None:
+        self._asr_stream = self.recognizer.create_stream()
+        self._asr_stream.set_option("language", self.language)
+        self._asr_steps = 0
+        for frame in self._asr_pre_roll:
+            self._asr_stream.accept_waveform(SAMPLE_RATE, frame)
+            self._decode_asr_ready()
+
+    def _finish_streaming_asr(self) -> tuple[str, int, float]:
+        stream = self._asr_stream
+        if stream is None:
+            return "", 0, 0.0
+        started = time.monotonic()
+        stream.input_finished()
+        self._decode_asr_ready()
+        text = self.recognizer.get_result_all(stream).text.strip()
+        elapsed = time.monotonic() - started
+        steps = self._asr_steps
+        self._asr_stream = None
+        self._asr_steps = 0
+        return text, steps, elapsed
 
     def _accept_samples(self, samples: list[float]) -> None:
         self.vad.accept_waveform(samples)
@@ -153,16 +208,26 @@ class ContinuousSpeechInput:
                     self.on_wake()
                 self.keyword_spotter.reset_stream(self.keyword_stream)
         is_speech = bool(self.vad.is_speech_detected())
-        if is_speech and not self._was_speech:
+        speech_started = is_speech and not self._was_speech
+        self._asr_pre_roll.append(tuple(samples))
+        if speech_started:
             self.speech_sequence += 1
+            self._start_streaming_asr()
             self.on_speech_start()
+        elif self._asr_stream is not None:
+            self._asr_stream.accept_waveform(SAMPLE_RATE, samples)
+            self._decode_asr_ready()
         self._was_speech = is_speech
         while not self.vad.empty():
             segment_samples = tuple(float(value) for value in self.vad.front.samples)
+            transcript, asr_steps, asr_finalize_seconds = self._finish_streaming_asr()
             self._put_segment(
                 segment_samples,
                 self._wake_for_segment,
                 self._sleep_for_segment,
+                transcript,
+                asr_steps,
+                asr_finalize_seconds,
             )
             self._wake_for_segment = False
             self._sleep_for_segment = False
@@ -221,11 +286,21 @@ class ReplaySpeechInput(ContinuousSpeechInput):
         paths: list[Path],
         vad: object,
         keyword_spotter: object,
+        recognizer: object,
+        language: str,
         on_speech_start: Callable[[], None],
         on_wake: Callable[[], None],
         speaking: threading.Event,
     ) -> None:
-        super().__init__("private-replay", vad, keyword_spotter, on_speech_start, on_wake)
+        super().__init__(
+            "private-replay",
+            vad,
+            keyword_spotter,
+            recognizer,
+            language,
+            on_speech_start,
+            on_wake,
+        )
         self.paths = paths
         self.speaking = speaking
 
@@ -327,10 +402,15 @@ class VoiceAssistant:
             max_turns=args.history_turns,
             max_characters=args.history_characters,
         )
-        self.gemma = GemmaClient(base_url=args.base_url, timeout_s=args.gemma_timeout)
-        self.tts = TtsClient()
+        self.gemma = GemmaClient(
+            base_url=args.base_url,
+            model=args.model,
+            timeout_s=args.gemma_timeout,
+        )
+        self.tts = TtsClient(socket_path=args.tts_socket)
         self.current_segment_sequence = 0
         self.current_audio_samples: tuple[float, ...] = ()
+        self.current_vad_finalized_s = 0.0
         load_started = time.monotonic()
         self.recognizer = build_recognizer(args.asr_model, args.asr_threads)
         vad = build_vad(
@@ -352,6 +432,8 @@ class VoiceAssistant:
                 args.replay_wav,
                 vad,
                 keyword_spotter,
+                self.recognizer,
+                args.language,
                 self._on_speech_start,
                 self._on_wake,
                 self.speaking,
@@ -361,6 +443,8 @@ class VoiceAssistant:
                 args.device,
                 vad,
                 keyword_spotter,
+                self.recognizer,
+                args.language,
                 self._on_speech_start,
                 self._on_wake,
             )
@@ -376,18 +460,35 @@ class VoiceAssistant:
     def _on_wake(self) -> None:
         self._event("wake_keyword_detected")
 
-    def _speak(self, text: str) -> bool:
+    def _speak(self, text: str, *, vad_finalized_s: float | None = None) -> bool:
         if self.args.no_speak:
             self._event("reply", text=text)
             return True
         self.cancel_speech.clear()
         self.speaking.set()
+
+        def first_pcm() -> None:
+            now = time.monotonic()
+            values: dict[str, object] = {}
+            if vad_finalized_s is not None:
+                after_finalize = now - vad_finalized_s
+                values = {
+                    "from_vad_finalize_seconds": round(after_finalize, 3),
+                    "estimated_from_speech_end_seconds": round(
+                        after_finalize + self.args.min_silence_seconds,
+                        3,
+                    ),
+                    "vad_tail_seconds": self.args.min_silence_seconds,
+                }
+            self._event("first_pcm_written", **values)
+
         try:
             try:
                 result = self.tts.synthesize(
                     text,
                     play=True,
                     cancel_event=self.cancel_speech,
+                    on_first_pcm=first_pcm,
                 )
             except Exception as error:
                 self._event("tts_error", message=str(error))
@@ -401,20 +502,28 @@ class VoiceAssistant:
     def _dialogue(self, request: DialogueRequest) -> bool:
         started = time.monotonic()
         try:
-            answer = self.gemma.reply_audio(
-                self.current_audio_samples,
-                SAMPLE_RATE,
-                request.text,
-                request.language,
-                self.history,
-            )
+            if self.args.llm_route == "audio":
+                answer = self.gemma.reply_audio(
+                    self.current_audio_samples,
+                    SAMPLE_RATE,
+                    request.text,
+                    request.language,
+                    self.history,
+                )
+            else:
+                answer = self.gemma.reply_first_sentence(
+                    request.text,
+                    request.language,
+                    self.history,
+                )
         except Exception as error:
-            self._event("gemma_error", message=str(error))
+            self._event("llm_error", message=str(error))
             self._speak("Oops, my thoughts got tangled. Try that once more?")
             return False
         self._event(
             "reply_ready",
             latency_seconds=round(time.monotonic() - started, 3),
+            route=self.args.llm_route,
             **({"text": answer} if self.args.verbose_transcripts else {}),
         )
 
@@ -426,7 +535,7 @@ class VoiceAssistant:
             self._event("reply_superseded_before_playback")
             return False
 
-        completed = self._speak(answer)
+        completed = self._speak(answer, vad_finalized_s=self.current_vad_finalized_s)
         if completed:
             self.history.append(request.text, answer, request.language)
         else:
@@ -434,13 +543,7 @@ class VoiceAssistant:
         return completed
 
     def _handle_segment(self, segment: SpeechSegment) -> bool:
-        decode_started = time.monotonic()
-        text, steps = transcribe(
-            self.recognizer,
-            SAMPLE_RATE,
-            list(segment.samples),
-            self.args.language,
-        )
+        text = segment.transcript
         if not text and not segment.wake_detected and not segment.sleep_detected:
             self._event("empty_transcript")
             return False
@@ -449,8 +552,9 @@ class VoiceAssistant:
             self._event(
                 "transcript",
                 audio_seconds=round(len(segment.samples) / SAMPLE_RATE, 3),
-                decode_seconds=round(time.monotonic() - decode_started, 3),
-                steps=steps,
+                asr_finalize_seconds=round(segment.asr_finalize_seconds, 3),
+                steps=segment.asr_steps,
+                streaming=True,
                 **({"text": text} if self.args.verbose_transcripts else {}),
             )
         else:
@@ -461,6 +565,7 @@ class VoiceAssistant:
         was_active = self.controller.session_active
         self.current_segment_sequence = segment.sequence
         self.current_audio_samples = segment.samples
+        self.current_vad_finalized_s = segment.captured_at_s
         policy_text = text
         if segment.sleep_detected:
             policy_text = "bye bye"
@@ -504,7 +609,7 @@ class VoiceAssistant:
 
     def run(self) -> int:
         if not self.gemma.ready():
-            raise RuntimeError("Gemma is not ready")
+            raise RuntimeError("local LLM is not ready")
         self.audio.start()
         self._event(
             "ready",
@@ -513,6 +618,9 @@ class VoiceAssistant:
             media_retained=False,
             replay=bool(self.args.replay_wav),
             wake_phrase="Neko Neko",
+            llm_model=self.args.model,
+            llm_route=self.args.llm_route,
+            tts_socket=str(self.args.tts_socket),
         )
         handled_dialogues = 0
         try:
@@ -559,8 +667,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-speech-seconds", type=float, default=20.0)
     parser.add_argument("--history-turns", type=int, default=6)
     parser.add_argument("--history-characters", type=int, default=2400)
-    parser.add_argument("--base-url", default="http://127.0.0.1:9379")
+    parser.add_argument("--base-url", default=DEFAULT_BASE_URL)
+    parser.add_argument("--model", default=DEFAULT_MODEL)
+    parser.add_argument(
+        "--llm-route",
+        choices=("streaming-text", "audio"),
+        default="streaming-text",
+    )
     parser.add_argument("--gemma-timeout", type=float, default=60.0)
+    parser.add_argument("--tts-socket", type=Path, default=DEFAULT_TTS_SOCKET)
     parser.add_argument("--no-speak", action="store_true")
     parser.add_argument("--verbose-transcripts", action="store_true")
     parser.add_argument("--max-dialogues", type=int, default=0)

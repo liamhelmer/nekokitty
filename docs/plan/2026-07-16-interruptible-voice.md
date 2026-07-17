@@ -1,5 +1,11 @@
 # Interruptible buffered-audio voice loop
 
+> Historical implementation record. The normal route described here was
+> superseded later the same day by continuous ASR, LFM2.5 with a real 16K
+> context, streamed first-sentence generation, and fast Piper TTS. See
+> [Low-latency local voice path](2026-07-16-low-latency-voice.md). The wake,
+> barge-in, sleep, privacy, and production-gate findings below remain applicable.
+
 Status on 2026-07-16: attended implementation and automated private-fixture
 bench pass; deliberately not boot-enabled. The final repository verification ran
 95 tests, compiled all Python sources, and passed `git diff --check`.

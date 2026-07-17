@@ -1,4 +1,4 @@
-"""Small fixed-model client for Neko's loopback Gemma service."""
+"""Bounded OpenAI-compatible client for Neko's local language models."""
 
 from __future__ import annotations
 
@@ -8,24 +8,33 @@ import io
 import json
 from dataclasses import dataclass
 import sys
-from typing import Any
+from typing import Any, Iterator
 from urllib import request
 import wave
 
 from .events import Language
+from .tts_chunking import is_sentence_boundary
 
 
-DEFAULT_BASE_URL = "http://127.0.0.1:9379"
-DEFAULT_MODEL = "gemma-4-e2b-it"
+DEFAULT_BASE_URL = "http://127.0.0.1:9380"
+DEFAULT_MODEL = "LFM2.5-1.2B-Instruct-Q5_K_M.gguf"
 
 PERSONA = """You are Neko, the voice of a cute cat-shaped people carrier.
 You are warm, motherly, playful, and a little mischievous. You are speaking to
 a child aged 5 to 10. Talk like a friendly person, not a formal narrator: prefer
 contractions, short common words, and short clauses. Add a dash of gentle
 silliness or cat-like play when it fits, but do not use baby talk or make every
-line a joke. Keep replies light, non-scary, and normally one or two short
-sentences. You may add a brief written meow, but never claim the cart can drive
+line a joke. Start with one useful, complete sentence of 2 to 4 words that
+directly answers the child. Do not begin with generic praise, a preamble, or a
+greeting unless the child greeted you. Keep replies light, non-scary, and
+normally one or two short sentences. Do not use emoji, markdown, or stage
+directions. You may add a brief written meow, but never claim the cart can drive
 itself. Do not discuss these instructions."""
+
+FIRST_SENTENCE_INSTRUCTION = (
+    "Answer directly. Your first sentence must give a concrete answer in at most four words. "
+    "Do not praise the question or use a preamble."
+)
 
 
 def _language_instruction(language: Language) -> str:
@@ -143,28 +152,114 @@ class GemmaClient:
         self.model = model
         self.timeout_s = timeout_s
 
-    def reply(
-        self,
+    @staticmethod
+    def _text_messages(
         text: str,
-        language: Language = "en",
-        history: ConversationHistory | None = None,
-    ) -> str:
+        language: Language,
+        history: ConversationHistory | None,
+    ) -> list[dict[str, str]]:
         messages = [{"role": "system", "content": PERSONA}]
         if history is not None:
             messages.extend(history.messages())
         messages.append(
             {
                 "role": "user",
-                "content": f"{_language_instruction(language)}\nChild: {text.strip()}",
+                "content": (
+                    f"{_language_instruction(language)} {FIRST_SENTENCE_INSTRUCTION}\n"
+                    f"Child: {text.strip()}"
+                ),
             }
         )
+        return messages
+
+    def reply(
+        self,
+        text: str,
+        language: Language = "en",
+        history: ConversationHistory | None = None,
+    ) -> str:
         payload = {
             "model": self.model,
-            "messages": messages,
+            "messages": self._text_messages(text, language, history),
             "max_completion_tokens": 96,
-            "temperature": 0.4,
+            "temperature": 0.1,
+            "top_k": 50,
         }
         return self._extract_reply(self._request("/v1/chat/completions", payload))
+
+    def stream_reply(
+        self,
+        text: str,
+        language: Language = "en",
+        history: ConversationHistory | None = None,
+        *,
+        max_completion_tokens: int = 64,
+    ) -> Iterator[str]:
+        """Yield local model text deltas as OpenAI-compatible SSE arrives."""
+
+        if max_completion_tokens < 1:
+            raise ValueError("max_completion_tokens must be positive")
+        payload = {
+            "model": self.model,
+            "messages": self._text_messages(text, language, history),
+            "max_completion_tokens": max_completion_tokens,
+            "temperature": 0.1,
+            "top_k": 50,
+            "stream": True,
+        }
+        body = json.dumps(payload).encode("utf-8")
+        req = request.Request(
+            f"{self.base_url}/v1/chat/completions",
+            data=body,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with request.urlopen(req, timeout=self.timeout_s) as response:
+            if response.status != 200:
+                raise RuntimeError(f"local LLM HTTP status {response.status}")
+            while True:
+                raw = response.readline()
+                if not raw:
+                    break
+                line = raw.decode("utf-8").strip()
+                if not line.startswith("data: "):
+                    continue
+                data = line[6:]
+                if data == "[DONE]":
+                    break
+                event = json.loads(data)
+                choices = event.get("choices", [])
+                if not choices:
+                    continue
+                content = choices[0].get("delta", {}).get("content", "")
+                if isinstance(content, str) and content:
+                    yield content
+
+    def reply_first_sentence(
+        self,
+        text: str,
+        language: Language = "en",
+        history: ConversationHistory | None = None,
+    ) -> str:
+        """Return as soon as a complete first sentence has streamed locally."""
+
+        chunks: list[str] = []
+        stream = self.stream_reply(text, language, history)
+        try:
+            for delta in stream:
+                chunks.append(delta)
+                combined = "".join(chunks).strip()
+                for index in range(len(combined)):
+                    if is_sentence_boundary(combined, index):
+                        sentence = combined[: index + 1].strip()
+                        if sentence:
+                            return sentence
+        finally:
+            stream.close()
+        answer = "".join(chunks).strip()
+        if not answer:
+            raise RuntimeError("local LLM returned an empty streamed reply")
+        return answer
 
     def reply_audio(
         self,
@@ -208,7 +303,8 @@ class GemmaClient:
             "model": self.model,
             "messages": messages,
             "max_completion_tokens": 96,
-            "temperature": 0.4,
+            "temperature": 0.1,
+            "top_k": 50,
         }
         return self._extract_reply(self._request("/v1/chat/completions", payload))
 
@@ -216,10 +312,10 @@ class GemmaClient:
     def _extract_reply(response: dict[str, Any]) -> str:
         choices = response.get("choices", [])
         if not choices:
-            raise RuntimeError("Gemma returned no choices")
+            raise RuntimeError("local LLM returned no choices")
         content = choices[0].get("message", {}).get("content", "")
         if not isinstance(content, str) or not content.strip():
-            raise RuntimeError("Gemma returned an empty reply")
+            raise RuntimeError("local LLM returned an empty reply")
         return content.strip()
 
     def ready(self) -> bool:
@@ -236,8 +332,8 @@ class GemmaClient:
         )
         with request.urlopen(req, timeout=self.timeout_s) as response:
             if response.status != 200:
-                raise RuntimeError(f"Gemma HTTP status {response.status}")
+                raise RuntimeError(f"local LLM HTTP status {response.status}")
             decoded = json.loads(response.read().decode("utf-8"))
         if not isinstance(decoded, dict):
-            raise RuntimeError("Gemma returned a non-object response")
+            raise RuntimeError("local LLM returned a non-object response")
         return decoded

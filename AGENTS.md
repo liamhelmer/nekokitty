@@ -31,12 +31,14 @@ that the production hardware has been ordered, and pre-arrival integration work
 is active. The machine permanently targets headless
 `multi-user.target`; GDM, X, GNOME Shell, and Firefox are absent. CUDA 13.2
 compiler/development components and TensorRT 10.16.2 are installed from the
-Jetson R39 repository. The bounded CPU Gemma service is installed, enabled,
-preloads successfully, binds only to loopback, and has passed API/restart tests.
-Its stock LiteRT GPU backend still prints the requested output and then exits 139;
-the current R39.2 evidence was reported upstream, so that backend remains disabled.
-The official QAT Q4_0 GGUF is pinned on NVMe and its all-layer CUDA llama.cpp
-alternate profile passed on this Jetson at 18.63 generated tokens/s.
+Jetson R39 repository. The normal local language service is now
+LFM2.5-1.2B-Instruct Q5_K_M through digest-pinned CUDA llama.cpp, with a true
+16,384-token context and loopback-only API. It is enabled, warm, and passed
+health/restart and combined-residency tests. The older bounded CPU Gemma service
+is installed but disabled as a lab fallback. Its stock LiteRT GPU backend still
+prints the requested output and then exits 139; the current R39.2 evidence was
+reported upstream, so that backend remains disabled. The official Gemma QAT
+Q4_0 GGUF remains pinned and selectable.
 
 ZipDepth source/checkpoints, a hash-locked CPU export environment, faithful
 static ONNX, and local TensorRT FP32/FP16 plans are pinned and verified. The FP16
@@ -76,29 +78,36 @@ comparison found virtually no quality difference from Mini. The resident,
 CPU-only `neko-tts.service` is installed, enabled, and active behind a private
 Unix socket. Its punctuation-preserving sentence path produced first audio data
 in 1.09–1.13 seconds for the accepted three-sentence audition and synthesized
-5.415 seconds of audio in 3.67–3.82 seconds. The English conversation helper now
-uses it; French and Spanish retain Supertonic. A real cold boot, production
+5.415 seconds of audio in 3.67–3.82 seconds. It remains the quality profile and
+immediate rollback path. The low-latency conversation profile now uses a
+separate resident Piper 1.4.2/Lessac medium worker; French and Spanish retain
+Supertonic until their fast voices are accepted. A real cold boot, production
 speaker listening, cancellation, audio arbitration, and combined soak remain.
 
 An attended, non-recording interruptible voice loop now passes automated replay
 tests with private owner-spoken fixtures. It continuously buffers 16 kHz audio
 in memory, uses Silero VAD plus a sherpa-onnx open-vocabulary keyword spotter,
 recognizes `Neko Neko` independently of Nemotron's unreliable rendering of the
-wake phrase, sends the same buffered utterance directly to local Gemma as inline
-WAV, and supports real barge-in by cancelling PipeWire playback. `bye bye`,
+wake phrase, streams Nemotron ASR while the person is still speaking, sends the
+finished text to local LFM, stops generation at the first useful complete
+sentence, and supports real barge-in by cancelling PipeWire playback. The former
+same-buffer inline-WAV Gemma route remains diagnostic-only. `bye bye`,
 `goodbye`, and `good bye` close the session locally even when ASR returns no
 text. A six-turn/2,400-character in-memory history is implemented. Negative,
 wake, interruption, replacement-response, and sleep replay tests pass; the
 owner recordings stay mode-restricted outside Git and are not identified or
 hashed in public notes. This loop is deliberately not boot-enabled pending
 false/missed-wake, production AEC, combined-load, unplug/failure, and soak gates.
+One private-fixture replay reached first PCM write an estimated 1.309 seconds
+after speech ended. This meets the software latency target once, but acoustic
+onset and warm P50/P95/P99 remain unmeasured.
 
-The normal Gemma service still has a 2,048-token total budget. An isolated
-65,536-token LiteRT experiment did not provide 64K: LiteRT substituted 32,000,
-then the first tiny request reached about 5,617,280 KiB anonymous RSS and was
-OOM-killed by its 5.5 GiB test cgroup. The 2K service was restored healthy. A
-truthful 64K test therefore moves to the GGUF/llama.cpp alternate with quantized
-KV cache and likely sequential worker residency.
+The owner accepts 16K as the hard context minimum. The enabled LFM server is
+explicitly `--ctx-size 16384` with quantized K/V cache; unlike the failed LiteRT
+64K request, it does not silently substitute 32K. With LFM, ASR/KWS/VAD, Kiki,
+and Piper present, about 2,967,384 KiB remained available. Story mode will use
+retrieval, bounded sections, and summary state inside 16K rather than trying to
+place an entire library or indefinitely growing transcript in context.
 
 CatMeows 1.0.2 is pinned externally as a 440-clip candidate library. No clip has
 been played or integrated: the 221 isolation-context calls are excluded by
@@ -110,9 +119,11 @@ prompting. Raw generation is closed for revision one.
 
 The project is now the top-level Git repository with `main` as its default/base
 branch and public MIT-licensed remote
-`https://github.com/liamhelmer/nekokitty.git`. PR 2 merged the local
-conversation/proximity bench at commit
-`ae63d3b6cee10b0f82467d5cecdaaa55f3e300a6`. An accidental empty nested clone
+`https://github.com/liamhelmer/nekokitty.git`. Work is on
+`agent/interruptible-voice`; draft PR 6 contains the first buffered voice-loop
+milestone at commit `47b0c92`. PR 2 previously merged the local conversation/
+proximity bench at commit `ae63d3b6cee10b0f82467d5cecdaaa55f3e300a6`.
+An accidental empty nested clone
 was preserved outside the worktree at
 `/home/neko/repos/nekokitty-empty-clone-backup-20260713`. `CLAUDE.md` points
 Claude Code back to this file so assistants share one durable source of truth.
@@ -211,6 +222,10 @@ Read these before changing the system:
   — implemented VAD/keyword/audio-to-Gemma path, barge-in and sleep behavior,
   privacy-preserving replay tests, measured latency, the failed 64K LiteRT
   experiment, remaining production gates, and rollback.
+- [Low-latency local voice path](docs/plan/2026-07-16-low-latency-voice.md) —
+  selected LFM 16K and Piper deployment, official pins and licence boundaries,
+  Gemma/LFM memory and latency measurements, continuous-ASR/streaming changes,
+  private-fixture 1.309-second result, production gates, and rollback.
 - [Owner decisions](docs/decisions/2026-07-13-owner-decisions.md) — durable
   answers for licensing, model residency, headless/Git authority, manual-motion
   scope, character/languages/stories, offline-first behavior, and media privacy.
@@ -302,13 +317,23 @@ the smaller, proven LiteRT CPU resident.
   are in the setup log.
 - `scripts/serve_gemma_litert.py` is the bounded CPU/2K/4-thread loopback server
   validated against LiteRT-LM 0.14.0. `deploy/systemd/neko-gemma.service` is
-  installed at `/etc/systemd/system/neko-gemma.service`, enabled for
-  `multi-user.target`, active, and returns the expected model/chat responses.
+  installed at `/etc/systemd/system/neko-gemma.service`, but is now disabled and
+  inactive as a selectable fallback. It previously returned the expected model/
+  chat responses and passed readiness/restart checks.
   It uses `Type=notify`, explicit ready status, 2 GiB/2.3 GB memory high/max
   controls, no swap, reduced CPU/OOM priority, empty capability sets, and a task
   limit. A real cold boot is still untested. The development unit still runs as
   user `neko` and has an unauthenticated loopback API; a dedicated identity and
   supervisor-owned credential or Unix socket are pre-passenger hardening gates.
+- LFM2.5-1.2B-Instruct Q5_K_M is pinned under
+  `/home/neko/models/LFM2.5-1.2B-Instruct-GGUF` at revision
+  `047e06635fbe71469926b35ea414537245218200`. Its 843,354,944-byte GGUF has
+  SHA-256 `fa03f3ac4da941a53a0cd4450aacf6a80804c6a1ff885d2fdcbe9406c03215c4`.
+  `neko-llm.service` is installed, enabled and active on `127.0.0.1:9380`; it
+  serves a true 16K context through the immutable local NVIDIA llama.cpp image
+  digest recorded in the low-latency plan. Q4_0 K/V cache, one slot, all-layer
+  GPU offload, four CPU threads, read-only mounts, capability removal, a 64-PID
+  bound and 2.5 GB container memory/swap bound are applied.
 - CUDA/TensorRT's 49-package minimal dependency closure is installed; the full
   GUI-heavy CUDA meta-toolkit was deliberately avoided. Exact package versions,
   command, disk change, validation, and rollback cautions are in the setup log.
@@ -339,8 +364,10 @@ the smaller, proven LiteRT CPU resident.
   separate English TTS worker are boot dependencies.
 - Silero VAD and sherpa-onnx's 3M bilingual open-vocabulary keyword model are
   pinned externally on NVMe and run through the existing sherpa-onnx 1.13.4
-  environment. `scripts/neko_voice_assistant.py` combines them with Nemotron,
-  local Gemma audio input, bounded in-memory history, and cancellable TTS. Its
+  environment. `scripts/neko_voice_assistant.py` combines them with continuous
+  Nemotron streaming ASR, local LFM first-sentence streaming, bounded in-memory
+  history, and cancellable TTS. The former Gemma inline-audio route remains an
+  explicit diagnostic option. Its
   live path retains no microphone media; verbose transcripts are opt-in. The
   attended/private-replay bench passes, but no assistant unit is installed or
   enabled. Exact artifacts, hashes, tests, and rollback are in the setup log.
@@ -373,6 +400,13 @@ the smaller, proven LiteRT CPU resident.
   match; it is enabled/active with 400/512 MiB memory high/max, four threads,
   private networking/devices, readiness notification, and restart bounds. Cold
   boot remains untested.
+- Piper 1.4.2 is isolated at `/home/neko/.local/share/neko/venvs/piper`; its
+  Lessac medium voice is revision-pinned under `/home/neko/models/piper-voices`.
+  `neko-tts-fast.service` is installed, enabled and active behind
+  `/run/neko/tts-fast.sock`, preloads/warmups the model, announces 22.05 kHz PCM,
+  and uses about 120 MiB after warmup. It is the current latency profile; the
+  GPL runtime and external voice are not distributed or relicensed under MIT.
+  Kiki remains concurrently active on `/run/neko/tts.sock` for A/B and rollback.
 - CatMeows 1.0.2's verified external archive and 440 extracted WAVs are under
   `/home/neko/models/cat-sounds/catmeows/4008297`. They are not distributed,
   approved for unattended playback, or training input. Preserve the record's
@@ -442,7 +476,8 @@ GPU result as a Jetson result.
 Current-source research was refreshed through 2026-07-16 and is recorded in the
 linked notes. Important conclusions:
 
-- Gemma 4 E2B is the default local candidate. Its Google-supported 2.59 GB LiteRT
+- Gemma 4 E2B remains a required installed evaluation model, not the normal
+  conversational worker. Its Google-supported 2.59 GB LiteRT
   distribution has a publisher Orin Nano GPU result of 24.2 decode tok/s, 0.9 s
   cache-initialized TTFT excluding load, and 2,739 MB in the model card's Linux
   `ru_maxrss`-based CPU Memory column. The prebuilt LiteRT GPU accelerator does
@@ -454,8 +489,17 @@ linked notes. Important conclusions:
   also correctly transcribed the bundled ALSA sample. The fixed service initializes
   in about two seconds and uses roughly 1.5 GB after a request. The official Q4_0
   GGUF through digest-pinned llama.cpp/CUDA measured 18.63 decode tok/s with all
-  99 layers offloaded; it remains an alternate profile because the container base
-  targets older L4T R36.4/CUDA 12.9 and combined-workload residency is unproven.
+  99 layers offloaded. A later 16K Gemma llama-server produced a 0.533–0.860 s
+  first sentence, but the combined ASR/KWS/VAD/Kiki stack left only about
+  199,464 KiB available, so it failed the normal-residency gate.
+- LFM2.5-1.2B-Instruct Q5_K_M is the normal fast conversational model. The
+  official model supports a 32,768-token context and English/French/Spanish;
+  Neko deploys exactly 16,384 tokens. The NVIDIA benchmark wrapper measured
+  105.58 ms prompt/TTFT proxy, 29.82 ms token interval and 33.54 tok/s at
+  prompt 128/generation 32/all 17 layers offloaded. The live server uses about
+  1.0 GiB after warmup and retained about 2.97 GiB available with the complete
+  audio stack and both TTS workers loaded. Its LFM Open 1.0 terms remain
+  controlling; weights stay external to Git.
 - Audex's full BF16 model plus FP32 causal speech decoder start near 8.26 GB of
   weights before runtime overhead. It is noncommercial and has no official
   quantized/Jetson result. Keep it installed/selectable for permitted experiments,
@@ -494,7 +538,7 @@ linked notes. Important conclusions:
   process RSS. Its best role, if any, is a tightly bounded optional cat-quip
   source whose complete text still passes Neko policy before Supertonic speaks
   it. It must never replace Gemma, story policy, or TTS.
-- KittenTTS Micro/Kiki at 1.2x is the accepted revision-one English voice.
+- KittenTTS Micro/Kiki at 1.2x remains the accepted English quality voice.
   Mini's identical audition synthesized near 1.34 RTF; Micro measured about
   0.70 RTF and the owner heard virtually no difference back-to-back. A resident
   Micro worker reduced first sentence data for the accepted informal audition
@@ -504,7 +548,10 @@ linked notes. Important conclusions:
   is sentence-framed delivery, not model-native frame streaming. KittenTTS is
   English-only; Supertonic remains the French/Spanish path. The owner also
   approved shorter words, contractions, and gentle silliness as the spoken
-  style; keep safety directions literal.
+  style; keep safety directions literal. Piper/Lessac medium is the provisional
+  low-latency voice: resident first PCM was 0.099–0.218 s across tested short
+  lines, versus about 0.675–1.874 s for Kiki. The owner has heard one Piper
+  sample, but final voice acceptance and real acoustic onset remain pending.
 - Use curated real cat recordings for revision one. CatMeows supplies labeled
   meows under CC BY 4.0 plus an author-stated noncommercial/research condition;
   isolation calls are not routine child-facing assets. Wikimedia and Freesound
@@ -530,12 +577,12 @@ linked notes. Important conclusions:
   YOLO26 dependency to be represented as MIT merely because the repository is
   public: project-wide AGPL-3.0 compatibility or an Enterprise licence is still
   required. YOLO26 evaluation artifacts remain external and licensing-gated.
-- The pre-hardware conversation MVP keeps the measured CPU LiteRT Gemma service
-  and reserves GPU/TensorRT capacity for perception. A 2026-07-14 live audit with
-  Gemma loaded found 6,065,396 KiB available and no swap; Gemma led at 1,669,854
-  KiB PSS. Install and benchmark only one ASR/TTS/detector candidate at a time.
-  The first current-source stack is sherpa-onnx's June 2026 INT8 Nemotron 3.5
-  streaming ASR, Supertonic 3 CPU/ONNX TTS, and RF-DETR Nano FP16 TensorRT.
+- The pre-hardware conversation MVP now uses the measured LFM 16K CUDA service,
+  continuous sherpa/Nemotron streaming ASR, and a Piper fast-TTS worker while
+  retaining Gemma/Kiki as stopped or A/B profiles. A private-fixture run reached
+  first PCM write an estimated 1.309 s after end of speech; this is a one-run
+  software result, not yet an acoustic P95 acceptance. RF-DETR Nano remains the
+  selected FP16 TensorRT perception runtime.
   RF-DETR Nano's local 384x384 FP16 plan measured 9.48 ms model-only and 9.63 ms
   with transfers. YOLO26n measured 3.19/3.37 ms but remains an external
   comparison because public MIT publication does not satisfy Ultralytics'
@@ -555,7 +602,7 @@ linked notes. Important conclusions:
 - **`Neko Neko` is approved** as the revision-one wake phrase; `Hello Kitty` is
   retired. Current local software candidates remain openWakeWord, Silero VAD,
   Nemotron 3.5 streaming ASR through sherpa-onnx with whisper.cpp fallback, and
-  Supertonic 3 with Piper fallback.
+  Piper fast TTS with Kiki/Supertonic quality and multilingual fallbacks.
 - Revision-one social perception is now two opposing outdoor Reolink Duo 3V
   PoE-model 180-degree cameras powered through their 12 V inputs, a Brainboxes
   SW-005 on the Jetson onboard Ethernet port, plus four DFRobot C4001 radar
@@ -892,3 +939,17 @@ For every future model or service, add:
   milestone verification compiled the Python tree, passed all 95 repository
   tests and `git diff --check`, found both enabled dependencies healthy with zero
   restarts, and left no attended assistant or capture process running.
+- 2026-07-16: Replaced the normal latency path with continuous Nemotron decode,
+  streamed first-sentence text generation, LFM2.5-1.2B Q5_K_M through CUDA
+  llama.cpp at a real 16,384-token context, and a resident Piper 1.4.2/Lessac
+  medium worker. The owner accepted 16K as the context minimum. LFM measured
+  33.54 generated tok/s in the required wrapper and retained about 2.97 GiB
+  available with ASR/KWS/VAD plus Kiki and Piper loaded; Gemma 4 at 16K left
+  only about 200 MiB and was rejected for concurrent residency. One private
+  wake-fixture replay reached first PCM write an estimated 1.309 seconds after
+  speech ended. `neko-llm.service` and `neko-tts-fast.service` are enabled;
+  `neko-gemma.service` is disabled but retained. The always-listening assistant
+  remains attended pending acoustic onset, P50/P95/P99, AEC/false-wake, cold
+  boot and soak gates. Final verification passed all 99 tests, compilation,
+  diff checking, unit source/install comparison, warm restart, LLM API and Piper
+  PCM smokes; both new services were active with zero restarts afterward.

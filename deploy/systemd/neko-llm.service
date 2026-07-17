@@ -1,0 +1,36 @@
+[Unit]
+Description=Neko low-latency local LFM2.5 llama.cpp service
+After=local-fs.target docker.service
+Requires=docker.service
+Wants=local-fs.target
+StartLimitIntervalSec=120s
+StartLimitBurst=3
+
+[Service]
+Type=simple
+ExecStartPre=-/usr/bin/docker rm -f neko-llm
+ExecStart=/usr/bin/docker run --rm --runtime nvidia --network host --name neko-llm --read-only --tmpfs /tmp:rw,noexec,nosuid,size=64m --cap-drop ALL --security-opt no-new-privileges --pids-limit 64 --memory 2500m --memory-swap 2500m -v /home/neko/models/LFM2.5-1.2B-Instruct-GGUF/047e06635fbe71469926b35ea414537245218200:/models:ro neko/llama_cpp@sha256:5e2963c6e0a59a866f0d9ec79d9690bc8b40eb35be6ba50b936951e827e2b96a llama-server -m /models/LFM2.5-1.2B-Instruct-Q5_K_M.gguf --host 127.0.0.1 --port 9380 --ctx-size 16384 --cache-type-k q4_0 --cache-type-v q4_0 --n-gpu-layers 99 --threads 4 --parallel 1 --flash-attn on --no-mmap --cache-ram 256
+ExecStartPost=/usr/bin/curl --silent --show-error --fail --retry 60 --retry-connrefused --retry-delay 1 --max-time 90 http://127.0.0.1:9380/health
+ExecStop=/usr/bin/docker stop --time 10 neko-llm
+Restart=on-failure
+RestartSec=5s
+TimeoutStartSec=120s
+TimeoutStopSec=20s
+KillMode=process
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+LockPersonality=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+OOMScoreAdjust=300
+CPUWeight=70
+Nice=0
+TasksMax=64
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target
