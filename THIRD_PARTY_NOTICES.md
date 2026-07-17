@@ -22,6 +22,33 @@ Current notable boundaries:
   generated media are distributed in this repository.
 - RF-DETR's Apache-2.0 code and Apache-designated model weights may be evaluated
   as external dependencies without changing Neko's MIT licence.
+- MeowLLM source and the separately downloaded `hunt3rx99/meowllm` checkpoint
+  are identified as MIT by their upstream repository/model card. They remain
+  external artifacts, are not distributed here, and are not covered by Neko's
+  root licence merely by being installed locally. Exact revisions and hashes are
+  recorded in `AGENTS.md` and the setup log.
+- KittenTTS 0.8.1 code and the separately downloaded KittenTTS Mini 0.8 ONNX/
+  voice artifacts are identified as Apache-2.0 upstream. They remain external;
+  Neko's local minimal-offline patch does not relicense them. Exact wheel/model
+  revisions and hashes are in the setup log.
+- CatMeows 1.0.2 is an external University of Milan dataset. Zenodo identifies
+  CC BY 4.0 and the authors additionally state scientific-research/
+  non-commercial use and acknowledgement terms. It is not distributed in this
+  repository and no recording is yet approved as a Neko playback asset.
+- The owner-curated library began as 24 external Freesound assets. Twenty
+  reviewed `keep_*` originals are distributed unchanged under
+  `assets/cat-sounds/originals`: eleven CC0 1.0, three CC BY 4.0, two CC BY-NC
+  3.0, and four CC BY-NC 4.0. The six noncommercial recordings are usable here
+  only within the owner's personal/noncommercial scope. The root MIT licence
+  does not apply to any of these recordings or their derivatives. Exact
+  attribution, source/license URLs, decisions, and SHA-256 values are in
+  `assets/cat-sounds/manifest.json` and the maintained Cat Sounds Master.
+- Stable Audio 3 Small SFX source/runtime and selected optimized weights are
+  installed externally as a stopped research profile after owner acceptance.
+  Its weights use the Stability AI Community License and include T5Gemma
+  components under the Gemma terms. Nothing is distributed in this repository,
+  and the failed quality evaluation excludes generated audio from revision-one
+  child-facing playback.
 - Ultralytics code and trained YOLO models are AGPL-3.0 by default according to
   Ultralytics' current licence guidance. An isolated local benchmark does not
   make them MIT. Selecting YOLO26 as an integrated distributed dependency

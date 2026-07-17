@@ -1,0 +1,8 @@
+# Official Stable Audio 3 optimized TFLite runtime, isolated from LiteRT-LM.
+# Source interface pinned separately to Stability-AI/stable-audio-3 commit
+# 0385302ea26522f00c80392c4b708df5ebf1adf5.
+ai-edge-litert>=1.0
+huggingface-hub>=0.20
+numpy>=1.24
+sentencepiece>=0.2
+soundfile>=0.12

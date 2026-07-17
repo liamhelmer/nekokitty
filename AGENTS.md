@@ -26,7 +26,7 @@ The perception evaluation must include ZipDepth: <https://zipdepth.github.io/>.
 
 ## Current phase and change policy
 
-Status on 2026-07-14: the host/model foundation is deployed, the owner reports
+Status on 2026-07-16: the host/model foundation is deployed, the owner reports
 that the production hardware has been ordered, and pre-arrival integration work
 is active. The machine permanently targets headless
 `multi-user.target`; GDM, X, GNOME Shell, and Firefox are absent. CUDA 13.2
@@ -48,6 +48,39 @@ run, and the unquantized speech path cannot fit in usable DRAM. Audex is a stopp
 selectable noncommercial laboratory profile, never a core boot dependency.
 System-wide changes must be documented with exact commands, versions, paths,
 validation, and rollback.
+
+The temporary C922/Ora hardware-in-the-loop bench now passes non-retaining
+camera decode, microphone-level, local Gemma, Supertonic-to-Bluetooth playback,
+and positive RF-DETR person-detection checks. The 2026-07-16 positive detector
+run held one anonymous track for 18 seconds at roughly 0.93–0.97 confidence.
+The live adapter bug it exposed was fixed by carrying normalized box-bottom
+metadata through `PersonObservation`. The ASR helper now accepts bounded
+PipeWire capture for Bluetooth devices and reports only privacy-safe input
+levels; Ora routing/capture works, but an intelligible spoken headset transcript
+still needs a deliberately timed owner sample. No Neko application service was
+enabled.
+
+MeowLLM was also auditioned as an isolated lab profile on 2026-07-16. It is a
+tiny English text-generation model, not TTS. Restricted checkpoint loading,
+three CPU text generations, its portable rule smoke test, and a transient
+MeowLLM-text -> Supertonic -> Ora playback passed. It is not integrated or
+boot-enabled; at most, consider it later for optional non-factual cat quips.
+
+KittenTTS 0.8.1 and the 80M Mini model are now pinned as another on-demand TTS
+tool. The Kiki voice at 1.2x played successfully over Ora. Its audited minimal
+CPU environment avoids an unused upstream Misaki/spaCy/Torch dependency chain
+and mutable model download; a clean-room hash-locked reinstall passed. The first
+6.15-second sample took 8.24 seconds to synthesize and peaked at 278.9 MiB RSS,
+so Kiki is a promising English voice candidate, not yet the low-latency or
+multilingual default. No KittenTTS service is enabled.
+
+CatMeows 1.0.2 is pinned externally as a 440-clip candidate library. No clip has
+been played or integrated: the 221 isolation-context calls are excluded by
+default, and the brushing/food calls need a human friendly/distress curation
+pass. Revision one will use a manifest-driven real-sound palette. Stable Audio 3
+Small SFX was installed and measured as a stopped research profile, but both
+owner auditions failed quality: distress and choppiness remained after guided
+prompting. Raw generation is closed for revision one.
 
 The project is now the top-level Git repository with `main` as its default/base
 branch and public MIT-licensed remote
@@ -159,6 +192,15 @@ Read these before changing the system:
 - [Audio and voice](docs/research/2026-07-13-audio-voice.md) — long-form component,
   placement/power, wake/ASR/TTS, voice-rights, privacy, and acceptance research;
   the Canadian one-week decision controls the immediate hardware purchase.
+- [KittenTTS and cat-audio toolbox](docs/research/2026-07-16-kittentts-cat-audio.md)
+  — Kiki 1.2x local benchmark, minimal offline package patch/lock, CatMeows
+  provenance, curated palette policy, and Stable Audio 3 Small SFX research gate.
+- [Cat Sounds Master](docs/cat-sounds/CAT_SOUNDS_MASTER.md) — maintained
+  annotations, emotional roles, action/output guidance, review decisions, and
+  licence links for all 24 owner-reviewed recordings.
+- [Cat sound processing/remix queue](docs/cat-sounds/PROCESSING_AND_REMIX_QUEUE.md)
+  — trim/split/cleanup/mastering priorities, manual remix boundaries, derived
+  asset contract, and runtime-enablement checklist.
 - [Social perception BOM](docs/research/2026-07-13-perception-bom.md) — earlier
   OAK/lidar/radar and premium-tier research, geometry, power, privacy, and tests;
   the Canadian one-week decision controls revision-one procurement.
@@ -257,8 +299,10 @@ the smaller, proven LiteRT CPU resident.
   uninstalled because its current release has no native sherpa-onnx adapter and
   is unnecessary for the first bounded integration loop.
 - The deterministic behavior core, fixed Gemma client, text-conversation tool,
-  and memory-only live ASR tool are in the repository with unit coverage. No
-  Neko application service is boot-enabled.
+  and memory-only ALSA/PipeWire live ASR tool are in the repository with unit
+  coverage. The PipeWire path handles the observed PipeWire 1.0.5 `pw-record`
+  exit-1-on-bounded-SIGINT contract only when PCM is present and stderr is empty.
+  No Neko application service is boot-enabled.
 - RF-DETR 1.8.3 export tooling, its exact Nano checkpoint/ONNX, and the locally
   built TensorRT FP16 plan are pinned on NVMe. The hash-verifying, non-recording
   C922 loop and metadata-only tracker pass. YOLO26/Ultralytics 8.4.95 exists only
@@ -267,6 +311,60 @@ the smaller, proven LiteRT CPU resident.
 - `scripts/smoke_test_devices.py` is a dependency-free bench harness over the
   existing GStreamer/ALSA/PipeWire tools. Its default suite retains no camera or
   microphone media and never plays sound unless explicitly requested.
+- MeowLLM source is pinned cleanly at commit
+  `d267a6c89bd978150ff9760ba77a37e7cee6601a` under
+  `/home/neko/models/MeowLLM`; its Hugging Face checkpoint/tokenizer are pinned
+  separately at revision `f3a3f6ef7e2697e1346729f65d1e44bb3df31de8` under
+  `/home/neko/models/meowllm-artifacts`. No package was installed: its audition
+  reused the export-only CPU Torch/tokenizers environment. Never call upstream's
+  `weights_only=False` loader on downloaded checkpoints; the pinned artifact
+  passes restricted `torch.load(..., weights_only=True)`.
+- KittenTTS 0.8.1 is installed only in
+  `/home/neko/.local/share/neko/venvs/kittentts`; the exact 80M Mini ONNX and
+  voices are pinned at Hugging Face revision
+  `c02725660cea441db4c383af69f1f26f5cd00947` under
+  `/home/neko/models/kittentts`. The project lock plus reproducible patch remove
+  unused heavy imports and the eager downloader from the local path.
+  `scripts/neko_kittentts_speak.py` verifies artifact hashes before inference.
+  This is an English on-demand profile with no systemd unit.
+- CatMeows 1.0.2's verified external archive and 440 extracted WAVs are under
+  `/home/neko/models/cat-sounds/catmeows/4008297`. They are not distributed,
+  approved for unattended playback, or training input. Preserve the record's
+  CC BY attribution plus author-stated personal/research noncommercial boundary.
+- The owner-curated real-sound library contains 24 Freesound recordings (127
+  MiB, 812.226 seconds) under `/home/neko/curated-cat-sounds`.
+  Twenty reviewed `keep_*` originals (74,496,458 bytes/about 71 MiB) are now
+  distributed unchanged under `assets/cat-sounds/originals`; two maybes and two
+  rejected standalone sources remain external. `assets/cat-sounds/manifest.json`
+  pins distributed paths, hashes, creators, titles, licences, sources, and review
+  decisions. `config/cat-sounds/curated-freesound.json` pins all filenames,
+  hashes, creators, titles, source/license URLs, durations, provisional tags,
+  and initial disabled states; the separate review ledger is authoritative for
+  current selection. The inventory is 15 CC0 1.0, three CC BY 4.0, two
+  CC BY-NC 3.0, and four CC BY-NC 4.0. All source pages resolved on 2026-07-16.
+  `config/cat-sounds/curated-freesound-normalization.json` records GStreamer
+  ReplayGain measurements for all 24 originals. The guided-review player is
+  `scripts/neko_cat_sound_review.py`; it uses a 0.35 common review master,
+  per-track gain, a -1 dBFS sample-peak ceiling, and a two-second Bluetooth
+  pre-roll without rewriting audio. Review outcomes are recorded separately in
+  `config/cat-sounds/curated-freesound-listening-review.json`. The owner-guided
+  review is complete: 19 keep/priority candidates, two secondary maybes, one
+  manual-only novelty track, and two sources not selected for standalone use.
+  Top assets include the clean general meow (item 10, 10/10), affectionate
+  thank-you meow/purr (14, 9/10), clean split-meow source (21, 9/10), primary
+  transducer purr after a 0.5-second tail trim (17, 10/10), relaxing purr (23,
+  9/10), and playful/snuffly affection purr (24, 10/10). The review master is
+  not calibrated cart SPL. No candidate is eligible for unattended child-facing
+  playback until excerpt selection, lossless mastering/true-peak analysis,
+  attribution generation, deterministic action mapping, and final speaker/
+  transducer acceptance pass. The manifest is not training-data clearance.
+- Stable Audio 3 source is pinned at commit
+  `0385302ea26522f00c80392c4b708df5ebf1adf5` under
+  `/home/neko/models/stable-audio-3`. Its isolated 24-package ARM LiteRT runtime
+  is under `/home/neko/.local/share/neko/venvs/stable-audio-3-tflite`, and exact
+  optimized weights are pinned at revision
+  `08c64b96b1e59942aade69759f60fb88c58c90c4`. It has no service. Keep it as
+  research evidence only; do not route generated audio to children.
 
 ## Research standards and evidence ledger
 
@@ -277,7 +375,7 @@ hardware context, precision/quantization, input/output lengths, warm/cold state,
 power mode, and software commit/version for every benchmark. Never present an x86
 GPU result as a Jetson result.
 
-Current-source research was refreshed through 2026-07-14 and is recorded in the
+Current-source research was refreshed through 2026-07-16 and is recorded in the
 linked notes. Important conclusions:
 
 - Gemma 4 E2B is the default local candidate. Its Google-supported 2.59 GB LiteRT
@@ -314,6 +412,50 @@ linked notes. Important conclusions:
   generated English/French/Spanish at 0.662/0.674/0.655 real-time factor with
   about 492 MiB peak process RSS. These standalone publisher-text/clip results
   are not far-field or combined-workload acceptance.
+- A 2026-07-16 C922/Ora bench found 5,570,724 KiB available before testing,
+  46.8 C hottest reported zone, and about 4.5–4.8 W input. The combined
+  non-retaining device suite processed 90 C922 frames at 25.79 wall fps,
+  observed webcam-microphone activity, and received a one-sentence Gemma reply
+  in 2.739 s. RF-DETR then held one anonymous person track for 18 seconds at
+  0.926–0.969 confidence. Gemma -> Supertonic F1 -> Ora playback completed.
+  The Ora source produced valid 16 kHz PCM and level metadata, but the diagnostic
+  ASR samples contained effectively no sustained speech (one three-second run:
+  -67.60 dBFS RMS, -31.38 dBFS peak), so their empty transcripts are not an ASR
+  accuracy result. No media was retained.
+- MeowLLM is not a speech synthesizer. Its official card describes a 3.45M-
+  parameter, English-only, 256-token character toy that is explicitly outside
+  general assistance, factual work, translation, and production use. On this
+  Jetson, the restricted-loaded CPU model initialized in 0.1483 s, generated
+  three 40-token-bounded replies in 0.2802–0.4156 s, and peaked at 290,396 KiB
+  process RSS. Its best role, if any, is a tightly bounded optional cat-quip
+  source whose complete text still passes Neko policy before Supertonic speaks
+  it. It must never replace Gemma, story policy, or TTS.
+- KittenTTS Mini's Kiki voice at 1.2x passed offline Ora playback. Two cold
+  single-utterance CPU runs were consistent at 1.339–1.356 real-time factor,
+  roughly 1.6 s load, and 276–279 MiB peak RSS. Its size is attractive, but it
+  is English-only today and slower than the installed Supertonic standalone
+  result. Keep it as a voice candidate until warm/chunked and production-speaker
+  listening tests establish first-audio latency and quality.
+- Use curated real cat recordings for revision one. CatMeows supplies labeled
+  meows under CC BY 4.0 plus an author-stated noncommercial/research condition;
+  isolation calls are not routine child-facing assets. Wikimedia and Freesound
+  can fill purr/trill gaps only with per-file provenance. As of July 2026,
+  Freesound uploader AI-training preferences are an additional gate for training,
+  distinct from ordinary playback/remix clearance.
+- Prefer the owner's 24-file Freesound library before mining broader datasets.
+  Its checked manifest gives 10 meow-led, 11 purr-led, two mixed, and one
+  processed novelty source based on titles/descriptions. Those are provisional
+  tags only: kitten-attention and multi-cat/vet sources require explicit
+  distress review, and the processed alarm stays manual-only. Select and edit
+  approximately 12–20 approved excerpts after listening; preserve lossless
+  masters and bounded delivery copies separately.
+- Stability AI's May 2026 Stable Audio 3 Small SFX was tested through its
+  official ARM TFLite/XNNPACK backend after owner license acceptance. The viable
+  dynamic-int8 profile generated 20 seconds in 14.4–15.0 seconds at about 2.11
+  GiB peak RSS, 9.41 W peak input, and 50.4 C. The weight-only-int8 profile was
+  killed before sampling at about 6.5 GiB process RSS. Both dynamic-int8 owner
+  auditions failed for distress/choppiness, including guided negative prompts.
+  Close raw generation for revision one and use pre-recorded library sounds.
 - Neko-authored code/documentation now has an MIT root licence and explicit
   third-party notices. Ultralytics' current terms do not permit an integrated
   YOLO26 dependency to be represented as MIT merely because the repository is
@@ -600,3 +742,54 @@ For every future model or service, add:
   unauthenticated API request both reported public visibility, `main` as the
   default branch, and MIT licence detection. No Git history rewrite was done;
   the regional delivery postal code remains visible in older commits as noted.
+- 2026-07-16: Re-ran the C922/Ora hardware-in-the-loop bench. The privacy-safe
+  combined smoke, positive 18-second RF-DETR track, Gemma response, and
+  Supertonic Bluetooth playback passed. Fixed the live proximity serializer and
+  added bounded in-memory PipeWire ASR capture plus signal telemetry. Ora input
+  routing was verified, but captured trials lacked sustained speech, so live
+  headset transcription remains pending. All 65 unit tests passed; no package,
+  model, boot target, or service state changed.
+- 2026-07-16: Pinned and safely auditioned MeowLLM as a text-only cat-character
+  lab artifact. The restricted checkpoint load, 34-rule portable smoke test,
+  three sub-half-second CPU generations, and transient Supertonic/Ora playback
+  passed. Recorded that it is not TTS or an assistant, and left it unintegrated
+  and disabled. No package or service was added.
+- 2026-07-16: Installed a hash-locked, locally patched minimal KittenTTS 0.8.1
+  CPU profile and pinned the 80M Mini model. Kiki at 1.2x passed two synthesis
+  smokes and transient Ora playback; the first sample measured 1.34 real-time
+  factor and 278.9 MiB peak RSS. Pinned the CC BY CatMeows 1.0.2 archive as an
+  uncurated external source and documented the May 2026 gated Stable Audio 3
+  Small SFX follow-up. No cat clip or KittenTTS service was integrated/enabled.
+- 2026-07-16: After owner acceptance, pinned and ran Stable Audio 3 Small SFX's
+  official ARM LiteRT backend. Dynamic-int8 generated faster than real time at
+  about 2.11 GiB RSS; weight-only-int8 exceeded memory. Both dynamic-int8 owner
+  auditions remained distressed/choppy, including guided prompts, so raw
+  generation was rejected for revision one in favor of curated real recordings.
+  Gemma was stopped only during trials, restored healthy, and no service was added.
+- 2026-07-16: Inventoried the owner's 24-file/127 MiB curated Freesound library
+  without playback or modification. Resolved every source and Creative Commons
+  page, pinned source filenames and SHA-256 hashes in a repository manifest, and
+  recorded the 15 CC0/3 CC BY/6 CC BY-NC license split plus provisional semantic
+  tags. All entries remain disabled pending a recorded emotional/safety,
+  background-noise, time-range, output-role, and gain review. No package,
+  service, model, or audio file was added to the runtime or Git.
+- 2026-07-16: Began the one-source-at-a-time owner listening pass. Fixed-volume
+  playback was too quiet and sub-second audio was lost while Bluetooth woke, so
+  measured all 24 originals with GStreamer ReplayGain and added a non-destructive
+  peak-bounded player with a two-second silent pre-roll. Item 1 then passed as a
+  slightly fuzzy but good plaintive/interrogatory/insistent keep candidate. No
+  original, package, service, model, default sink, or boot state changed.
+- 2026-07-16: Completed structured owner classification of all 24 curated cat
+  recordings. Retained 19 primary/keep candidates, two secondary maybes and one
+  manual-only novelty; rejected two for standalone runtime. Identified the
+  10/10 general meow, primary trimmed transducer purr, and playful/snuffly purr,
+  plus explicit excerpt/split/cleanup work. Item 22 was stopped once the owner
+  had enough evidence to reject standalone use; the other 23 played in full.
+  All audio remains disabled pending derived-asset mastering and hardware tests.
+- 2026-07-16: Added all 20 `keep_*` Freesound originals unchanged to the public
+  repository with an asset-level manifest and explicit Creative Commons boundary
+  (11 CC0, three CC BY 4.0, two CC BY-NC 3.0, four CC BY-NC 4.0). Added the
+  maintained 24-source Cat Sounds Master and separate processing/remix queue.
+  The six NC sources remain personal/noncommercial and no source is runtime-
+  enabled; derived assets still require mastering, attribution, and hardware
+  tests. Asset integrity/licence tests and the complete 71-test suite pass.

@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "source_library_id": "owner-curated-freesound-2026-07-16",
+  "source_manifest": "config/cat-sounds/curated-freesound.json",
+  "original_audio_modified": false,
+  "analysis": {
+    "analyzed_at": "2026-07-16",
+    "method": "ReplayGain track analysis",
+    "tool": "GStreamer rganalysis",
+    "gstreamer_version": "1.24.2",
+    "reference_level_db": 89.0,
+    "command_shape": "uridecodebin ! audioconvert ! audioresample ! rganalysis forced=true reference-level=89 ! fakesink"
+  },
+  "policy": {
+    "review_master_linear": 0.35,
+    "sample_peak_ceiling_dbfs": -1.0,
+    "behavior": "Apply the measured track gain unless that gain would exceed the sample-peak ceiling at the selected master. Do not rewrite source recordings.",
+    "hardware_note": "The review master is a digital scalar, not a calibrated acoustic SPL. Recalibrate speaker and transducer masters on the final hardware."
+  },
+  "entries": [
+    {"id": "freesound-262314", "filename": "262314__steffcaffrey__cat-meow3.wav", "track_gain_db": 12.28, "sample_peak": 0.05584717},
+    {"id": "freesound-273156", "filename": "273156__lrocio44__cat-purring.wav", "track_gain_db": 34.70, "sample_peak": 0.05935252},
+    {"id": "freesound-325199", "filename": "325199__psychopancake__cats-meow.wav", "track_gain_db": 5.61, "sample_peak": 0.15959966},
+    {"id": "freesound-333916", "filename": "333916__lextrack__cat-meowing.mp3", "track_gain_db": 2.80, "sample_peak": 0.20367432},
+    {"id": "freesound-342547", "filename": "342547__snapper4298__purring-moo.wav", "track_gain_db": 16.84, "sample_peak": 0.62030029},
+    {"id": "freesound-362652", "filename": "362652__trngle__cat-meow.wav", "track_gain_db": 5.49, "sample_peak": 0.42956543},
+    {"id": "freesound-365076", "filename": "365076__justiiiiin__cat-meow.wav", "track_gain_db": 22.44, "sample_peak": 0.02136815},
+    {"id": "freesound-428552", "filename": "428552__maleryberg__alarm-clock-trippy-cats.mp3", "track_gain_db": 2.26, "sample_peak": 0.42019653},
+    {"id": "freesound-476918", "filename": "476918__luke100000__kitten-meows.wav", "track_gain_db": -5.65, "sample_peak": 0.89126587},
+    {"id": "freesound-491690", "filename": "491690__pizzapoes__meow.mp3", "track_gain_db": -6.93, "sample_peak": 0.59832764},
+    {"id": "freesound-508688", "filename": "508688__megrez7274__snd_catpurring_loop_01.wav", "track_gain_db": 23.66, "sample_peak": 0.05740356},
+    {"id": "freesound-521665", "filename": "521665__msalvado__cat-meow.mp3", "track_gain_db": 29.52, "sample_peak": 0.04772949},
+    {"id": "freesound-530341", "filename": "530341__wesleyextreme_gamer__cat-meow.wav", "track_gain_db": -8.17, "sample_peak": 0.63351440},
+    {"id": "freesound-536703", "filename": "536703__scousemousejb__cat-meow-and-purr.wav", "track_gain_db": 11.52, "sample_peak": 0.10925351},
+    {"id": "freesound-541951", "filename": "541951__didi0508__cat-meowing.wav", "track_gain_db": 31.74, "sample_peak": 0.01648355},
+    {"id": "freesound-546413", "filename": "546413__cristinaadrn__cat-perfect-purr.wav", "track_gain_db": 12.56, "sample_peak": 0.18384337},
+    {"id": "freesound-550941", "filename": "550941__kadka_funkenflug__purring-cat_01.wav", "track_gain_db": 11.99, "sample_peak": 0.40882656},
+    {"id": "freesound-553375", "filename": "553375__xoiziox__kitty-purr.aiff", "track_gain_db": 12.21, "sample_peak": 0.25103760},
+    {"id": "freesound-579898", "filename": "579898__jamesbradford__cat-purring-longclearloud.mp3", "track_gain_db": 13.81, "sample_peak": 0.99267578},
+    {"id": "freesound-621006", "filename": "621006__uniuniversal__cat_purr.wav", "track_gain_db": 25.58, "sample_peak": 0.11076933},
+    {"id": "freesound-655659", "filename": "655659__221316__cats-asking-for-attention.wav", "track_gain_db": 9.06, "sample_peak": 0.11752069},
+    {"id": "freesound-735589", "filename": "735589__anhedonic_picture_show__deep-cat-purr.wav", "track_gain_db": 16.05, "sample_peak": 0.30639374},
+    {"id": "freesound-779220", "filename": "779220__scwambled__cat-purring.wav", "track_gain_db": 0.59, "sample_peak": 0.84383190},
+    {"id": "freesound-790281", "filename": "790281__dudeawesome__cat-pur-purring-snoring-sleeping-beautiful-real-sounds-of-my-kitty.flac", "track_gain_db": 16.89, "sample_peak": 0.20942739}
+  ]
+}

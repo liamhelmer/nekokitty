@@ -102,7 +102,11 @@ def main() -> int:
                         {
                             "track_id": item.track_id,
                             "confidence": round(item.confidence, 3),
-                            "bottom_y_normalized": round(item.bottom_y_normalized, 3),
+                            "bottom_y_normalized": (
+                                None
+                                if item.bottom_y_normalized is None
+                                else round(item.bottom_y_normalized, 3)
+                            ),
                             "distance_m": None if item.estimated_distance_m is None else round(item.estimated_distance_m, 2),
                             "approaching": item.approaching,
                         }

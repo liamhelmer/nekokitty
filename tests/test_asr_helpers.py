@@ -4,7 +4,7 @@ from array import array
 import sys
 import unittest
 
-from scripts.neko_asr_transcribe import pcm16_to_float
+from scripts.neko_asr_transcribe import capture_pipewire, pcm16_to_float, pcm_levels_db
 
 
 class AsrHelperTests(unittest.TestCase):
@@ -15,6 +15,16 @@ class AsrHelperTests(unittest.TestCase):
         samples = pcm16_to_float(values.tobytes())
         self.assertEqual(samples[:3], [-1.0, 0.0, 0.5])
         self.assertAlmostEqual(samples[3], 32767 / 32768)
+
+    def test_pcm_levels(self) -> None:
+        rms_db, peak_db = pcm_levels_db([0.5, -0.5])
+        self.assertAlmostEqual(rms_db, -6.0206, places=3)
+        self.assertAlmostEqual(peak_db, -6.0206, places=3)
+        self.assertEqual(pcm_levels_db([0.0, 0.0]), (None, None))
+
+    def test_pipewire_capture_rejects_nonpositive_duration(self) -> None:
+        with self.assertRaises(ValueError):
+            capture_pipewire(0)
 
 
 if __name__ == "__main__":

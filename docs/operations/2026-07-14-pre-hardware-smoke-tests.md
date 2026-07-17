@@ -94,6 +94,23 @@ python3 scripts/smoke_test_devices.py playback \
   --volume 0.02
 ```
 
+For a Bluetooth headset exposed only through PipeWire, use the bounded ASR path
+with the headset selected as PipeWire's default source. It retains no audio and
+prints only timing, signal levels, and the final transcript:
+
+```bash
+/home/neko/.local/share/neko/venvs/asr/bin/python \
+  scripts/neko_asr_transcribe.py \
+  --pipewire-seconds 10 \
+  --language en \
+  --threads 4
+```
+
+PipeWire 1.0.5 `pw-record` on this host returns status 1 after the helper's
+bounded SIGINT even when it flushes valid PCM. The helper accepts that status
+only for its own timed interrupt, with non-empty valid PCM and empty stderr.
+Use the reported RMS/peak values to distinguish silence from recognition errors.
+
 Do not use the audible test against the production amplifier until its fixed
 gain, driver protection, and safe output limits are established. The script
 hard-rejects a software test-tone amplitude above `0.1`; that is a bench guard,

@@ -106,6 +106,7 @@ class ProximityEstimator:
             dwell_s=detection.monotonic_s - state.first_seen_s,
             estimated_distance_m=distance,
             approaching=approaching,
+            bottom_y_normalized=detection.bottom_y_normalized,
         )
 
     def expire(self, monotonic_s: float) -> tuple[PersonGone, ...]:
