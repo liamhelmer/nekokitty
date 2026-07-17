@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from io import BytesIO
+import threading
 import unittest
+from unittest.mock import patch
 
-from neko.tts_protocol import MAX_AUDIO_BYTES, read_exact, read_json, write_json
+from neko.tts_protocol import MAX_AUDIO_BYTES, TtsClient, read_exact, read_json, write_json
 
 
 class TtsProtocolTests(unittest.TestCase):
@@ -26,6 +28,14 @@ class TtsProtocolTests(unittest.TestCase):
     def test_non_object_header_is_rejected(self) -> None:
         with self.assertRaises(RuntimeError):
             read_json(BytesIO(b"[]\n"))
+
+    @patch("neko.tts_protocol.subprocess.Popen")
+    def test_pre_cancelled_playback_starts_no_player(self, popen: object) -> None:
+        cancelled = threading.Event()
+        cancelled.set()
+        result = TtsClient().synthesize("Stop now.", play=True, cancel_event=cancelled)
+        self.assertTrue(result["cancelled"])
+        popen.assert_not_called()
 
 
 if __name__ == "__main__":

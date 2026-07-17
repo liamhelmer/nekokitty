@@ -27,10 +27,14 @@ Micro/Kiki voice at 1.2x; French and Spanish use on-demand Supertonic. Audex is 
 NVMe for stopped, sequential evaluation. ZipDepth's source, checkpoints, isolated
 export environment, faithful ONNX, and board-built FP32/FP16 TensorRT engines are
 provisioned. Local Nemotron streaming ASR, Supertonic 3 TTS, deterministic
-wake/social behavior, and an RF-DETR Nano TensorRT webcam loop now pass bounded
-bench tests. Camera ground calibration, a trained wake-word model, production
-audio integration, remaining systemd worker units, and soak tests remain pending. This is
-a research prototype. Perception is for social behavior and is
+session/social behavior, and an RF-DETR Nano TensorRT webcam loop now pass bounded
+bench tests. An attended continuous-audio loop also passes private replay tests
+for dedicated `Neko Neko` detection, buffered audio-to-Gemma requests, real TTS
+barge-in, and local `bye bye`/`goodbye` sleep. It retains no live microphone
+media and is not boot-enabled. Production false-wake/AEC testing, camera ground
+calibration, remaining worker units, combined soak, and a truthful 64K
+GGUF/llama.cpp context experiment remain pending. This is a research prototype.
+Perception is for social behavior and is
 not a vehicle safety or motion-control system.
 
 While production peripherals are in transit, use the non-recording bench harness

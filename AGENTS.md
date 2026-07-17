@@ -80,6 +80,26 @@ in 1.09–1.13 seconds for the accepted three-sentence audition and synthesized
 uses it; French and Spanish retain Supertonic. A real cold boot, production
 speaker listening, cancellation, audio arbitration, and combined soak remain.
 
+An attended, non-recording interruptible voice loop now passes automated replay
+tests with private owner-spoken fixtures. It continuously buffers 16 kHz audio
+in memory, uses Silero VAD plus a sherpa-onnx open-vocabulary keyword spotter,
+recognizes `Neko Neko` independently of Nemotron's unreliable rendering of the
+wake phrase, sends the same buffered utterance directly to local Gemma as inline
+WAV, and supports real barge-in by cancelling PipeWire playback. `bye bye`,
+`goodbye`, and `good bye` close the session locally even when ASR returns no
+text. A six-turn/2,400-character in-memory history is implemented. Negative,
+wake, interruption, replacement-response, and sleep replay tests pass; the
+owner recordings stay mode-restricted outside Git and are not identified or
+hashed in public notes. This loop is deliberately not boot-enabled pending
+false/missed-wake, production AEC, combined-load, unplug/failure, and soak gates.
+
+The normal Gemma service still has a 2,048-token total budget. An isolated
+65,536-token LiteRT experiment did not provide 64K: LiteRT substituted 32,000,
+then the first tiny request reached about 5,617,280 KiB anonymous RSS and was
+OOM-killed by its 5.5 GiB test cgroup. The 2K service was restored healthy. A
+truthful 64K test therefore moves to the GGUF/llama.cpp alternate with quantized
+KV cache and likely sequential worker residency.
+
 CatMeows 1.0.2 is pinned externally as a 440-clip candidate library. No clip has
 been played or integrated: the 221 isolation-context calls are excluded by
 default, and the brushing/food calls need a human friendly/distress curation
@@ -187,6 +207,10 @@ Read these before changing the system:
   — current two-loop implementation order for C922/reSpeaker audio, streaming
   ASR, Gemma, TTS, person detection, calibrated camera proximity, social state,
   production swap-over, memory constraints, and acceptance gates.
+- [Interruptible buffered-audio voice loop](docs/plan/2026-07-16-interruptible-voice.md)
+  — implemented VAD/keyword/audio-to-Gemma path, barge-in and sleep behavior,
+  privacy-preserving replay tests, measured latency, the failed 64K LiteRT
+  experiment, remaining production gates, and rollback.
 - [Owner decisions](docs/decisions/2026-07-13-owner-decisions.md) — durable
   answers for licensing, model residency, headless/Git authority, manual-motion
   scope, character/languages/stories, offline-first behavior, and media privacy.
@@ -313,6 +337,13 @@ the smaller, proven LiteRT CPU resident.
   exit-1-on-bounded-SIGINT contract only when PCM is present and stderr is empty.
   No integrated assistant/orchestration service is boot-enabled; Gemma and the
   separate English TTS worker are boot dependencies.
+- Silero VAD and sherpa-onnx's 3M bilingual open-vocabulary keyword model are
+  pinned externally on NVMe and run through the existing sherpa-onnx 1.13.4
+  environment. `scripts/neko_voice_assistant.py` combines them with Nemotron,
+  local Gemma audio input, bounded in-memory history, and cancellable TTS. Its
+  live path retains no microphone media; verbose transcripts are opt-in. The
+  attended/private-replay bench passes, but no assistant unit is installed or
+  enabled. Exact artifacts, hashes, tests, and rollback are in the setup log.
 - RF-DETR 1.8.3 export tooling, its exact Nano checkpoint/ONNX, and the locally
   built TensorRT FP16 plan are pinned on NVMe. The hash-verifying, non-recording
   C922 loop and metadata-only tracker pass. YOLO26/Ultralytics 8.4.95 exists only
@@ -848,3 +879,16 @@ For every future model or service, add:
   1.09–1.13 seconds and synthesized 5.415 seconds of audio in 3.67–3.82 seconds.
   The hardened service and playback client passed restart, PCM, PipeWire, power,
   memory, and full-suite tests; cold boot and production-speaker acceptance remain.
+- 2026-07-16: Implemented the continuous in-memory interruptible voice bench:
+  Silero VAD, a dedicated sherpa open-vocabulary `Neko Neko`/sleep keyword
+  spotter, Nemotron transcript hints, the same buffered utterance sent as inline
+  WAV to Gemma, bounded dialogue history, and cancellation-safe TTS barge-in.
+  Private owner-fixture replays passed negative-control, wake, interruption,
+  replacement-reply, and keyword-only `bye bye` sleep cases without adding the
+  recordings to Git. An isolated 65,536-token LiteRT request was silently
+  reduced to 32,000 and OOM-killed at about 5,617,280 KiB anonymous RSS; the
+  normal 2,048-token service was restored healthy. No assistant service was
+  installed or enabled; false-wake/AEC/combined soak remain hard gates. Final
+  milestone verification compiled the Python tree, passed all 95 repository
+  tests and `git diff --check`, found both enabled dependencies healthy with zero
+  restarts, and left no attended assistant or capture process running.

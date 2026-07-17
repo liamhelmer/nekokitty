@@ -33,6 +33,13 @@ def normalize_phrase(text: str) -> str:
 @dataclass(frozen=True, slots=True)
 class BehaviorConfig:
     wake_phrase: str = "neko neko"
+    wake_phrase_aliases: tuple[str, ...] = (
+        "eko neko",
+        "echo neko",
+        "echo necho",
+        "eko necho",
+        "neko",
+    )
     session_timeout_s: float = 30.0
     person_confidence_min: float = 0.60
     person_stable_observations_min: int = 3
@@ -96,6 +103,9 @@ class BehaviorController:
         if normalized in {"stop", "cancel", "stop talking", "be quiet"}:
             self.session_deadline_s = None
             return (CancelAudio(reason="voice-command"),)
+        if normalized in {"bye bye", "goodbye", "good bye"}:
+            self.session_deadline_s = None
+            return (CancelAudio(reason="sleep-word"),)
         if normalized in {"mute", "mute microphone", "privacy mode"}:
             self.muted = True
             self.session_deadline_s = None
@@ -106,9 +116,25 @@ class BehaviorController:
         if self.muted:
             return ()
 
-        wake = normalize_phrase(self.config.wake_phrase)
+        wake_phrases = tuple(
+            normalize_phrase(item)
+            for item in (self.config.wake_phrase, *self.config.wake_phrase_aliases)
+        )
         if not self.session_active:
-            if wake not in normalized:
+            wake = next(
+                (
+                    item
+                    for item in wake_phrases
+                    if (
+                        item != "neko" and item in normalized
+                    ) or (
+                        item == "neko"
+                        and (normalized == item or normalized.startswith(f"{item} "))
+                    )
+                ),
+                None,
+            )
+            if wake is None:
                 return ()
             self.session_deadline_s = event.monotonic_s + self.config.session_timeout_s
             remainder = normalized.replace(wake, "", 1).strip()

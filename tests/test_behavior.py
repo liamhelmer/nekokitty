@@ -36,6 +36,24 @@ class ConversationTests(unittest.TestCase):
         self.assertEqual(actions[0], Acknowledge())
         self.assertEqual(actions[1], DialogueRequest("tell me a cat joke", "en"))
 
+    def test_observed_asr_wake_alias_opens_dialogue(self) -> None:
+        actions = self.controller.handle(self.transcript("Eko Neko tell me something silly"))
+        self.assertEqual(actions[0], Acknowledge())
+        self.assertEqual(actions[1], DialogueRequest("tell me something silly", "en"))
+
+    def test_second_observed_asr_wake_alias_opens_dialogue(self) -> None:
+        actions = self.controller.handle(
+            self.transcript("Echo Necho, tell me something silly")
+        )
+        self.assertEqual(actions[0], Acknowledge())
+        self.assertEqual(actions[1], DialogueRequest("tell me something silly", "en"))
+
+    def test_repetition_collapsed_asr_alias_only_matches_at_start(self) -> None:
+        actions = self.controller.handle(self.transcript("Neko tell me something silly"))
+        self.assertEqual(actions[1], DialogueRequest("tell me something silly", "en"))
+        controller = BehaviorController()
+        self.assertEqual(controller.handle(self.transcript("I saw Neko over there")), ())
+
     def test_followup_inside_session_does_not_require_wake(self) -> None:
         self.controller.handle(self.transcript("Neko Neko", 1.0))
         self.assertEqual(
@@ -52,6 +70,17 @@ class ConversationTests(unittest.TestCase):
             self.controller.handle(self.transcript("stop")),
             (CancelAudio(reason="voice-command"),),
         )
+
+    def test_sleep_words_close_session_without_model(self) -> None:
+        for words in ("bye bye", "goodbye", "good bye"):
+            with self.subTest(words=words):
+                controller = BehaviorController()
+                controller.handle(self.transcript("Neko Neko", 1.0))
+                self.assertEqual(
+                    controller.handle(self.transcript(words, 2.0)),
+                    (CancelAudio(reason="sleep-word"),),
+                )
+                self.assertFalse(controller.session_active)
 
     def test_mute_fails_closed_until_unmute(self) -> None:
         actions = self.controller.handle(self.transcript("mute"))

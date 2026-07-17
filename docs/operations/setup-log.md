@@ -2637,3 +2637,172 @@ rm -rf /home/neko/models/kittentts
 Then revert the TTS service/client/config/chunker/tests, wheel patch, conversation
 route, persona contract, and documentation. Supertonic, Gemma, cat sounds, ASR,
 and perception are independent and remain usable.
+
+## 2026-07-16 — Continuous buffered voice, keyword wake, and barge-in bench
+
+This milestone built an attended integration bench, not a production or boot
+service. It joins the existing Nemotron ASR, loopback Gemma service, and private
+KittenTTS socket with continuous memory-only capture, speech segmentation,
+dedicated keyword spotting, bounded context, and interruptible playback. The
+complete behavior and test record is in
+`docs/plan/2026-07-16-interruptible-voice.md`.
+
+### External VAD and keyword artifacts
+
+The existing sherpa-onnx 1.13.4 ASR environment was reused; no second runtime was
+installed. Two official k2-fsa/sherpa-onnx release artifacts were downloaded to
+NVMe:
+
+| Artifact | Official URL | Local artifact | Bytes / SHA-256 |
+| --- | --- | --- | --- |
+| Silero VAD ONNX | `https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx` | `/home/neko/models/sherpa-onnx-vad/silero_vad.onnx` | 643,854 / `9e2449e1087496d8d4caba907f23e0bd3f78d91fa552479bb9c23ac09cbb1fd6` |
+| sherpa bilingual 3M open-vocabulary KWS, 2025-12-20 | `https://github.com/k2-fsa/sherpa-onnx/releases/download/kws-models/sherpa-onnx-kws-zipformer-zh-en-3M-2025-12-20.tar.bz2` | `/home/neko/models/sherpa-onnx-kws/sherpa-onnx-kws-zipformer-zh-en-3M-2025-12-20.tar.bz2` | 32,885,699 / `68447f4fbc67e70eee3a93961f36e81e98f47aef73ce7e7ca00885c6cd3616a6` |
+
+The VAD directory occupies 636 KiB. The KWS archive plus extracted model occupy
+71 MiB; the extracted model alone is about 39 MiB. The files actually selected
+by Neko are:
+
+| KWS file | SHA-256 |
+| --- | --- |
+| `encoder-epoch-13-avg-2-chunk-16-left-64.int8.onnx` | `408bbd740838c42d5bf6d1c5b80b3c88b616c7860b92d980328b5b068c76ae48` |
+| `decoder-epoch-13-avg-2-chunk-16-left-64.onnx` | `63a22dd60f40fff082ac3e09afa507f6787da36df76ded2fbe145fa233e22c21` |
+| `joiner-epoch-13-avg-2-chunk-16-left-64.int8.onnx` | `190d4067b4cc20b72a42a1916e69d92052000fb7051a427ebb1bc72a69207dc1` |
+| `tokens.txt` | `2d3f32311f9b692b964da3c90e830258d3e78e013cb0c992dbfb15cd5a1a71b0` |
+| `en.phone` | `f7000ec3a90544c0c7c16090d8951779c2b322e14dad5006290f498567d439ea` |
+
+Equivalent reproducible provisioning commands are:
+
+```bash
+install -d /home/neko/models/sherpa-onnx-vad /home/neko/models/sherpa-onnx-kws
+curl --fail --location --output \
+  /home/neko/models/sherpa-onnx-vad/silero_vad.onnx \
+  https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx
+curl --fail --location --output \
+  /home/neko/models/sherpa-onnx-kws/sherpa-onnx-kws-zipformer-zh-en-3M-2025-12-20.tar.bz2 \
+  https://github.com/k2-fsa/sherpa-onnx/releases/download/kws-models/sherpa-onnx-kws-zipformer-zh-en-3M-2025-12-20.tar.bz2
+tar -xjf \
+  /home/neko/models/sherpa-onnx-kws/sherpa-onnx-kws-zipformer-zh-en-3M-2025-12-20.tar.bz2 \
+  -C /home/neko/models/sherpa-onnx-kws
+sha256sum /home/neko/models/sherpa-onnx-vad/silero_vad.onnx \
+  /home/neko/models/sherpa-onnx-kws/sherpa-onnx-kws-zipformer-zh-en-3M-2025-12-20.tar.bz2
+```
+
+Silero VAD upstream is MIT. sherpa-onnx code/runtime is Apache-2.0. The KWS
+archive remains an external, non-distributed evaluation artifact; verify its
+model-specific redistribution terms before packaging it.
+
+### Runtime and policy changes
+
+`scripts/neko_voice_assistant.py` captures C922 audio by default from stable ALSA
+name `plughw:CARD=Webcam,DEV=0` as 16 kHz mono signed-16-bit PCM. It never writes
+live microphone audio. Silero runs on CPU with a 512-sample window, threshold
+0.25, 0.6-second end silence, 0.2-second minimum speech, 20-second maximum speech,
+and a 30-second in-memory buffer. KWS runs on CPU with one thread, four active
+paths, score 1.5, threshold 0.1, and one trailing blank. The checked-in
+`config/asr/neko-keywords.txt` includes three full `Neko Neko` pronunciations,
+three single-`Neko` fallbacks, `bye bye`, and `goodbye`.
+
+Nemotron text is now a best-effort hint, not the activation authority. On real
+owner speech it rendered the activation inconsistently as variants including
+`Eko Neko`, a single `Neko`, `Echo Necho`, `Echo necko`, `Go`, or nothing. The
+dedicated KWS event opens the deterministic session. At VAD end, the exact same
+bounded samples are serialized to an in-memory mono 16 kHz WAV and sent to local
+Gemma using OpenAI-compatible `input_audio`. No media leaves the loopback host.
+
+`neko/gemma_client.py` adds the in-memory WAV encoder and a six-turn,
+2,400-character default conversation history. The client request field was
+corrected from the ignored `max_tokens` spelling to `max_completion_tokens=96`.
+`neko/tts_protocol.py` adds caller-owned cancellation: it terminates the active
+`pw-cat`, shuts the TTS socket to unblock a read, and reports cancellation even
+when the resulting player exit code is nonzero. `neko/behavior.py` adds observed
+wake aliases and deterministic `bye bye`/`goodbye`/`good bye` sleep handling.
+
+Capture and VAD continue during Neko's speech. New speech cancels audible output;
+if it begins while Gemma is working, that stale reply is discarded before it can
+play. Sleep closes the session and clears history without a Gemma request. Normal
+execution does not print transcripts or replies; `--verbose-transcripts` is an
+attended diagnostic opt-in.
+
+No assistant systemd unit was created, installed, or enabled. The resident
+`neko-gemma.service` and `neko-tts.service` remain independent. The live bench
+command is:
+
+```bash
+/home/neko/.local/share/neko/venvs/asr/bin/python \
+  scripts/neko_voice_assistant.py --verbose-transcripts --max-dialogues 2
+```
+
+### Private replay fixtures and validation
+
+The owner authorized six spoken fixtures covering wake/request, interruption,
+follow-up, negative/no-wake control, stop, and sleep. They remain in an
+owner-readable directory outside the repository: parent mode 0700, files 0600.
+Their names, path, hashes, audio metadata, and contents are intentionally absent
+from the public repository because a voice recording is biometric media. Longer
+raw capture files were deleted after Silero trimming. The replay code paces each
+file in real time through the real VAD/KWS/ASR path; later inputs wait for the TTS
+`speaking` event, then begin 350 ms later to make barge-in deterministic.
+
+Observed accepted cases:
+
+- Wake: models loaded in 5.228 seconds; dedicated keyword detection opened the
+  session despite ASR `Echo, necko, tell me something silly`; buffered-audio
+  Gemma response took 11.804 seconds.
+- Negative control: no keyword event, session, Gemma call, or playback occurred.
+- Full barge-in: first response took 11.733 seconds; timed owner speech emitted
+  `barge_in_detected`, playback returned `cancelled`, the new request transcribed
+  correctly, and a replacement response took 12.378 seconds and played fully.
+- Sleep: the first response took 11.752 seconds and was cancelled; ASR was empty,
+  but KWS emitted keyword-only sleep, policy emitted `audio_cancelled` with
+  `sleep-word`, and no second Gemma request occurred.
+- A deterministic non-microphone cancellation timer set at 1.500 seconds returned
+  `cancelled` at 1.755 seconds. Production speech-onset-to-audible-silence remains
+  unmeasured.
+- Fixture ASR took approximately 0.79-1.59 seconds for about 2.1-4.0 seconds of
+  VAD-selected audio. Repeated buffered-audio Gemma requests took 11.73-12.38
+  seconds. A separate 2.942-second synthetic inline-audio request took 16.057
+  seconds and answered correctly. Earlier text requests took 10.29-11.82 seconds.
+
+Bluetooth headphones isolate playback from the webcam microphone and therefore
+do not validate production acoustic echo cancellation. Remaining gates are
+multi-speaker/angle/noise false- and missed-wake tests, production reSpeaker AEC
+reference testing, routing/latency choice, simultaneous resident-memory and
+power/thermal measurements, unplug/crash/network behavior, two-hour soak, cold
+boot, and a resource-bounded user-session unit with PipeWire readiness.
+
+### 64K context experiment
+
+Gemma 4 E2B advertises a 128K architecture, but the enabled LiteRT service remains
+bounded to 2,048 total tokens. A stopped, isolated experiment requested
+`--max-num-tokens 65536` with a 5.5 GiB memory cgroup instead of changing the
+normal service. The transient worker initialized in about 1.278 seconds and used
+about 512 MiB before inference. LiteRT warned that 65,536 exceeded its internal
+target/magic number 32,003 and substituted 32,000. Its first tiny request reached
+5,617,280 KiB anonymous RSS and the isolated cgroup OOM-killed it. The normal 2K
+Gemma service was immediately restored and passed its loopback health request.
+
+This result must not be described as 64K support. Even the silent 32K substitute
+cannot coexist safely with Neko's stack on 8 GB. The next honest 64K experiment
+is the already pinned QAT Q4_0 GGUF through llama.cpp with quantized KV cache,
+probably under sequential model residency.
+
+### Rollback
+
+Ensure no attended voice process or `arecord` child remains, then revert
+`scripts/neko_voice_assistant.py`, `config/asr/neko-keywords.txt`, the behavior,
+Gemma-client and TTS-protocol changes, their tests, and this documentation. The
+external detector artifacts can be removed independently:
+
+```bash
+rm -rf /home/neko/models/sherpa-onnx-vad
+rm -rf /home/neko/models/sherpa-onnx-kws
+```
+
+Do not delete private owner fixtures without explicit owner direction. Gemma,
+KittenTTS, Nemotron ASR, Supertonic, cat sounds, and perception are otherwise
+independent of this attended integration bench.
+
+Final milestone verification compiled `neko`, `scripts`, and `tests`, ran all 95
+repository tests successfully, and passed `git diff --check`. Both enabled
+dependencies were active/running with zero restarts; no attended voice assistant
+or `arecord` process remained.

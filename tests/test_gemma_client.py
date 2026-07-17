@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import io
 import json
+import base64
 import unittest
 from unittest.mock import patch
+import wave
 
-from neko.gemma_client import GemmaClient
+from neko.gemma_client import ConversationHistory, GemmaClient
 
 
 class FakeResponse:
@@ -42,12 +44,67 @@ class GemmaClientTests(unittest.TestCase):
         self.assertIn("contractions", payload["messages"][0]["content"])
         self.assertIn("silliness", payload["messages"][0]["content"])
         self.assertIn("français", payload["messages"][1]["content"])
+        self.assertEqual(payload["max_completion_tokens"], 96)
 
     @patch("neko.gemma_client.request.urlopen")
     def test_empty_reply_fails_closed(self, opened: object) -> None:
         opened.return_value = FakeResponse({"choices": []})
         with self.assertRaises(RuntimeError):
             GemmaClient().reply("hello")
+
+    @patch("neko.gemma_client.request.urlopen")
+    def test_reply_includes_bounded_conversation_history(self, opened: object) -> None:
+        opened.return_value = FakeResponse(
+            {"choices": [{"message": {"content": "The blue one!"}}]}
+        )
+        history = ConversationHistory(max_turns=2, max_characters=1_000)
+        history.append("Pick red or blue.", "Blue!", "en")
+        GemmaClient().reply("Which one did you pick?", "en", history)
+        payload = json.loads(opened.call_args.args[0].data)
+        self.assertEqual([message["role"] for message in payload["messages"]], [
+            "system",
+            "user",
+            "assistant",
+            "user",
+        ])
+        self.assertIn("Pick red or blue", payload["messages"][1]["content"])
+        self.assertIn("Which one did you pick", payload["messages"][3]["content"])
+
+    def test_history_discards_oldest_turns_to_stay_bounded(self) -> None:
+        history = ConversationHistory(max_turns=2, max_characters=100)
+        history.append("one", "first")
+        history.append("two", "second")
+        history.append("three", "third")
+        self.assertEqual([turn.user for turn in history.turns], ["two", "three"])
+        history.clear()
+        self.assertEqual(history.turns, ())
+
+    def test_interrupted_turn_is_explicit_context(self) -> None:
+        history = ConversationHistory()
+        history.append_interrupted("Tell me why cats purr")
+        self.assertIn("interrupted", history.turns[0].assistant)
+
+    @patch("neko.gemma_client.request.urlopen")
+    def test_audio_reply_posts_an_inline_mono_16khz_wav(self, opened: object) -> None:
+        opened.return_value = FakeResponse(
+            {"choices": [{"message": {"content": "A cat fact!"}}]}
+        )
+        answer = GemmaClient().reply_audio([0.0, 0.25, -0.25], 16_000, "cat fact")
+        self.assertEqual(answer, "A cat fact!")
+        payload = json.loads(opened.call_args.args[0].data)
+        content = payload["messages"][-1]["content"]
+        self.assertEqual(content[1]["type"], "input_audio")
+        wav_bytes = base64.b64decode(content[1]["input_audio"]["data"])
+        with wave.open(io.BytesIO(wav_bytes), "rb") as source:
+            self.assertEqual(source.getframerate(), 16_000)
+            self.assertEqual(source.getnchannels(), 1)
+            self.assertEqual(source.getnframes(), 3)
+
+    def test_audio_reply_rejects_wrong_rate_and_empty_audio(self) -> None:
+        with self.assertRaises(ValueError):
+            GemmaClient().reply_audio([0.0], 24_000, "")
+        with self.assertRaises(ValueError):
+            GemmaClient().reply_audio([], 16_000, "")
 
 
 if __name__ == "__main__":

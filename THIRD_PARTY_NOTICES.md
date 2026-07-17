@@ -15,6 +15,11 @@ Current notable boundaries:
   streaming ASR export is derived from NVIDIA model weights under OpenMDW-1.1;
   it is an external runtime artifact and is not covered by this repository's MIT
   licence.
+- The external Silero VAD ONNX artifact is from the MIT-licensed Silero VAD
+  project. The sherpa-onnx 3M bilingual open-vocabulary keyword archive is also
+  installed only as an external evaluation artifact; it is not distributed by
+  this repository. Confirm its model-specific redistribution terms before ever
+  packaging it. Exact sources and hashes are in the setup log.
 - Supertonic's Python code is MIT, while the separately downloaded Supertonic 3
   weights are BigScience OpenRAIL-M. Built-in voice-style data and generated
   audio remain subject to the upstream model terms and applicable voice rights.
