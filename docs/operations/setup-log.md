@@ -1084,8 +1084,9 @@ StoryWeaver references were separately reviewed through browser results.
 | Gemma 4 E2B GGUF | official Q4_0 artifact and digest-pinned container verified | all-layer CUDA benchmark passed at 18.63 tokens/s | on-demand alternate only |
 | Audex 2B | complete exact-revision snapshot and major hashes verified | no runtime; full path cannot fit unquantized | no |
 | ZipDepth | source/checkpoints, locked export env, checked ONNX, FP32/FP16 plans and hashes verified | build, deterministic numerical gates, and model-only timing pass; camera/scene/combined gates pending | no; on-demand experiment only |
-| Pipecat/ASR/TTS | research only | no | no |
-| Neko systemd units | Gemma source unit and installed copy match | wrapper/API/readiness/restart smoke passed | Gemma enabled/active; no cold reboot yet |
+| ASR/Supertonic | exact isolated runtimes/models pinned | standalone EN/FR/ES smokes pass | on demand; no service |
+| KittenTTS | 0.8.1 patched runtime plus exact Mini/Micro/Nano INT8 models | Micro/Kiki resident synthesis and PipeWire playback pass | `neko-tts.service` enabled/active; cold boot pending |
+| Neko systemd units | Gemma and TTS source/installed units match | readiness/restart/API-or-PCM smokes pass | Gemma and TTS enabled/active; no cold reboot yet |
 
 This table must be updated after every installation. “Enabled” states systemd
 configuration only; “boot-validated” additionally requires a real reboot and
@@ -2492,3 +2493,147 @@ Rollback is a Git revert of the derived files, recipe, manifest, attribution,
 allowlist, builder/tests, and documentation. After confirming no other workflow
 needs the analyzer, remove it with `sudo apt-get remove ffmpeg`; do not use
 `autoremove` without a separate audit. Originals remain byte-identical.
+
+## 2026-07-16 — KittenTTS Micro voice selection and resident service
+
+The owner accepted a more informal Neko delivery style—contractions, shorter
+words, short clauses, and gentle silliness—and selected Kiki at 1.2x. In a
+back-to-back Ora headphone comparison, the owner found virtually no audible
+difference between the 80M Mini reference and the faster 40M Micro profile.
+Micro is therefore the revision-one English default. KittenTTS remains English-
+only; Supertonic stays installed for French and Spanish.
+
+### Artifacts and runtime
+
+Official KittenML model repositories were downloaded at exact Hugging Face
+revisions with the existing `uvx`/`huggingface-hub==1.23.0` workflow:
+
+| Profile | Exact revision/path | Important SHA-256 |
+| --- | --- | --- |
+| Mini 0.8 | `c02725660cea441db4c383af69f1f26f5cd00947` under `/home/neko/models/kittentts/mini-0.8` | ONNX `0f5bbae4fc4800c98dbc544a87ecfa79510de2fb8222db30d12e5bfe9177df91`; voices `40ad2638952b77b7b2f30127e2608e169fc69dd256b53bd8aaa3409a33193c42` |
+| Micro 0.8 | `1ccf72b2c2048fd17efac7de2fab32d10e225084` under `/home/neko/models/kittentts/micro-0.8` | ONNX `95481626fee1ba70ce683e69c534fc7cb38433c46ce42d3abbeafb4b9f1a4123`; voices `112710c1be8ad0e967c190fb0fd95cbe5848ec4791b93209f20b28b7da20dac1` |
+| Nano 0.8 INT8 | `84781d74e29ee25217551556398b42f80593a813` under `/home/neko/models/kittentts/nano-0.8-int8` | ONNX `f7b0afcbee92870b32b8e0276d855b954dc25470c9f051b376ac7eee537c76fc`; voices `8aa7cee235abb0739cb51e6559685f65a4dacd95568833d05699b1633f519b3f` |
+
+The corresponding config hashes are, in the same order,
+`6b160bc9b19e24ecb21e84bc14f8a7da21fdf47ec72d42450bc5cf514b61804a`,
+`1f0bd2208348f9211cb0da64fcd1536eb28228571cc6b09e767eb6e203a0a532`,
+and `b66006ccbeccd4de5fc3c9272059c47f5725df7215fd889785c03602652fab64`.
+The model directories occupy about 78, 43, and 27 MiB. The isolated environment
+occupies about 177 MiB and contains KittenTTS 0.8.1, ONNX Runtime 1.27.0, NumPy
+2.5.1, phonemizer-fork 3.3.2, and SoundFile 0.14.0. The locally retained wheel is:
+
+```text
+/home/neko/models/kittentts/artifacts/kittentts-0.8.1-py3-none-any.whl
+SHA-256 482a436c4f1f3192153710376e459ff3689517ebcda7c2b051e2fd4187b41851
+```
+
+The first local patch inherited uv's hardlink into its unpack cache. To prevent a
+site-package patch from modifying cached package content, the package was
+reinstalled in copy mode after cleaning only KittenTTS's uv cache, then patched
+with the recorded forward-only patch:
+
+```bash
+/home/neko/.local/bin/uv cache clean kittentts
+UV_LINK_MODE=copy /home/neko/.local/bin/uv pip install \
+  --python /home/neko/.local/share/neko/venvs/kittentts/bin/python \
+  --reinstall --no-deps \
+  /home/neko/models/kittentts/artifacts/kittentts-0.8.1-py3-none-any.whl
+patch --batch --forward \
+  -d /home/neko/.local/share/neko/venvs/kittentts/lib/python3.12/site-packages \
+  -p1 < deploy/patches/kittentts-0.8.1-minimal-offline.patch
+```
+
+The resulting installed `onnx_model.py` hash is
+`f1ac67a13e0dba6ddb902e8d1106e0e21512324a7cfafa2f164723a23f8bc661`;
+`kittentts/__init__.py` is
+`21e9cbdaff454f3fd99c44c31fbdc60504eca102859f3cd9c29f82573cf94531`.
+The pristine cache inode is distinct from the deployed file. A dry-run of the
+repository patch against that pristine cache passed.
+
+### Integration changes
+
+Released KittenTTS 0.8.1 removes `.?!` while chunking and appends commas, which
+flattened question/exclamation prosody. `neko/tts_chunking.py` narrowly backports
+the punctuation/abbreviation behavior from official upstream commit
+`9f3e0d8b6600b56ebe1b4d7b6d8e1e020077d1f2`; tests cover questions,
+exclamations, `Dr.`, `p.m.`, decimals, long word-safe splits, and unpunctuated
+tails. The local wheel patch also accepts explicit ONNX Runtime session options
+and providers. Neko fixes the CPU profile at four intra-op threads, one inter-op
+thread, sequential execution, and full graph optimization.
+
+`scripts/serve_kittentts.py` verifies every selected model artifact before load,
+warms the model, signals systemd readiness, and accepts one bounded request at a
+time through `/run/neko/tts.sock`. It emits length-prefixed, sentence-sized,
+24 kHz mono signed-16-bit PCM frames. This is early sentence delivery, not
+model-native frame streaming. The protocol caps a request at 4,000 characters,
+headers at 64 KiB, and individual audio frames at 32 MiB. It has no Internet
+listener. `scripts/neko_tts_client.py` can save a WAV, feed the frames directly
+to one persistent `pw-cat` process, or do both. English `--speak` conversation
+now uses this worker; French/Spanish still use Supertonic.
+
+The source unit was verified, installed, enabled, and started:
+
+```bash
+systemd-analyze verify deploy/systemd/neko-tts.service
+sudo install -o root -g root -m 0644 deploy/systemd/neko-tts.service \
+  /etc/systemd/system/neko-tts.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now neko-tts.service
+```
+
+The unit runs as `neko`, uses only `AF_UNIX`, a private network/device namespace,
+read-only home/system views, no capabilities, no swap, 400/512 MiB memory
+high/max, four inference threads, bounded tasks/restarts, and a private runtime
+directory. `PULSE_SERVER=unix:/dev/null` suppresses Pulse autospawn attempts in
+the synthesis-only worker; actual playback remains in the caller's PipeWire
+session. `systemd-analyze security` rates the installed source-matching unit 2.2
+`OK`. It is enabled and active with zero restarts. A real power-cycle boot check
+is still pending.
+
+### Measurements and acceptance
+
+The common audition was:
+
+```text
+Hi, kitten! I'm Neko. Wanna go find something silly?
+```
+
+Both profiles used Kiki, 1.2x, four CPU threads, punctuation-preserving chunks,
+and 120 ms inter-sentence gaps. Mini took 7.225–7.570 seconds to generate about
+5.3–5.6 seconds (RTF 1.34–1.36); Micro took 3.800–4.024 seconds for about
+5.4–5.8 seconds (RTF 0.70). The owner selected Micro after back-to-back playback.
+Nano INT8 was retained as an emergency comparison, not selected; in the earlier
+same-sentence sweep Micro was also slightly faster than Nano.
+
+With Micro resident and warmed, three accepted-line runs reported first sentence
+data at 1.103, 1.111, and 1.127 seconds and total synthesis at 3.763, 3.768, and
+3.809 seconds for 5.415 seconds of audio. A later systemd run reported 1.092 and
+3.672 seconds. The emitted WAV was PCM S16LE, mono, 24 kHz, 5.415 seconds. One
+generated audition measured -21.4 LUFS-I and -1.7 dBFS true peak; no mastering
+was applied. The model contains stochastic operations, so exact waveform hashes
+are not reproducible and quality must be tested semantically/subjectively.
+
+During one request, the service reported about 170–190 MiB current/peak cgroup
+memory. `tegrastats` observed up to 7.068 W `VDD_IN`, 47.812 C, and 0% GPU use;
+this was a short warm request with Gemma also active, not a full combined soak.
+Service stop/start, readiness, socket ownership/mode, saved-WAV validation,
+streamed Ora playback, source/installed-unit equality, patch dry-run, and all 85
+repository tests passed. Production Visaton listening, amplifier/limiter tuning,
+cancel/barge-in behavior, audio arbitration, cold boot, and the full concurrent
+ASR/Gemma/perception/TTS soak remain acceptance gates.
+
+### Rollback
+
+Disable the worker before removing any artifacts:
+
+```bash
+sudo systemctl disable --now neko-tts.service
+sudo rm /etc/systemd/system/neko-tts.service
+sudo systemctl daemon-reload
+rm -rf /home/neko/.local/share/neko/venvs/kittentts
+rm -rf /home/neko/models/kittentts
+```
+
+Then revert the TTS service/client/config/chunker/tests, wheel patch, conversation
+route, persona contract, and documentation. Supertonic, Gemma, cat sounds, ASR,
+and perception are independent and remain usable.

@@ -39,6 +39,8 @@ class GemmaClientTests(unittest.TestCase):
         payload = json.loads(req.data)
         self.assertEqual(payload["model"], "gemma-4-e2b-it")
         self.assertEqual(payload["messages"][0]["role"], "system")
+        self.assertIn("contractions", payload["messages"][0]["content"])
+        self.assertIn("silliness", payload["messages"][0]["content"])
         self.assertIn("français", payload["messages"][1]["content"])
 
     @patch("neko.gemma_client.request.urlopen")

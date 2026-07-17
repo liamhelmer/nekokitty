@@ -62,7 +62,7 @@ metadata through `PersonObservation`. The ASR helper now accepts bounded
 PipeWire capture for Bluetooth devices and reports only privacy-safe input
 levels; Ora routing/capture works, but an intelligible spoken headset transcript
 still needs a deliberately timed owner sample. No Neko application service was
-enabled.
+enabled during that bench; the separate TTS worker was enabled later.
 
 MeowLLM was also auditioned as an isolated lab profile on 2026-07-16. It is a
 tiny English text-generation model, not TTS. Restricted checkpoint loading,
@@ -70,13 +70,15 @@ three CPU text generations, its portable rule smoke test, and a transient
 MeowLLM-text -> Supertonic -> Ora playback passed. It is not integrated or
 boot-enabled; at most, consider it later for optional non-factual cat quips.
 
-KittenTTS 0.8.1 and the 80M Mini model are now pinned as another on-demand TTS
-tool. The Kiki voice at 1.2x played successfully over Ora. Its audited minimal
-CPU environment avoids an unused upstream Misaki/spaCy/Torch dependency chain
-and mutable model download; a clean-room hash-locked reinstall passed. The first
-6.15-second sample took 8.24 seconds to synthesize and peaked at 278.9 MiB RSS,
-so Kiki is a promising English voice candidate, not yet the low-latency or
-multilingual default. No KittenTTS service is enabled.
+KittenTTS 0.8.1 Mini, Micro, and Nano INT8 are pinned for comparison. The owner
+selected the 40M Micro model's Kiki voice at 1.2x after a back-to-back Ora
+comparison found virtually no quality difference from Mini. The resident,
+CPU-only `neko-tts.service` is installed, enabled, and active behind a private
+Unix socket. Its punctuation-preserving sentence path produced first audio data
+in 1.09–1.13 seconds for the accepted three-sentence audition and synthesized
+5.415 seconds of audio in 3.67–3.82 seconds. The English conversation helper now
+uses it; French and Spanish retain Supertonic. A real cold boot, production
+speaker listening, cancellation, audio arbitration, and combined soak remain.
 
 CatMeows 1.0.2 is pinned externally as a 440-clip candidate library. No clip has
 been played or integrated: the 221 isolation-context calls are excluded by
@@ -309,7 +311,8 @@ the smaller, proven LiteRT CPU resident.
   and memory-only ALSA/PipeWire live ASR tool are in the repository with unit
   coverage. The PipeWire path handles the observed PipeWire 1.0.5 `pw-record`
   exit-1-on-bounded-SIGINT contract only when PCM is present and stderr is empty.
-  No Neko application service is boot-enabled.
+  No integrated assistant/orchestration service is boot-enabled; Gemma and the
+  separate English TTS worker are boot dependencies.
 - RF-DETR 1.8.3 export tooling, its exact Nano checkpoint/ONNX, and the locally
   built TensorRT FP16 plan are pinned on NVMe. The hash-verifying, non-recording
   C922 loop and metadata-only tracker pass. YOLO26/Ultralytics 8.4.95 exists only
@@ -326,14 +329,19 @@ the smaller, proven LiteRT CPU resident.
   reused the export-only CPU Torch/tokenizers environment. Never call upstream's
   `weights_only=False` loader on downloaded checkpoints; the pinned artifact
   passes restricted `torch.load(..., weights_only=True)`.
-- KittenTTS 0.8.1 is installed only in
-  `/home/neko/.local/share/neko/venvs/kittentts`; the exact 80M Mini ONNX and
-  voices are pinned at Hugging Face revision
-  `c02725660cea441db4c383af69f1f26f5cd00947` under
-  `/home/neko/models/kittentts`. The project lock plus reproducible patch remove
-  unused heavy imports and the eager downloader from the local path.
-  `scripts/neko_kittentts_speak.py` verifies artifact hashes before inference.
-  This is an English on-demand profile with no systemd unit.
+- KittenTTS 0.8.1 is isolated at
+  `/home/neko/.local/share/neko/venvs/kittentts`. Exact Mini, Micro, and Nano
+  INT8 artifacts are pinned under `/home/neko/models/kittentts` at revisions
+  `c02725660cea441db4c383af69f1f26f5cd00947`,
+  `1ccf72b2c2048fd17efac7de2fab32d10e225084`, and
+  `84781d74e29ee25217551556398b42f80593a813`. The lock and reproducible patch
+  remove unused heavy imports/eager downloading and expose explicit ONNX Runtime
+  CPU thread/provider controls. `neko-tts.service` preloads and warms Micro/Kiki
+  1.2x, accepts bounded text only over `/run/neko/tts.sock`, and emits
+  sentence-sized 24 kHz mono PCM frames. The service source and installed unit
+  match; it is enabled/active with 400/512 MiB memory high/max, four threads,
+  private networking/devices, readiness notification, and restart bounds. Cold
+  boot remains untested.
 - CatMeows 1.0.2's verified external archive and 440 extracted WAVs are under
   `/home/neko/models/cat-sounds/catmeows/4008297`. They are not distributed,
   approved for unattended playback, or training input. Preserve the record's
@@ -455,12 +463,17 @@ linked notes. Important conclusions:
   process RSS. Its best role, if any, is a tightly bounded optional cat-quip
   source whose complete text still passes Neko policy before Supertonic speaks
   it. It must never replace Gemma, story policy, or TTS.
-- KittenTTS Mini's Kiki voice at 1.2x passed offline Ora playback. Two cold
-  single-utterance CPU runs were consistent at 1.339–1.356 real-time factor,
-  roughly 1.6 s load, and 276–279 MiB peak RSS. Its size is attractive, but it
-  is English-only today and slower than the installed Supertonic standalone
-  result. Keep it as a voice candidate until warm/chunked and production-speaker
-  listening tests establish first-audio latency and quality.
+- KittenTTS Micro/Kiki at 1.2x is the accepted revision-one English voice.
+  Mini's identical audition synthesized near 1.34 RTF; Micro measured about
+  0.70 RTF and the owner heard virtually no difference back-to-back. A resident
+  Micro worker reduced first sentence data for the accepted informal audition
+  to 1.09–1.13 seconds, with a 3.67–3.82 second total synthesis time for 5.415
+  seconds of audio. Service memory was about 170–190 MiB current/peak in smokes;
+  Jetson input peaked at 7.068 W and 47.812 C during one isolated request. This
+  is sentence-framed delivery, not model-native frame streaming. KittenTTS is
+  English-only; Supertonic remains the French/Spanish path. The owner also
+  approved shorter words, contractions, and gentle silliness as the spoken
+  style; keep safety directions literal.
 - Use curated real cat recordings for revision one. CatMeows supplies labeled
   meows under CC BY 4.0 plus an author-stated noncommercial/research condition;
   isolation calls are not routine child-facing assets. Wikimedia and Freesound
@@ -826,3 +839,12 @@ For every future model or service, add:
   are explicitly peak-limited below target. Runtime remains disabled pending
   derived listening and final speaker/transducer acceptance. The deterministic
   25-asset rebuild and complete 76-test repository suite pass.
+- 2026-07-16: Selected KittenTTS Micro/Kiki 1.2x as Neko's English voice after
+  the owner heard virtually no quality difference from Mini and approved the
+  shorter, informal, gently silly speaking style. Pinned Micro and Nano INT8,
+  backported upstream punctuation-preserving chunking, exposed explicit CPU
+  session controls, and installed an enabled/readiness-notifying resident Unix-
+  socket worker. Warm accepted-line smokes delivered first sentence data in
+  1.09–1.13 seconds and synthesized 5.415 seconds of audio in 3.67–3.82 seconds.
+  The hardened service and playback client passed restart, PCM, PipeWire, power,
+  memory, and full-suite tests; cold boot and production-speaker acceptance remain.
