@@ -27,10 +27,10 @@ Current notable boundaries:
   external artifacts, are not distributed here, and are not covered by Neko's
   root licence merely by being installed locally. Exact revisions and hashes are
   recorded in `AGENTS.md` and the setup log.
-- KittenTTS 0.8.1 code and the separately downloaded KittenTTS Mini 0.8 ONNX/
-  voice artifacts are identified as Apache-2.0 upstream. They remain external;
-  Neko's local minimal-offline patch does not relicense them. Exact wheel/model
-  revisions and hashes are in the setup log.
+- KittenTTS 0.8.1 code and the separately downloaded KittenTTS Mini, Micro, and
+  Nano INT8 0.8 ONNX/voice artifacts are identified as Apache-2.0 upstream. They
+  remain external; Neko's local minimal-offline patch does not relicense them.
+  Exact wheel/model revisions and hashes are in the setup log.
 - CatMeows 1.0.2 is an external University of Milan dataset. Zenodo identifies
   CC BY 4.0 and the authors additionally state scientific-research/
   non-commercial use and acknowledgement terms. It is not distributed in this

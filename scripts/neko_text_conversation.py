@@ -26,29 +26,33 @@ from neko.events import (  # noqa: E402
     TranscriptEvent,
 )
 from neko.gemma_client import GemmaClient  # noqa: E402
+from neko.tts_protocol import TtsClient  # noqa: E402
 
 
-TTS_CLI = Path("/home/neko/.local/share/neko/venvs/tts/bin/supertonic")
-TTS_MODEL_DIR = Path("/home/neko/models/supertonic-3")
+SUPERTONIC_CLI = Path("/home/neko/.local/share/neko/venvs/tts/bin/supertonic")
+SUPERTONIC_MODEL_DIR = Path("/home/neko/models/supertonic-3")
 
 
 def speak(text: str, language: str, voice: str) -> None:
     if language not in {"en", "fr", "es"}:
         language = "en"
-    if not TTS_CLI.is_file() or not TTS_MODEL_DIR.is_dir():
+    if language == "en":
+        TtsClient().synthesize(text, play=True)
+        return
+    if not SUPERTONIC_CLI.is_file() or not SUPERTONIC_MODEL_DIR.is_dir():
         raise RuntimeError("the isolated Supertonic runtime is not installed")
     with tempfile.TemporaryDirectory(prefix="neko-tts-") as directory:
         output = Path(directory) / "reply.wav"
         env = {
             "PATH": "/usr/bin:/bin",
             "HOME": str(Path.home()),
-            "SUPERTONIC_CACHE_DIR": str(TTS_MODEL_DIR),
+            "SUPERTONIC_CACHE_DIR": str(SUPERTONIC_MODEL_DIR),
             "SUPERTONIC_INTRA_OP_THREADS": "4",
             "SUPERTONIC_INTER_OP_THREADS": "1",
         }
         generated = subprocess.run(
             [
-                str(TTS_CLI),
+                str(SUPERTONIC_CLI),
                 "tts",
                 text,
                 "--output",
@@ -106,7 +110,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--utterance", action="append", default=[])
     parser.add_argument("--language", choices=("en", "fr", "es"), default="en")
     parser.add_argument("--speak", action="store_true", help="synthesize and play replies")
-    parser.add_argument("--voice", choices=tuple(f"F{i}" for i in range(1, 6)), default="F1")
+    parser.add_argument(
+        "--voice",
+        choices=tuple(f"F{i}" for i in range(1, 6)),
+        default="F1",
+        help="Supertonic voice used for French and Spanish; English uses Kiki",
+    )
     parser.add_argument("--base-url", default="http://127.0.0.1:9379")
     return parser
 

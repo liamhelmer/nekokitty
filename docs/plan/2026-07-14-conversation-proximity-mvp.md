@@ -54,11 +54,11 @@ the complete pipeline violates memory or latency gates.
    The behavior service supplies the persona, turn state, child policy, and
    bounded request. It owns `stop`, `cancel`, `mute`, volume, exact stories, and
    sound actions without asking the model.
-5. **TTS:** evaluate pinned Supertonic 3 first. Its official release is a 99M
-   parameter, CPU/ONNX, 31-language model with English, French, and Spanish and a
-   loopback HTTP server exposing native and OpenAI-compatible speech endpoints.
-   Keep Piper as the smaller deterministic fallback. Generate/check a complete
-   child-facing sentence before synthesis; do not speak unchecked token streams.
+5. **TTS:** use the owner-selected KittenTTS Micro/Kiki 1.2x resident worker for
+   English; keep pinned Supertonic 3 for French and Spanish. The English worker
+   accepts only a complete checked string over a private Unix socket, then emits
+   sentence-sized PCM frames. Keep Piper as the smaller deterministic fallback.
+   Do not speak unchecked model tokens.
 6. **Orchestration:** use Pipecat's frame pipeline for audio/STT/LLM/TTS flow,
    with thin local adapters for sherpa-onnx, the fixed Gemma endpoint, and
    Supertonic. Keep Neko's policy/state in typed project code, not in Pipecat or
@@ -188,13 +188,14 @@ decision.
 
 ### KittenTTS Kiki and cat-sound palette — 2026-07-16
 
-KittenTTS Mini 0.8 is now a measured on-demand English voice candidate. The
-owner-selected Kiki voice at 1.2x passed transient Ora playback with a small
-278.9 MiB peak process RSS, but generated at 1.339 real-time factor in the first
-cold test. Keep Supertonic as the multilingual integration baseline while Kiki
-receives a warm/chunked benchmark and production-speaker A/B listening test.
-Use the pinned offline helper; do not call KittenTTS's mutable Hub downloader or
-enable a service yet.
+KittenTTS Micro 0.8/Kiki at 1.2x is now the selected English voice. The owner
+heard virtually no quality difference from Mini in a back-to-back Ora comparison
+while Micro cut synthesis time roughly in half. The enabled resident worker
+verifies pinned artifacts, preserves punctuation, warms at start, and emits the
+first sentence over a private Unix socket in about 1.1 seconds for the accepted
+informal three-sentence audition. Supertonic remains the French/Spanish path.
+The production speaker, cancellation/audio arbitration, cold boot, and combined
+workload soak are still required; do not use mutable Hub downloads.
 
 Build nonverbal cat audio as a deterministic soundboard before attempting live
 generation:
@@ -257,9 +258,11 @@ Exact artifacts, benchmark evidence, licenses, and acceptance gates are in
 - Ultralytics TensorRT export documentation and current license guidance:
   <https://docs.ultralytics.com/integrations/tensorrt>
   and <https://www.ultralytics.com/license>
-- KittenTTS 0.8.1 repository and Mini model card:
+- KittenTTS 0.8.1 repository and evaluated model cards:
   <https://github.com/KittenML/KittenTTS>
-  and <https://huggingface.co/KittenML/kitten-tts-mini-0.8>
+  plus <https://huggingface.co/KittenML/kitten-tts-mini-0.8>,
+  <https://huggingface.co/KittenML/kitten-tts-micro-0.8>, and
+  <https://huggingface.co/KittenML/kitten-tts-nano-0.8-int8>
 - CatMeows version 1.0.2 record:
   <https://doi.org/10.5281/zenodo.4008297>
 - Stable Audio 3 Small SFX repository and model card:

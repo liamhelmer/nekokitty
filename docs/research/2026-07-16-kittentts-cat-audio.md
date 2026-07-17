@@ -2,11 +2,13 @@
 
 ## Decision
 
-Keep KittenTTS 0.8.1 with the 80M `kitten-tts-mini-0.8` Kiki voice at 1.2x
-speed as an installed, on-demand English voice candidate. It is small and fully
-local, but its first Jetson CPU measurement was slower than real time. Do not
-replace multilingual Supertonic or enable a KittenTTS service until warm,
-sentence-chunk, coexistence, and subjective listening comparisons pass.
+Use KittenTTS 0.8.1 with the 40M `kitten-tts-micro-0.8` Kiki voice at 1.2x as
+Neko's revision-one English default. The owner found virtually no audible
+difference from Mini in a back-to-back Ora comparison, while Micro synthesized
+about twice as fast. The resident CPU worker is enabled behind a private Unix
+socket and passed warm sentence delivery. Keep multilingual Supertonic for
+French and Spanish. Production-speaker quality, cancellation/audio arbitration,
+cold boot, and full coexistence remain required.
 
 For cat vocalizations, ship a curated and attributed local sound palette first.
 Real recordings provide predictable latency, mood, loudness, and child-safety.
@@ -19,6 +21,8 @@ Primary sources checked on 2026-07-16:
 
 - <https://github.com/KittenML/KittenTTS>
 - <https://huggingface.co/KittenML/kitten-tts-mini-0.8>
+- <https://huggingface.co/KittenML/kitten-tts-micro-0.8>
+- <https://huggingface.co/KittenML/kitten-tts-nano-0.8-int8>
 
 Upstream calls KittenTTS a developer preview and offers 15M, 40M, and 80M ONNX
 models. It documents eight voices, native speed control, 24 kHz output, CPU-only
@@ -63,6 +67,46 @@ single-utterance CPU observations, not a warm streaming benchmark. ONNX Runtime
 logged harmless failed DRM-device discovery while continuing on CPU. A clean
 temporary environment installed all 32 hash-locked packages with `--no-deps`,
 accepted the recorded patch, and imported the local class successfully.
+
+### Micro selection and resident result
+
+The released wheel's chunker removes question/exclamation punctuation and adds
+a comma to each result. That audibly flattens prosody. Neko narrowly backports
+the punctuation- and abbreviation-preserving behavior from official upstream
+commit `9f3e0d8b6600b56ebe1b4d7b6d8e1e020077d1f2`; it also passes explicit ONNX
+Runtime CPU session controls through the local patch. This avoids replacing the
+whole wheel with an unreleased branch.
+
+The accepted comparison line was:
+
+```text
+Hi, kitten! I'm Neko. Wanna go find something silly?
+```
+
+The line also establishes the owner's delivery preference: contractions, short
+common words and clauses, an informal tone, and a little harmless silliness.
+Mini/Kiki generated at about 1.34 RTF. Micro/Kiki generated at about 0.70 RTF,
+used less memory, and sounded virtually identical to the owner when played
+immediately after Mini. The exact Micro revision is
+`1ccf72b2c2048fd17efac7de2fab32d10e225084`; Nano INT8 revision
+`84781d74e29ee25217551556398b42f80593a813` is retained only as a smaller
+comparison/fallback candidate.
+
+The enabled `neko-tts.service` keeps Micro resident, performs a discarded warmup,
+and emits sentence-sized PCM frames through `/run/neko/tts.sock`. Three warm
+accepted-line trials delivered their first frame in 1.103–1.127 seconds and
+finished all synthesis in 3.763–3.809 seconds for 5.415 seconds of audio; a
+later installed-service run measured 1.092/3.672 seconds. Service memory was
+about 170–190 MiB during smokes. One monitored request reached 7.068 W input and
+47.812 C with no GPU use. These are local sentence-framed results, not an
+upstream claim or model-native frame streaming benchmark.
+
+The service is synthesis-only and has no network listener. Playback stays in the
+caller's PipeWire session; the client maintains one `pw-cat` process so sentence
+frames drain without reopening the device. Complete child-facing text is still
+policy-checked before the request. Current KittenTTS output is stochastic, so
+exact waveform hashes are not a useful regression contract; use protocol,
+latency, signal-bound, pronunciation, and human-listening tests instead.
 
 ## Curated cat-sound sources
 
@@ -360,10 +404,10 @@ research experiment; it additionally requires the SAME-S encoder artifact.
 
 ## Acceptance gates
 
-1. Owner confirms the Kiki audition subjectively and compares it against at
-   least one Supertonic voice on the production speaker.
-2. Measure KittenTTS warm repeated generation, first playable chunk, and combined
-   Gemma/ASR/perception memory and power.
+1. **Complete on Ora:** owner selected Micro/Kiki 1.2x over Mini/Kiki and approved
+   the informal/silly style. Repeat on the production Visaton speaker.
+2. **Part complete:** warm repeated generation and first sentence delivery pass.
+   Combined Gemma/ASR/perception/TTS memory, power, and long soak remain.
 3. Human-curate and attribute at least 12 lossless cat assets; reject distress,
    excessive noise, clipping, and ambiguous rights.
 4. Implement a manifest-driven soundboard with mood/action tags, gain ceilings,
@@ -374,9 +418,12 @@ research experiment; it additionally requires the SAME-S encoder artifact.
 
 ## Rollback
 
-Removing KittenTTS does not affect Supertonic or any service:
+Removing KittenTTS does not affect Supertonic. Disable its service first:
 
 ```bash
+sudo systemctl disable --now neko-tts.service
+sudo rm /etc/systemd/system/neko-tts.service
+sudo systemctl daemon-reload
 rm -rf /home/neko/.local/share/neko/venvs/kittentts
 rm -rf /home/neko/models/kittentts
 ```
@@ -390,5 +437,6 @@ rm -rf /home/neko/models/stable-audio-3
 rm -rf /home/neko/models/stable-audio-3-optimized
 ```
 
-Then revert the KittenTTS and Stable Audio input/lock files, patch, helper,
-notices, and documentation. No boot-enabled unit or system package was created.
+Then revert the KittenTTS and Stable Audio input/lock files, patch, service,
+helpers, protocol/config/chunker/tests, conversation route, notices, and
+documentation. The FFmpeg package is unrelated to TTS rollback.

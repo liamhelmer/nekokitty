@@ -247,9 +247,10 @@ normal profile at once.
 4. sherpa-onnx's INT8 export of Nemotron 3.5 ASR Streaming 0.6B, 560 ms profile,
    for current EN/FR/ES streaming evaluation. Compare against multilingual
    `whisper.cpp` base and small as the low-dependency recovery path.
-5. Supertonic 3 as the first expressive EN/FR/ES local TTS candidate. Compare
-   Pocket TTS and retain Piper as the small deterministic fallback after checking
-   each selected voice's license.
+5. **Selected for English:** resident KittenTTS Micro/Kiki at 1.2x, using
+   punctuation-preserving sentence frames. Keep Supertonic 3 for French and
+   Spanish. Compare Pocket TTS only after a consented source recording exists;
+   retain Piper as the small deterministic fallback.
 6. Curated original meow/chirp/trill/purr assets. A local acknowledgement sound
    within 250 ms makes a multi-second generated reply feel deliberate.
 
@@ -369,7 +370,7 @@ Provisional services, implemented only as their hardware/runtime is ready:
 | `neko-wake` | wake, local mute/cancel, VAD | button/manual fallback remains |
 | `neko-asr` | streaming local transcription | exact button/canned paths remain |
 | `neko-gemma` | four-thread bounded fixed local model, preload readiness, loopback health | deterministic commands/stories/sounds remain |
-| `neko-tts` | local streaming synthesis | canned voice/earcon fallback |
+| `neko-tts` | resident English synthesis and sentence-sized PCM over a private Unix socket | canned voice/earcon fallback |
 | `neko-sensors` | front/rear Reolink and four-sector C4001 health plus ephemeral metadata | no proactive greeting; voice remains |
 | `neko-behavior` | policy, typed intents, social state, child/privacy rules | fail closed on cloud/actions; audio watchdog remains |
 | `neko-assistant` | turn pipeline and session coordination | supervisor restarts with bounded backoff |
@@ -439,7 +440,7 @@ at or below CAD 2,000 landed and every critical part meets the one-week ETA.
 - Install the locally stocked four-mic XVF3000 array, Soberton XPCB-12BT,
   Visaton FR 8 WP, and low-level TT25-8 body shaker on a protected bench supply.
 - Pin firmware and ALSA identities; tune echo delay and barge-in.
-- Build/evaluate Neko Neko, VAD, EN/FR/ES ASR, TTS voices, canned sounds, limiter,
+- Build/evaluate Neko Neko, VAD, EN/FR/ES ASR, the selected TTS routes, canned sounds, limiter,
   Bluetooth-disabled AUX behavior, and fail-silent behavior. Keep XVF3800 as a
   later lifecycle upgrade rather than a schedule dependency.
 
