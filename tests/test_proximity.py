@@ -31,6 +31,7 @@ class ProximityEstimatorTests(unittest.TestCase):
         self.assertTrue(event.approaching)
         self.assertEqual(event.stable_observations, 3)
         self.assertEqual(event.dwell_s, 2.0)
+        self.assertEqual(event.bottom_y_normalized, 0.7)
 
     def test_expiry_emits_media_free_gone_event(self) -> None:
         estimator = ProximityEstimator(

@@ -8,8 +8,15 @@ Start with [`AGENTS.md`](AGENTS.md). It is the durable system inventory and
 operations index for humans, Codex, Claude Code, and other project agents.
 
 The repository intentionally excludes model weights, generated engines, private
-audio/images/transcripts, credentials, and runtime caches. Exact external
-artifacts and host changes are pinned and recorded in
+audio/images/transcripts, credentials, and runtime caches. It does include a
+reviewed set of third-party Creative Commons cat recordings, each under its own
+recorded licence rather than the root MIT licence. The maintained catalog and
+processing queue are [Cat Sounds Master](docs/cat-sounds/CAT_SOUNDS_MASTER.md)
+and [Processing and Remix Queue](docs/cat-sounds/PROCESSING_AND_REMIX_QUEUE.md).
+The first 25 lossless P0 speaker/transducer bench candidates, deterministic
+recipes, mastering measurements, attribution, and disabled semantic allowlist are
+documented in [Derived Cat-Audio Bench](docs/cat-sounds/DERIVED_AUDIO_BENCH.md).
+Exact external artifacts and host changes are pinned and recorded in
 [`docs/operations/setup-log.md`](docs/operations/setup-log.md).
 
 Current status: the Jetson is configured to boot headless and its bounded,

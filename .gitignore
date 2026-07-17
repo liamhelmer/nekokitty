@@ -50,6 +50,15 @@ transcripts/
 *.jpeg
 *.png
 
+# Reviewed third-party cat recordings are intentionally versioned with their
+# per-file Creative Commons provenance. This exception must stay narrower than
+# the private/generated media rules above.
+!assets/cat-sounds/originals/*.wav
+!assets/cat-sounds/originals/*.aiff
+!assets/cat-sounds/originals/*.flac
+!assets/cat-sounds/originals/*.mp3
+!assets/cat-sounds/derived/*.wav
+
 # Runtime state and diagnostics
 *.log
 *.pid

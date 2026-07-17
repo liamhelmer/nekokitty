@@ -1801,3 +1801,694 @@ preserved rather than destructively rewritten. Rollback of repository visibility
 is `gh repo edit liamhelmer/nekokitty --visibility private`; that does not retract
 copies already fetched while public. Reverting the merge is a separate Git
 operation and does not remove the external NVMe model/runtime artifacts.
+
+## 2026-07-16 — C922/Ora hardware-in-the-loop continuation
+
+No package, model, systemd unit, boot target, audio daemon setting, or Bluetooth
+pairing state was added or changed. All camera/audio captures remained in memory;
+no raw frame, image, audio file, or video was retained. The Ora Bluetooth address
+is deliberately omitted.
+
+The read-only Jetson diagnostic baseline reported 5,570,724 KiB available of
+7,665,220 KiB, no swap, 15 W mode, 46.8 C hottest reported zone, and a 4.534–
+4.807 W `VDD_IN` sample. Gemma remained active. The safe combined command was:
+
+```bash
+python3 scripts/smoke_test_devices.py all \
+  --camera-match C922 \
+  --capture-match Webcam \
+  --frames 90 \
+  --duration 5
+```
+
+It passed synthetic processing, 90 C922 frames at 25.79 wall fps, 49 webcam-mic
+level samples (-41.31 to -26.98 dBFS), and Gemma in 2.739 s. Gemma replied:
+`Mrow! Hello there, little one! Do you like cats?`
+
+The first positive `scripts/neko_camera_proximity.py` run exposed an
+`AttributeError`: the serializer requested `PersonObservation.bottom_y_normalized`
+although only the detector-side track carried it. `PersonObservation` now carries
+that optional, ephemeral, non-image field and `ProximityEstimator` populates it;
+the serializer handles `None`. After targeted tests, the repeated 18-second,
+5 Hz, threshold-0.60 TensorRT run held one anonymous `person-1` track for the
+whole run at 0.926–0.969 confidence. Its box bottom was 0.995–1.000 normalized,
+so the temporary pose was too close/cropped for calibration. With no calibration
+argument, distance stayed `null` and approach stayed false as required.
+
+Ora was the default PipeWire mSBC sink/source. A two-second low-volume 523.25 Hz
+tone was sent through `pipewiresink` after temporarily lowering the sink to 30%;
+the bounded timeout ended the continuous source as expected, and the prior 67%
+sink volume was restored. A six-second non-retaining
+`pipewiresrc` level run returned 59 samples, a -31.83 dBFS maximum, and no stream
+error. The full deterministic text path also passed:
+
+```bash
+python3 scripts/neko_text_conversation.py \
+  --utterance "Neko Neko, say hello and ask whether I want to hear a cat story, in one short sentence." \
+  --language en \
+  --speak \
+  --voice F1
+```
+
+It produced the local acknowledgement, a short Gemma reply, transient
+Supertonic synthesis, and PipeWire playback; the temporary WAV was deleted when
+the command exited.
+
+`scripts/neko_asr_transcribe.py` now supports `--pipewire-seconds` and optional
+`--pipewire-target`. It runs `/usr/bin/pw-record` in its own process group,
+requests 16 kHz mono signed-16 PCM, bounds capture with SIGINT, checks the
+observed PipeWire 1.0.5 clean-interrupt contract, validates/minimum-bounds/trims
+PCM, and never writes it. It also reports privacy-safe whole-buffer RMS and peak
+dBFS. PipeWire inspection while recording proved that `pw-record` linked to the
+Ora capture node. Eight-second trials captured 7.977 seconds and decoded at
+0.370 RTF, but produced empty transcripts. A later three-second diagnostic
+exited 0 with 2.985 seconds of audio, -67.60 dBFS RMS and -31.38 dBFS peak, 1.161
+seconds decode/0.389 RTF, and an empty transcript. This contains no sustained
+speech and therefore validates transport/silence handling, not live ASR accuracy.
+One 20-second attempt emitted no result line; a subsequent short run passed and
+kernel logs showed no OOM. Long bounded capture remains part of the soak gate.
+
+Validation after the code changes:
+
+```bash
+python3 -m unittest discover -s tests -v
+python3 -m compileall -q neko scripts/neko_camera_proximity.py \
+  scripts/neko_asr_transcribe.py
+git diff --check
+```
+
+All 65 tests passed. Rollback is a source revert of the event/proximity adapter,
+PipeWire ASR helper, tests, and these notes; there is no installed runtime or
+service state to undo. Do not remove the prior ALSA path when reverting only the
+Bluetooth experiment.
+
+## 2026-07-16 — MeowLLM text-to-Supertonic audition
+
+The owner requested a TTS sample using <https://github.com/phanii9/MeowLLM>.
+Current upstream documentation was checked first. MeowLLM is not TTS: it is a
+3.45M-parameter, English-only, single-character text model with a 256-token
+context. Its official model card explicitly excludes general assistance,
+factual tasks, translation, and production use. The repository and Hugging Face
+model card identify the source/checkpoint as MIT. It was therefore evaluated
+only as an optional non-factual cat-quip source feeding the existing Supertonic
+TTS path.
+
+Pinned source:
+
+```text
+repository  https://github.com/phanii9/MeowLLM
+path        /home/neko/models/MeowLLM
+commit      d267a6c89bd978150ff9760ba77a37e7cee6601a
+date        2026-04-07T02:11:08+04:00
+licence     MIT; LICENSE SHA-256 c7721a4b1d3b5d07daa9752c1ed48036e1800bf927e8630936aae7ca0e92f0c4
+disk        4.2M including Git metadata
+```
+
+Pinned model artifacts:
+
+```text
+repository  https://huggingface.co/hunt3rx99/meowllm
+revision    f3a3f6ef7e2697e1346729f65d1e44bb3df31de8
+path        /home/neko/models/meowllm-artifacts/f3a3f6ef7e2697e1346729f65d1e44bb3df31de8
+best.pt     13,799,709 bytes; SHA-256 0b80e1328c454fe7ee94150adcd54bae79a92d8a1c8fc339d2b67e6c957c1327
+tokenizer   100,761 bytes; SHA-256 874f76a917ca3ccba0fe7253bb08688df0d977a5e1a423ccc27c419c093a4332
+disk        14M
+```
+
+The source was cloned without installing a package. The audition reused
+`/home/neko/.local/share/neko/venvs/rfdetr-export`, already pinned with Python
+3.12.3, CPU Torch 2.12.1, and tokenizers 0.22.2. No dependency changed. The
+upstream loader calls `torch.load(..., weights_only=False)`, which permits pickle
+code execution and was not used. The checkpoint instead passed restricted
+`weights_only=True` loading: it contained primitive metadata plus 30 tensors,
+13,790,208 tensor bytes, and no non-tensor state entries. The small imported
+`model.py`, `tokenizer.py`, and generation helper were inspected for executable
+I/O/network/subprocess behavior before use.
+
+With two CPU threads and deterministic seeds, restricted load plus model/tokenizer
+construction took 0.1483 s. The exact model had 3,447,552 parameters and a 1,682-
+token vocabulary. Three prompts generated in 0.2802, 0.4156, and 0.3046 s; peak
+process RSS was 290,396 KiB. The first output was:
+
+```text
+i was pretending to sleep. you may pet my head briefly.
+```
+
+The bundled dependency-free rule smoke test passed 34/34 cases. The advertised
+68-test pytest suite was not run because the pinned export environment does not
+contain pytest; its dependency lock was deliberately left unchanged. Restricted
+load, real inference, tokenizer use, and the portable smoke test are the local
+validation evidence.
+
+The selected text was then synthesized with pinned Supertonic 3, F1 English,
+six steps, and played through the already-verified PipeWire/Ora sink. Supertonic
+loaded in 1.43 s, generated 4.14 s of audio in 2.83 s, and wrote a transient
+368,684-byte WAV. Playback exited successfully and the temporary directory was
+removed immediately; owner quality confirmation is pending. The ONNX runtime's
+expected unavailable-DRM-device warnings appeared and did not affect CPU output.
+
+No MeowLLM code, weight, tokenizer, generated text/audio file, package, systemd
+unit, or boot dependency was added to the Neko repository/runtime. It remains an
+on-demand lab profile. Complete rollback:
+
+```bash
+rm -rf /home/neko/models/MeowLLM
+rm -rf /home/neko/models/meowllm-artifacts
+```
+
+Then revert only this documentation/notice entry. Do not remove the shared
+`rfdetr-export` environment because RF-DETR export provenance still depends on
+it. Any future integration must implement a Neko-owned restricted loader and
+complete-text policy gate rather than calling the upstream unsafe loader.
+
+## 2026-07-16 — KittenTTS Kiki audition and CatMeows candidate library
+
+The owner selected KittenTTS's Kiki voice at 1.2x for evaluation. Official
+KittenML sources were checked on 2026-07-16. KittenTTS 0.8.1 is an Apache-2.0,
+ONNX/CPU developer preview with 24 kHz output and native speed control. Source
+`main` was `9f3e0d8b6600b56ebe1b4d7b6d8e1e020077d1f2`; release tag `0.8.1` was
+`f0282f0198d497b7256535b755f9f3e339c1baa7`. No source checkout was needed.
+
+Pinned wheel:
+
+```text
+URL       https://github.com/KittenML/KittenTTS/releases/download/0.8.1/kittentts-0.8.1-py3-none-any.whl
+path      /home/neko/models/kittentts/artifacts/kittentts-0.8.1-py3-none-any.whl
+size      22,210 bytes
+SHA-256   482a436c4f1f3192153710376e459ff3689517ebcda7c2b051e2fd4187b41851
+license   Apache-2.0 in wheel metadata and official repository
+```
+
+Pinned `KittenML/kitten-tts-mini-0.8` revision
+`c02725660cea441db4c383af69f1f26f5cd00947`:
+
+```text
+directory /home/neko/models/kittentts/mini-0.8/c02725660cea441db4c383af69f1f26f5cd00947
+config    470 bytes; SHA-256 6b160bc9b19e24ecb21e84bc14f8a7da21fdf47ec72d42450bc5cf514b61804a
+ONNX      78,268,016 bytes; SHA-256 0f5bbae4fc4800c98dbc544a87ecfa79510de2fb8222db30d12e5bfe9177df91
+voices    3,278,902 bytes; SHA-256 40ad2638952b77b7b2f30127e2608e169fc69dd256b53bd8aaa3409a33193c42
+model dir 78 MiB on disk
+```
+
+The exact wheel was inspected before execution. Its local ONNX inference class
+does not use its imported Misaki objects, but that declared path pulls in spaCy,
+spaCy Curated Transformers, and Torch. Its package initializer also eagerly
+imports an unpinned Hugging Face downloader. The first generated lock exposed
+107 packages and was replaced before installation. The installed path uses the
+32-package closure in `deploy/requirements/kittentts.in` and its hash-generated
+aarch64 lock. The direct packages installed were NumPy 2.5.1, ONNX Runtime
+1.27.0, SoundFile 0.14.0, espeakng-loader 0.2.4, and phonemizer-fork 3.3.2;
+every actual transitive dependency is explicit in the lock.
+
+Installation commands, using the already recorded uv 0.11.28:
+
+```bash
+/home/neko/.local/bin/uv venv --python /usr/bin/python3 \
+  /home/neko/.local/share/neko/venvs/kittentts
+/home/neko/.local/bin/uv pip install \
+  --python /home/neko/.local/share/neko/venvs/kittentts/bin/python \
+  numpy==2.5.1 onnxruntime==1.27.0 soundfile==0.14.0 \
+  espeakng-loader==0.2.4 phonemizer-fork==3.3.2
+/home/neko/.local/bin/uv pip install \
+  --python /home/neko/.local/share/neko/venvs/kittentts/bin/python \
+  --no-deps \
+  /home/neko/models/kittentts/artifacts/kittentts-0.8.1-py3-none-any.whl
+patch -d /home/neko/.local/share/neko/venvs/kittentts/lib/python3.12/site-packages \
+  -p1 < deploy/patches/kittentts-0.8.1-minimal-offline.patch
+```
+
+The initial environment was patched with the same two exact edits using
+`apply_patch`. `onnx_model.py` changed from SHA-256
+`76013a72a0a2411f710472ec4d3a4e8088447bee0b6c2c6f726a383cb33fef35`
+to `06d82b09ec6a90f0a016136893d1b2a98132102dbca2d43133489a19d34cc46e`.
+`__init__.py` changed from
+`2da252fac0b3d201bc5578b961a0f92304ea352a619c70add933dd41f61153cc`
+to `21e9cbdaff454f3fd99c44c31fbdc60504eca102859f3cd9c29f82573cf94531`.
+The environment occupies 177 MiB. No global package or PATH changed.
+
+`deploy/requirements/kittentts.lock` was regenerated with:
+
+```bash
+/home/neko/.local/bin/uv pip compile deploy/requirements/kittentts.in \
+  --output-file deploy/requirements/kittentts.lock \
+  --python /usr/bin/python3 \
+  --python-platform aarch64-manylinux_2_28 \
+  --generate-hashes --only-binary :all: \
+  --exclude-newer 2026-07-16T23:59:59Z --no-deps
+```
+
+A clean-room `/tmp` venv then installed all 32 packages using
+`--require-hashes --no-deps`, accepted the recorded patch, and imported
+`KittenTTS_1_Onnx` as version 0.8.1. The temporary environment was deleted.
+
+The first exact Kiki/1.2x sample used the sentence `Hello, little kitten! I'm
+Neko. Shall we curl up together and hear a cat story?`. Cold load took 1.629 s;
+generation took 8.238 s for 6.150 s of audio (1.339 real-time factor) with
+278.9 MiB peak process RSS. It produced mono, signed 16-bit, 24 kHz PCM, played
+successfully over PipeWire sink 61 (`Ora GQ Headphone`, then default at 67%),
+and was deleted immediately. A second short cold-process smoke measured 1.577 s
+load, 3.787 s generation for 2.792 s audio, 1.356 real-time factor, and 276.3
+MiB peak RSS. ONNX Runtime's unavailable `/sys/class/drm/card*` discovery
+warnings did not affect CPU inference. `scripts/neko_kittentts_speak.py` now
+provides exact offline artifact verification and repeatable sample generation.
+No service is installed or enabled.
+
+The same research found CatMeows version 1.0.2, Zenodo record 4008297. Zenodo
+labels it CC BY 4.0; the authors additionally state research/non-commercial use
+and an acknowledgement requirement. This matches the owner's personal,
+non-commercial setting, but the dataset remains external to Git. It was fetched
+and verified with:
+
+```bash
+mkdir -p /home/neko/models/cat-sounds/catmeows/4008297
+curl --fail --location --retry 3 \
+  --output /home/neko/models/cat-sounds/catmeows/4008297/dataset.zip \
+  'https://zenodo.org/records/4008297/files/dataset.zip?download=1'
+md5sum /home/neko/models/cat-sounds/catmeows/4008297/dataset.zip
+sha256sum /home/neko/models/cat-sounds/catmeows/4008297/dataset.zip
+```
+
+The archive MD5 is `b5fa911bcd6514e39dfef6876f747df4`, matching Zenodo;
+SHA-256 is
+`214000280e6ef33b10e39ef063ccc1f2f83d789ab57f2a5d111da63b06f659ae`.
+Its 441 ZIP entries passed a traversal-path check before extraction. The 440
+actual WAVs are all mono/16-bit/8 kHz, total 805.684 seconds: 127 brushing, 92
+waiting-for-food, and 221 isolation recordings. The extracted directory plus
+archive occupy 24 MiB. No dataset sound was played or selected. Isolation calls
+are excluded by default pending a human friendly/distress review.
+
+Current generative research also identified the gated May 2026 Stability AI
+`stable-audio-3-small-sfx` model as the first strong later experiment: 433M,
+CPU/edge-oriented SAME-S, text-to-SFX and audio editing. It is not installed.
+It requires owner acceptance of the Stability AI Community License and Gemma
+terms, and its publisher provides no Jetson result. Test only as a stopped,
+sequential profile after acceptance.
+
+Rollback:
+
+```bash
+rm -rf /home/neko/.local/share/neko/venvs/kittentts
+rm -rf /home/neko/models/kittentts
+rm -rf /home/neko/models/cat-sounds/catmeows/4008297
+```
+
+Then revert the KittenTTS input/lock/patch/helper and related documentation.
+Supertonic, Gemma, boot targets, and system packages are independent.
+
+## 2026-07-16 — Stable Audio 3 Small SFX optimized local audition
+
+The owner accepted the Stability AI/Gemma gated terms and supplied a Hugging
+Face token at a private home-directory path. Commands read it into an ephemeral
+`HF_TOKEN`/authorization value only. The secret value was never printed, copied,
+committed, or written to these notes.
+
+Official source was pinned without running its bootstrap installer:
+
+```text
+repository  https://github.com/Stability-AI/stable-audio-3
+path        /home/neko/models/stable-audio-3
+commit      0385302ea26522f00c80392c4b708df5ebf1adf5
+LICENSE     SHA-256 16bd922f0deee6f11a76f5582258fdc3abdf67c6b8719dbcafbc34dee31979a6
+disk        49 MiB including Git metadata before model symlinks
+```
+
+The generic source requires Torch/Torchaudio 2.7.1 and was not executed. The
+official `optimized/tflite` backend explicitly supports Linux ARM with
+LiteRT/XNNPACK and needs no Torch or Transformers at runtime. A dedicated Python
+3.12.3 environment was created from the project-controlled input and aarch64
+hash lock:
+
+```bash
+/home/neko/.local/bin/uv pip compile \
+  deploy/requirements/stable-audio-3-tflite.in \
+  --output-file deploy/requirements/stable-audio-3-tflite.lock \
+  --python /usr/bin/python3 --python-platform aarch64-manylinux_2_28 \
+  --generate-hashes --only-binary :all: \
+  --exclude-newer 2026-07-16T23:59:59Z
+/home/neko/.local/bin/uv venv --python /usr/bin/python3 \
+  /home/neko/.local/share/neko/venvs/stable-audio-3-tflite
+/home/neko/.local/bin/uv pip install \
+  --python /home/neko/.local/share/neko/venvs/stable-audio-3-tflite/bin/python \
+  --require-hashes -r deploy/requirements/stable-audio-3-tflite.lock
+```
+
+All 24 packages installed. Key versions are ai-edge-litert 2.1.6,
+huggingface-hub 1.23.0, NumPy 2.5.1, SentencePiece 0.2.2, and SoundFile 0.14.0.
+Imports passed on aarch64; the environment occupies 125 MiB. No system package,
+global PATH, existing LiteRT-LM environment, or service unit changed.
+
+The optimized weights repository was pinned at revision
+`08c64b96b1e59942aade69759f60fb88c58c90c4` under
+`/home/neko/models/stable-audio-3-optimized/<revision>`. Exact files initially
+downloaded and linked into the pinned source runtime:
+
+| Relative path | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `tflite/sa3-sm-sfx/dit_w8a8-dyn.tflite` | 467,069,712 | `9bae6401e925e9dc0f721955f2d92549e07d7c54e43070b779d2f35750ec42b2` |
+| `tflite/same-s/dec_fp32.tflite` | 218,377,156 | `cd87fa6686b24a56dc3497e05fbb26a34cf9604afe49c6631e829c9e70fccf21` |
+| `tflite/t5gemma/encoder_fp16.tflite` | 563,818,608 | `8530d0b3e6b9b9dcf1239145c2a853fb749708eaddbb472ff8f0802b50059372` |
+
+The model API's published sizes and SHA-256 values matched every local file.
+This initial set occupies about 1.2 GiB. It implements the official fastest CPU
+DiT plus reference decoder recommendation. The SAME-S encoder was not needed or
+downloaded because only text-to-audio was tested.
+
+Before generation, `neko-gemma.service` was stopped with `sudo systemctl stop`.
+Available memory rose from about 5.8 to 6.4 GiB. Baseline telemetry was about
+4.50–4.54 W and 47 C. Two 20-second, eight-step, six-thread, CFG-off runs passed:
+
+| Prompt | Seed | Model wall | Realtime | Peak RSS | Peak input | Peak temp | Raw SHA-256 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| Friendly meows/trill | 12016 | 15.04 s | 1.33x | 2,106.8 MiB | 9.409 W | 49.75 C | `5297570f785c6236ed264e2758071a7e8e95385c3e5e544bd137865753450bc3` |
+| Soft steady purr | 22016 | 14.37 s | 1.39x | 2,107.0 MiB | 9.409 W | 50.38 C | `08762cac226fe5f2dd15507335a888697c44e2038f298dcdc42543e4065933aa` |
+
+Both were 44.1 kHz stereo. Only transient peak-normalized copies were played
+through Ora at the existing 67% sink volume; all four WAVs were deleted. Owner
+review rejected the pair for unattended use: the first few cat sounds were very
+distressed, most of the latter half was good, and all of it was somewhat choppy.
+
+To test the publisher's next-higher precision, this exact artifact was added:
+
+```text
+tflite/sa3-sm-sfx/dit_w8a32.tflite
+467,132,768 bytes
+SHA-256 7a6c8c48233b31b0f5482236d2681aa3690ba7ea71c87ec1870c9ceaab653de7
+```
+
+The optimized revision directory then occupied 1.6 GiB. A contented-cat prompt,
+explicit negative prompt, CFG 2.0, and seed 32016 were tried with batched and
+sequential CFG. Both processes were killed before the first sampling step at
+6,501.7 and 6,466.1 MiB observed RSS, after 10.121 and 9.060 seconds. No WAV was
+produced. The w8a32 profile is unsupported on this 8 GB host.
+
+The same guided prompts were then run on the viable w8a8-dyn DiT with sequential
+CFG to avoid batch memory amplification. The guided contented-meow sample took
+21.75 seconds model wall for 20 seconds, 2,108.2 MiB peak RSS, seed 32016. Its
+reported raw peak was 1.085, so the official writer clipped the over-range
+transient. The guided continuous-purr sample took 21.29 seconds, 2,108.5 MiB,
+seed 42016, with raw peak 0.624. Raw hashes were:
+
+```text
+b9da5dfd756d79e45100a6bfb3cc7648b23aca882fa239677ee7437b384e01a9  guided meow
+b9588a196d3345c5af7bdbafdd6b2778ceaacba9d0a962dc830e0cfd56d42978  guided purr
+```
+
+Audition copies were attenuated by 6 and 3 dB respectively, played through Ora,
+and deleted together with the raw files. The owner found the quality not much
+better and selected pre-generated library sounds instead. Stable Audio raw
+generation is closed for revision one. The installed profile is retained only
+as a stopped research tool; it is not an assistant dependency. Generated output
+remains forbidden from unattended child-facing use.
+
+Gemma was restored after each evaluation. The final correct health check passed
+at `http://127.0.0.1:9379/v1/models` with the fixed `gemma-4-e2b-it` ID. An
+earlier immediate check accidentally used port 8765 and failed; the service log
+showed that readiness had completed normally on 9379. No model/service failure
+occurred. No Stable Audio unit is installed or enabled.
+
+Rollback:
+
+```bash
+rm -rf /home/neko/.local/share/neko/venvs/stable-audio-3-tflite
+rm -rf /home/neko/models/stable-audio-3
+rm -rf /home/neko/models/stable-audio-3-optimized
+```
+
+Then revert `deploy/requirements/stable-audio-3-tflite.in`, its lock, and the
+related documentation. This does not affect Gemma, KittenTTS, Supertonic, or the
+curated CatMeows source.
+
+## 2026-07-16 — Owner-curated Freesound library inventory
+
+The owner supplied `/home/neko/curated-cat-sounds`. A read-only inventory found
+24 audio files totaling 127 MiB and 812.226 seconds: 17 WAV, five MP3, one AIFF,
+and one FLAC. The names use Freesound's downloaded
+`<sound-id>__<uploader>__<title>` convention. The directory contained no license,
+URL, or descriptive sidecars.
+
+Each `https://freesound.org/s/<sound-id>/` page was retrieved on 2026-07-16 and
+checked against the local ID/uploader/title. Every page resolved. Publisher page
+metadata supplied title, description, duration, sample rate, creator, and exact
+license link. Local originals were hashed with `sha256sum`; no duplicate SHA-256
+was found. SoX inspected supported lossless containers. Its build cannot decode
+the five MP3s, and `ffprobe` is not installed, so no package was added merely for
+this inventory; the Freesound source metadata and `file(1)` container report were
+used for those files.
+
+The checked manifest is `config/cat-sounds/curated-freesound.json`. It records
+all 24 filenames/checksums and does not copy media into Git. License totals are
+15 CC0 1.0, three CC BY 4.0, two CC BY-NC 3.0, and four CC BY-NC 4.0. The six NC
+items fit the owner's current personal/noncommercial use only and must remain
+visibly separate from the repository's MIT license. The source pages and license
+URLs are the attribution ledger; publisher AI-training preferences have not been
+cleared, so this inventory authorizes no training use.
+
+Title/description-only triage assigned provisional tags to 10 meow-led, 11
+purr-led, two mixed meow/purr, and one processed novelty/alarm source. No audio
+was played, edited, normalized, copied, or enabled. All 24 entries remain
+`pending_listening_review`; the novelty alarm is additionally manual-only, and
+the kitten-attention and multi-cat/vet items explicitly require distress review.
+The next pass must record usable time ranges, emotional classification,
+background noise, speaker/transducer role, and safe gain before making derived
+delivery assets.
+
+No service, package, model, device configuration, or boot state changed. The
+temporary public HTML page cache used for the inventory was deleted after the
+manifest was validated. Removing the repository manifest and these notes fully
+rolls back this metadata-only step; it does not alter the owner's source files.
+
+## 2026-07-16 — Guided cat-sound normalization and review start
+
+The first item-1 playback used fixed GStreamer volume 0.25 and was reported as
+extremely quiet. A continuous-library attempt was interrupted during item 2 as
+soon as the owner requested one-source-at-a-time review; no label was inferred.
+The initial sub-second replays could also finish before Bluetooth output woke.
+
+No package was installed. Existing GStreamer 1.24.2 `rganalysis` measured all 24
+originals with forced track ReplayGain at reference level 89 dB. Results are in
+`config/cat-sounds/curated-freesound-normalization.json`: a 0.35 common digital
+review master, per-track gain, and -1 dBFS sample-peak ceiling. Originals were
+not rewritten. `neko/cat_audio.py` implements the gain/peak math and
+`scripts/neko_cat_sound_review.py` verifies the selected source hash, holds one
+PipeWire stream open through a two-second silent pre-roll, plays one complete
+normalized source, and exits. `tests/test_cat_audio.py` covers the calculations.
+
+Validation passed: four unit tests; Python compilation; 24/24 manifest-to-analysis
+joins; 24/24 source hashes; 24 listed playback calculations; JSON parsing; and
+`git diff --check`. Item 1 measured +12.28 dB, used multiplier 1.439, and had
+predicted sample peak 0.080. After silent pre-roll it was audible. The owner
+recorded it as a keep candidate: plaintive, interrogatory, insistent, slightly
+fuzzy, but good. The structured result is
+`config/cat-sounds/curated-freesound-listening-review.json`.
+
+This review level is not calibrated cart SPL. Final speaker and body-transducer
+paths require separate masters and an oversampled true-peak delivery pass. No
+source audio, package, service, model, PipeWire default, Bluetooth profile, or
+boot state changed. Rollback is to remove the new normalization/review configs,
+`neko/cat_audio.py`, `scripts/neko_cat_sound_review.py`, and
+`tests/test_cat_audio.py`, then revert these notes; the external source library
+is unaffected.
+
+### Review completion and outcome
+
+The guided pass then classified all 24 entries. Twenty-three played completely.
+The owner stopped item 22 after hearing enough of its long breathy/wheezy,
+distance-variable recording to decide it was unnecessary as a standalone asset;
+the playback process was confirmed closed. No other playback was left running.
+
+The first version of the new pre-roll pipeline failed before audio with a
+GStreamer caps parse error caused by quoting caps inside `Gst.parse_launch`.
+The caps were corrected, item 2 passed a `fakesink` parse/decode check, and its
+full audible replay then succeeded. This produced no partial output file or
+system change. All subsequent one-item playbacks used the corrected code.
+
+Final classification counts in
+`config/cat-sounds/curated-freesound-listening-review.json`:
+
+| Classification | Count |
+| --- | ---: |
+| Primary/keep candidates, including excerpt/split candidates | 19 |
+| Secondary maybe candidates | 2 |
+| Manual-only novelty | 1 |
+| Not selected for standalone runtime | 2 |
+
+Priority results are item 10's clean general meow (10/10), item 14's friendly
+thank-you meow/purr (9/10), item 21's clean split-meow source (9/10), item 17's
+primary transducer purr after removing the last 0.5 second (10/10), item 23's
+relaxing transducer purr (9/10), and item 24's snuffly/playful affectionate purr
+(10/10). The ledger also records all owner-reported emotional roles, scores,
+background noise, clipping/impact/tail defects, speaker/transducer choices,
+excerpt requirements, and runtime constraints. Items 9 and 21 did not sound
+distressed to the owner; item 8 remains manual-only because it is an unnatural
+processed alarm/remix.
+
+Completion validation:
+
+```bash
+jq -e '.review_status == "complete" and (.entries | length) == 24' \
+  config/cat-sounds/curated-freesound-listening-review.json
+# true
+
+python3 -m unittest discover -s tests
+# Ran 69 tests ... OK
+git diff --check
+# pass
+```
+
+All 69 repository tests passed in 0.101 seconds. All reviewed sounds remain
+disabled: the next phase creates lossless excerpts/loops, performs
+integrated-loudness and oversampled-true-peak mastering, emits attribution, and
+bench-tests separate speaker/transducer masters. Review approval alone does not
+authorize unattended child-facing playback.
+
+## 2026-07-16 — Versioned curated cat-audio milestone
+
+At the owner's request, every review decision beginning with `keep_` was copied
+byte-for-byte from `/home/neko/curated-cat-sounds` into
+`assets/cat-sounds/originals`. This includes the manual-only novelty item 8 and
+excludes secondary maybe items 2/12 plus non-standalone items 20/22. The result
+is 20 files, 74,496,458 content bytes (about 71 MiB); the largest is 14,049,324
+bytes, below GitHub's per-file limit. Git LFS was neither installed nor needed.
+
+The selection was performed by joining the source and owner-review JSON, then
+copying only matching filenames. `assets/cat-sounds/manifest.json` independently
+pins repository path, source ID/URL, creator/title, exact Creative Commons
+licence/URL, decision, and original SHA-256. The distribution is 11 CC0 1.0,
+three CC BY 4.0, two CC BY-NC 3.0, and four CC BY-NC 4.0. The root MIT licence
+does not cover these recordings. The six BY-NC sources are limited to the
+owner's personal/noncommercial deployment. `.gitignore` has narrow exceptions
+only for audio under this reviewed originals directory; generated/private audio
+remains ignored elsewhere.
+
+Human maintenance documents were added:
+
+- `docs/cat-sounds/CAT_SOUNDS_MASTER.md` covers all 24 sources, including the
+  four not distributed, with annotations, emotional/action meaning, output role,
+  decision/score, licence, and use/processing constraints;
+- `docs/cat-sounds/PROCESSING_AND_REMIX_QUEUE.md` separates first-delivery
+  trimming/splitting/mastering, later cleanup, explicit manual remix work, and
+  deferred external sources.
+
+The source manifest now points to both the completed listening ledger and the
+distribution manifest. `THIRD_PARTY_NOTICES.md`, `README.md`, and `AGENTS.md`
+state the asset-level licence boundary. Originals remain runtime-disabled.
+
+Validation and publication checks for this milestone include:
+
+```bash
+python3 -m unittest tests.test_cat_sound_assets
+# Ran 2 tests ... OK; verifies selection, paths, hashes, bytes and licence totals
+
+python3 -m unittest discover -s tests
+# Ran 71 tests ... OK
+git diff --check
+# pass
+git status --short
+```
+
+No package, model, service, audio device, default sink, or boot state changed.
+Rollback is to remove `assets/cat-sounds`, the two cat-sound documents, and the
+narrow `.gitignore` exceptions, then revert source-manifest, notice, README,
+AGENTS, plan/research, and setup-log references. The owner's external originals
+are not changed by rollback.
+
+## 2026-07-16 — Deterministic P0 cat-audio cleanup and mastering
+
+The P0 plan required decoded MP3 support, integrated loudness, and true-peak
+analysis that the installed SoX/GStreamer tool set did not provide together.
+Installed the single NVIDIA Jetson repository package:
+
+```bash
+sudo -n apt-get install --simulate ffmpeg
+sudo -n apt-get install -y ffmpeg
+dpkg-query -W -f='${Package}\t${Version}\t${Installed-Size}\n' ffmpeg
+sha256sum /usr/bin/ffmpeg
+```
+
+Exact result:
+
+```text
+package             ffmpeg 7:8.0.1-nvidia
+installed size      81,845 KiB (APT reported 83.8 MB additional disk)
+download            22.9 MB from repo.download.nvidia.com/jetson/ffmpeg r39.2
+FFmpeg build         n8.0.1-9-g90b8004959-1ubuntu0.1
+/usr/bin/ffmpeg      3e74c1741e7e990aa3ae47f774a74baa2df57e27b08b1e0f3846d0d861e181c7
+```
+
+No other package was installed or upgraded. The command did not run
+`apt autoremove`. No systemd unit, model, audio device, PipeWire route, default
+sink, or boot dependency changed.
+
+Added `config/cat-sounds/derived-assets-recipes.json` and
+`scripts/neko_master_cat_sounds.py`. The builder verifies original SHA-256s,
+uses absolute `/usr/bin/ffmpeg` and `/usr/bin/ffprobe`, and never rewrites an
+original. It produces mono 48 kHz signed 24-bit PCM WAV with:
+
+- exact decoded-timeline trims and qsin edge fades;
+- conservative `0.5L+0.5R` stereo downmix;
+- SoXR 48 kHz resampling at precision 28;
+- provisional second-order 45 Hz speaker high-pass or 25–350 Hz transducer
+  band-pass;
+- a 750 ms qsin/qsin cyclic crossfade for item 17's loop;
+- linear gain to -23 LUFS-I, capped at -2 dBTP without compression/limiting;
+- high-pass triangular dither for 24-bit integer delivery;
+- FFmpeg `loudnorm` measurement plus an independent
+  `ebur128=peak=sample+true` verification.
+
+The FFmpeg filters report true peak but expose no oversampling-factor field in
+their CLI output, so the manifest records the exact method/build/hash and does
+not fabricate a factor. Recipes include source 10 `0.030–0.900 s`, source 14
+`0.030–3.220 s`, nine source-21 candidate ranges, source-17 contiguous
+start/loop/stop regions through `33.500 s`, source 18 `0.100–6.820 s`, full
+source 23 with fades, and source-24 short `4.720–8.850 s` plus sustained
+`0.980–60.950 s`. Source-21 range `5.234–7.139 s` retains overlapping calls
+because the candidate split point risked an audible cut.
+
+Build command and results:
+
+```bash
+python3 scripts/neko_master_cat_sounds.py
+# built 25 assets, 34009384 bytes, runtime remains disabled
+```
+
+Outputs are under `assets/cat-sounds/derived`; their manifest records exact
+hashes/bytes/frames, source decode ranges, ordered processing, measured LUFS/LRA/
+true peak/sample peak/DC/clipped samples, loop seam metrics, rights, and pending
+approvals. `assets/cat-sounds/ATTRIBUTION.md` provides human TASL/change notices.
+The rights distribution is ten CC0 1.0, fourteen CC BY 4.0, and one CC BY-NC
+3.0 derivative; the root MIT licence applies to none. The NC file remains
+personal/noncommercial.
+
+All 25 have zero clipped samples and are <= -2.0 dBTP. Twenty-three are within
+0.03 LU of -23 LUFS-I. The two item-24 speaker files are peak-limited at -2.0
+dBTP and remain at -27.13/-28.76 LUFS-I; preserving natural snuffle dynamics was
+preferred to compression/limiting. Their transducer copies reach target. The two
+item-17 loop boundary amplitude/slope deltas are below 0.001 full scale, but
+continuous listening is still mandatory.
+
+`config/cat-sounds/runtime-allowlist.json` names only semantic actions, bounds
+gain/cooldown/duration/output, denies raw paths/unknown actions, and prevents an
+LLM from choosing path/gain/output. Every action and autonomous flag is false.
+The builder marks every derivative `bench_candidate` with derived listen,
+hardware acceptance, and child-facing review pending.
+
+Validation:
+
+```bash
+python3 scripts/neko_master_cat_sounds.py --check
+python3 -m unittest tests.test_cat_sound_assets tests.test_cat_sound_derived_assets
+python3 -m unittest discover -s tests
+git diff --check
+```
+
+The deterministic rebuild compares exact audio bytes, manifest/attribution text,
+and file set. Unit tests cover hashes/media format/frames, mastering bounds/no
+clipping, source ranges, TASL/NC rights, loop bounds/seams, and the fail-closed
+allowlist. The deterministic rebuild reported 25 verified assets; the complete
+repository suite ran 76 tests successfully. Derived owner listening and final Visaton/transducer hardware tests
+remain outstanding; no file is eligible for unattended playback.
+
+Rollback is a Git revert of the derived files, recipe, manifest, attribution,
+allowlist, builder/tests, and documentation. After confirming no other workflow
+needs the analyzer, remove it with `sudo apt-get remove ffmpeg`; do not use
+`autoremove` without a separate audit. Originals remain byte-identical.

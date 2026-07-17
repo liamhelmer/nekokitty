@@ -132,21 +132,27 @@ the Neko runtime or distribute its weights with this repository.
 
 ## Service and implementation sequence
 
-1. Add typed event schemas and a deterministic `neko-behavior` state machine,
+1. **Complete:** add typed event schemas and a deterministic `neko-behavior` state machine,
    using synthetic speech/person events in unit tests.
-2. Install sherpa-onnx and the single INT8 Nemotron 560 ms artifact in an
+2. **Complete for the bench:** install sherpa-onnx and the single INT8 Nemotron 560 ms artifact in an
    isolated, hash-pinned environment; benchmark file and live microphone paths.
-3. Install Supertonic 3 in a separate pinned environment; benchmark English,
+   File benchmarks and memory-only ALSA/PipeWire transport pass; an intelligible
+   owner-spoken Bluetooth sample is still an acceptance item, not an install gate.
+3. **Complete for the bench:** install Supertonic 3 in a separate pinned environment; benchmark English,
    French, and Spanish to a non-recording sink, then Ora playback.
-4. Add the Pipecat turn loop and existing Gemma adapter. Begin with manual
-   trigger, then transcript-gated `Neko Neko`, then a trained wake model.
+4. **Part complete:** the deterministic session/wake core, Gemma adapter, manual
+   text trigger, transcript-gated `Neko Neko`, and opt-in TTS playback exist.
+   A unified live audio turn loop, interruption-capable playback queue, VAD, and
+   trained wake model remain. Pipecat is still optional rather than installed.
 5. **Complete:** pin RF-DETR Nano source/weights, export ONNX off the normal
    service path, build TensorRT on this Jetson, and implement the C922 adapter.
 6. **Part complete:** ephemeral tracking and tested social state are present.
    Physical calibration and multi-person field acceptance await installed cart
    cameras, so metric-gated spoken greetings remain disabled.
-7. Run combined memory, CPU/GPU, latency, power, thermal, device-unplug, worker-
-   crash, network-loss, and two-hour soak tests.
+7. **Part complete:** short Gemma + RF-DETR + live ASR coexistence and the
+   C922/Ora hardware-in-the-loop paths pass. Run the remaining latency,
+   production-device, device-unplug, worker-crash, network-loss, thermal/power,
+   and two-hour soak tests.
 8. Only after those gates, install resource-bounded systemd units. Offline boot
    readiness must not depend on cameras, Bluetooth, network, or cloud APIs.
 
@@ -154,7 +160,85 @@ No new runtime should be enabled at boot until its standalone and combined gates
 pass. Start ZipDepth only as a sampled experimental worker; it is not needed to
 enable conversation or the first camera-proximity event loop.
 
-## Current sources checked 2026-07-14
+### Bench update — 2026-07-16
+
+- The non-retaining combined suite passed 90 C922 frames at 25.79 wall fps,
+  webcam-microphone activity, and a 2.739-second Gemma response.
+- The first positive TensorRT loop exposed and then regression-tested a missing
+  `bottom_y_normalized` observation field. After the fix, one anonymous track
+  remained stable for 18 seconds at 0.926–0.969 confidence. The box touched the
+  lower image boundary, so this pose is unsuitable for ground-plane calibration;
+  distance and approach correctly remained disabled.
+- Ora mSBC playback and capture routes work. Supertonic F1 playback completed.
+  Bounded PipeWire-to-ASR capture now works without retaining media and reports
+  only RMS/peak levels, but the attempted samples contained no sustained speech.
+  Repeat with an owner-timed phrase before checking the live-transcript gate.
+- Keep all Neko application units disabled until the remaining step 7 gates pass.
+
+### Optional MeowLLM experiment — 2026-07-16
+
+MeowLLM was requested as a possible TTS sample, but upstream defines it as a
+3.45M-parameter English text model, not a speech model. A safe, isolated
+audition passed: its text was synthesized by the existing Supertonic worker and
+played over Ora. Do not place MeowLLM on the assistant, story, translation, or
+safety path; upstream explicitly excludes those uses. If retained, evaluate it
+only as a bounded, non-factual cat-quip generator after Neko's complete-text
+policy check. It remains an on-demand lab artifact with no service or integration
+decision.
+
+### KittenTTS Kiki and cat-sound palette — 2026-07-16
+
+KittenTTS Mini 0.8 is now a measured on-demand English voice candidate. The
+owner-selected Kiki voice at 1.2x passed transient Ora playback with a small
+278.9 MiB peak process RSS, but generated at 1.339 real-time factor in the first
+cold test. Keep Supertonic as the multilingual integration baseline while Kiki
+receives a warm/chunked benchmark and production-speaker A/B listening test.
+Use the pinned offline helper; do not call KittenTTS's mutable Hub downloader or
+enable a service yet.
+
+Build nonverbal cat audio as a deterministic soundboard before attempting live
+generation:
+
+1. **Completed 2026-07-16:** human-review all 24 owner-curated Freesound sources.
+   The structured ledger records 19 keep/priority candidates, two secondary
+   maybes, one manual-only novelty, and two sources not selected for standalone
+   use. All files have non-destructive ReplayGain measurements. Twenty-three
+   played in full; item 22 was stopped once the owner had enough evidence to
+   reject standalone use. The manifest still disables every item because review
+   approval is not delivery mastering or hardware acceptance.
+2. Use CatMeows brushing and food recordings only to fill remaining meow gaps;
+   exclude isolation calls by default. Add individually cleared Wikimedia clips
+   only for missing trills/chirps. Preserve per-file provenance in the manifest.
+3. **Bench build completed 2026-07-16:** made the first derived palette from the
+   strongest reviewed sources.
+   The 20 `keep_*` originals are now versioned under
+   `assets/cat-sounds/originals` with per-file Creative Commons provenance. Keep
+   annotations current in `docs/cat-sounds/CAT_SOUNDS_MASTER.md` and track all
+   transformations in `docs/cat-sounds/PROCESSING_AND_REMIX_QUEUE.md`.
+   Start with items 10, 14, and split item 21 for meows; items 17, 24, 23, and 18
+   for purrs. The result is 25 hash-pinned mono 48 kHz/24-bit PCM bench
+   candidates with exact recipes, TASL/change notices, a -23 LUFS-I/-2 dBTP
+   policy, and integrity/mastering tests. Then add items 1, 3, 4, 6, 7, 9, 13,
+   15, 5, 11, and 16 only where
+   they fill a distinct emotional/action slot. Preserve lossless originals;
+   trim the documented tails/impacts/noise, measure integrated loudness and
+   oversampled true peak, and emit attribution alongside every derived asset.
+4. **Part complete:** a fail-closed deterministic semantic allowlist, bounded
+   gain/cooldown/duration, and separate provisional speaker/transducer candidates
+   exist. Every action remains disabled until derived listening and production
+   hardware acceptance. An LLM may
+   request `friendly_trill` or `playful_purr`, but the supervisor chooses the
+   exact approved asset and safe gain. Keep item 8 manual-only.
+5. Stable Audio 3 Small SFX was benchmarked with other model workers stopped.
+   Although the fast ARM profile beat real time, both owner auditions failed for
+   distress/choppiness and the higher-quality profile exceeded memory. Raw
+   generation is closed for revision one. Concentrate on the curated palette and
+   bounded DSP variants; no generated audio enters unattended playback.
+
+Exact artifacts, benchmark evidence, licenses, and acceptance gates are in
+`docs/research/2026-07-16-kittentts-cat-audio.md`.
+
+## Current sources checked through 2026-07-16
 
 - NVIDIA Nemotron 3.5 ASR model card:
   <https://huggingface.co/nvidia/nemotron-3.5-asr-streaming-0.6b>
@@ -173,3 +257,11 @@ enable conversation or the first camera-proximity event loop.
 - Ultralytics TensorRT export documentation and current license guidance:
   <https://docs.ultralytics.com/integrations/tensorrt>
   and <https://www.ultralytics.com/license>
+- KittenTTS 0.8.1 repository and Mini model card:
+  <https://github.com/KittenML/KittenTTS>
+  and <https://huggingface.co/KittenML/kitten-tts-mini-0.8>
+- CatMeows version 1.0.2 record:
+  <https://doi.org/10.5281/zenodo.4008297>
+- Stable Audio 3 Small SFX repository and model card:
+  <https://github.com/Stability-AI/stable-audio-3>
+  and <https://huggingface.co/stabilityai/stable-audio-3-small-sfx>

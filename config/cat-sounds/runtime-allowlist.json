@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "default_policy": "deny",
+  "runtime_status": "disabled_pending_derived_listening_and_hardware_acceptance",
+  "hardware_profile": "pending_cart_audio_v1",
+  "supervisor_contract": {
+    "accept_semantic_actions_only": true,
+    "raw_paths_denied": true,
+    "unknown_actions_denied": true,
+    "unknown_outputs_denied": true,
+    "llm_may_choose_path_gain_or_output": false,
+    "concurrency_group": "cat_audio"
+  },
+  "actions": {
+    "meow_general": {
+      "enabled": false,
+      "allowed_outputs": ["speaker"],
+      "candidates": [{"asset_id": "meow_general.speaker.v1", "weight": 1}],
+      "min_gain_db": -18.0,
+      "max_gain_db": 0.0,
+      "cooldown_seconds": 3.0,
+      "max_duration_seconds": 2.0,
+      "interruptible": true,
+      "autonomous_allowed": false,
+      "adult_auth_required": false,
+      "child_facing_review": "pending"
+    },
+    "meow_thank_you": {
+      "enabled": false,
+      "allowed_outputs": ["speaker"],
+      "candidates": [{"asset_id": "meow_thank_you.speaker.v1", "weight": 1}],
+      "min_gain_db": -18.0,
+      "max_gain_db": 0.0,
+      "cooldown_seconds": 5.0,
+      "max_duration_seconds": 4.0,
+      "interruptible": true,
+      "autonomous_allowed": false,
+      "adult_auth_required": false,
+      "child_facing_review": "pending"
+    },
+    "meow_attention_candidate": {
+      "enabled": false,
+      "allowed_outputs": ["speaker"],
+      "candidates": [
+        {"asset_id": "meow_attention_candidate_01.speaker.v1", "weight": 1},
+        {"asset_id": "meow_attention_candidate_02.speaker.v1", "weight": 1},
+        {"asset_id": "meow_attention_candidate_03.speaker.v1", "weight": 1},
+        {"asset_id": "meow_attention_candidate_04.speaker.v1", "weight": 1},
+        {"asset_id": "meow_attention_candidate_05.speaker.v1", "weight": 1},
+        {"asset_id": "meow_attention_candidate_06.speaker.v1", "weight": 1},
+        {"asset_id": "meow_attention_candidate_08.speaker.v1", "weight": 1},
+        {"asset_id": "meow_attention_candidate_09.speaker.v1", "weight": 1}
+      ],
+      "min_gain_db": -18.0,
+      "max_gain_db": 0.0,
+      "cooldown_seconds": 15.0,
+      "max_duration_seconds": 2.0,
+      "interruptible": true,
+      "autonomous_allowed": false,
+      "adult_auth_required": false,
+      "child_facing_review": "pending_intensity_classification"
+    },
+    "meow_attention_group_candidate": {
+      "enabled": false,
+      "allowed_outputs": ["speaker"],
+      "candidates": [
+        {"asset_id": "meow_attention_group_candidate_07.speaker.v1", "weight": 1}
+      ],
+      "min_gain_db": -18.0,
+      "max_gain_db": 0.0,
+      "cooldown_seconds": 30.0,
+      "max_duration_seconds": 3.0,
+      "interruptible": true,
+      "autonomous_allowed": false,
+      "adult_auth_required": false,
+      "child_facing_review": "pending_multi_cat_review"
+    },
+    "purr_primary": {
+      "enabled": false,
+      "allowed_outputs": ["speaker", "body_transducer"],
+      "candidates": [
+        {"asset_id": "purr_primary.start.speaker.v1", "weight": 1},
+        {"asset_id": "purr_primary.loop.speaker.v1", "weight": 1},
+        {"asset_id": "purr_primary.stop.speaker.v1", "weight": 1},
+        {"asset_id": "purr_primary.start.body_transducer.v1", "weight": 1},
+        {"asset_id": "purr_primary.loop.body_transducer.v1", "weight": 1},
+        {"asset_id": "purr_primary.stop.body_transducer.v1", "weight": 1}
+      ],
+      "min_gain_db": -24.0,
+      "max_gain_db": 0.0,
+      "cooldown_seconds": 5.0,
+      "max_duration_seconds": 120.0,
+      "interruptible": true,
+      "autonomous_allowed": false,
+      "adult_auth_required": false,
+      "child_facing_review": "pending_loop_and_phase_review"
+    },
+    "purr_short": {
+      "enabled": false,
+      "allowed_outputs": ["speaker", "body_transducer"],
+      "candidates": [
+        {"asset_id": "purr_short.speaker.v1", "weight": 1},
+        {"asset_id": "purr_short.body_transducer.v1", "weight": 1}
+      ],
+      "min_gain_db": -24.0,
+      "max_gain_db": 0.0,
+      "cooldown_seconds": 5.0,
+      "max_duration_seconds": 8.0,
+      "interruptible": true,
+      "autonomous_allowed": false,
+      "adult_auth_required": false,
+      "child_facing_review": "pending"
+    },
+    "purr_relaxing_short": {
+      "enabled": false,
+      "allowed_outputs": ["speaker", "body_transducer"],
+      "candidates": [
+        {"asset_id": "purr_relaxing_short.speaker.v1", "weight": 1},
+        {"asset_id": "purr_relaxing_short.body_transducer.v1", "weight": 1}
+      ],
+      "min_gain_db": -24.0,
+      "max_gain_db": 0.0,
+      "cooldown_seconds": 8.0,
+      "max_duration_seconds": 10.0,
+      "interruptible": true,
+      "autonomous_allowed": false,
+      "adult_auth_required": false,
+      "child_facing_review": "pending"
+    },
+    "purr_playful_affection": {
+      "enabled": false,
+      "allowed_outputs": ["speaker", "body_transducer"],
+      "candidates": [
+        {"asset_id": "purr_playful_affection.short.speaker.v1", "weight": 1},
+        {"asset_id": "purr_playful_affection.short.body_transducer.v1", "weight": 1},
+        {"asset_id": "purr_playful_affection.sustained.speaker.v1", "weight": 1},
+        {"asset_id": "purr_playful_affection.sustained.body_transducer.v1", "weight": 1}
+      ],
+      "min_gain_db": -24.0,
+      "max_gain_db": 0.0,
+      "cooldown_seconds": 10.0,
+      "max_duration_seconds": 61.0,
+      "interruptible": true,
+      "autonomous_allowed": false,
+      "adult_auth_required": false,
+      "child_facing_review": "pending_excerpt_character_review"
+    }
+  }
+}

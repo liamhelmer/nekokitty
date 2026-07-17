@@ -30,6 +30,7 @@ class PersonObservation:
     dwell_s: float
     estimated_distance_m: float | None
     approaching: bool
+    bottom_y_normalized: float | None = None
 
 
 @dataclass(frozen=True, slots=True)
