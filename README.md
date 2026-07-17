@@ -52,6 +52,9 @@ local Gemma API.
 The current low-latency measurements, exact model/runtime pins, deployment,
 memory comparison, and rollback are in
 [`docs/plan/2026-07-16-low-latency-voice.md`](docs/plan/2026-07-16-low-latency-voice.md).
+The fail-closed real-meow/purr marker, random selection, cooldown, routing and
+activation design is in
+[`docs/plan/2026-07-16-cat-audio-insertion.md`](docs/plan/2026-07-16-cat-audio-insertion.md).
 
 Neko-authored source and documentation are licensed under the [MIT License](LICENSE).
 External model/runtime terms remain controlling; see

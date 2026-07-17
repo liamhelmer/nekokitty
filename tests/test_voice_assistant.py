@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+import threading
 import unittest
 
+from neko.cat_audio import CatAudioDenied
 from scripts.neko_voice_assistant import ContinuousSpeechInput
+from scripts.neko_voice_assistant import VoiceAssistant
 
 
 class FakeVad:
@@ -99,6 +102,47 @@ class VoiceAssistantInputTests(unittest.TestCase):
         assert recognizer.stream is not None
         self.assertEqual(recognizer.stream.language, "en")
         self.assertEqual(len(recognizer.stream.frames), 3)
+
+
+class VoiceAssistantMixedAudioTests(unittest.TestCase):
+    def test_disabled_cat_marker_falls_back_to_tts_and_remains_interruptible(self) -> None:
+        class FakeTts:
+            def __init__(self) -> None:
+                self.texts: list[str] = []
+
+            def synthesize(self, text: str, **values: object) -> dict[str, object]:
+                self.texts.append(text)
+                callback = values.get("on_first_pcm")
+                assert callable(callback)
+                callback()
+                return {"cancelled": False}
+
+        class DisabledCatalog:
+            def select(self, *_args: object, **_values: object) -> object:
+                raise CatAudioDenied("cat-sound runtime is disabled")
+
+        assistant = VoiceAssistant.__new__(VoiceAssistant)
+        assistant.args = SimpleNamespace(
+            no_speak=False,
+            min_silence_seconds=0.6,
+            cat_sound_output="speaker",
+        )
+        assistant.cancel_speech = threading.Event()
+        assistant.speaking = threading.Event()
+        assistant.tts = FakeTts()
+        assistant.cat_sounds = DisabledCatalog()
+        assistant.cat_sound_player = None
+        events: list[tuple[str, dict[str, object]]] = []
+        assistant._event = lambda kind, **values: events.append((kind, values))
+
+        self.assertTrue(assistant._speak("[purr] Cozy!"))
+        self.assertEqual(assistant.tts.texts, ["purr", "Cozy!"])
+        self.assertFalse(assistant.speaking.is_set())
+        self.assertEqual(
+            [kind for kind, _values in events].count("first_pcm_written"),
+            1,
+        )
+        self.assertIn("cat_sound_fallback", [kind for kind, _values in events])
 
 
 if __name__ == "__main__":

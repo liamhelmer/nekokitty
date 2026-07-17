@@ -14,7 +14,14 @@ or claim production-speaker/transducer approval.
 - Audio and immutable measurement ledger: `assets/cat-sounds/derived/`
 - Human credits/change notices: `assets/cat-sounds/ATTRIBUTION.md`
 - Fail-closed action policy: `config/cat-sounds/runtime-allowlist.json`
+- Runtime selector/player: `neko/cat_audio.py`
 - Integrity/policy tests: `tests/test_cat_sound_derived_assets.py`
+
+The attended voice loop can now parse exact `[meow]`/`[purr]` expressive cues,
+but the selector requires the global runtime, semantic action, autonomy, output
+and per-asset listening/hardware/release approvals together. The current policy
+therefore denies recorded playback and uses TTS fallback. See
+`docs/plan/2026-07-16-cat-audio-insertion.md` for the activation contract.
 
 Canonical outputs are mono 48 kHz signed 24-bit PCM WAV. The target is -23.0
 LUFS-I within 0.5 LU and no more than -2.0 dBTP. Gain is linear and capped by

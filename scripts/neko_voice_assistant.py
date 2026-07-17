@@ -32,6 +32,14 @@ from neko.events import (  # noqa: E402
     SpeakText,
     TranscriptEvent,
 )
+from neko.cat_audio import (  # noqa: E402
+    CatAudioDenied,
+    CatSoundCatalog,
+    CatSoundPart,
+    CatSoundPlayer,
+    TextPart,
+    parse_audio_script,
+)
 from neko.gemma_client import (  # noqa: E402
     DEFAULT_BASE_URL,
     DEFAULT_MODEL,
@@ -408,6 +416,13 @@ class VoiceAssistant:
             timeout_s=args.gemma_timeout,
         )
         self.tts = TtsClient(socket_path=args.tts_socket)
+        self.cat_sounds = CatSoundCatalog()
+        self.cat_sound_player = CatSoundPlayer(
+            {
+                "speaker": args.cat_speaker_target,
+                "body_transducer": args.cat_transducer_target,
+            }
+        )
         self.current_segment_sequence = 0
         self.current_audio_samples: tuple[float, ...] = ()
         self.current_vad_finalized_s = 0.0
@@ -466,8 +481,13 @@ class VoiceAssistant:
             return True
         self.cancel_speech.clear()
         self.speaking.set()
+        first_output_started = False
 
         def first_pcm() -> None:
+            nonlocal first_output_started
+            if first_output_started:
+                return
+            first_output_started = True
             now = time.monotonic()
             values: dict[str, object] = {}
             if vad_finalized_s is not None:
@@ -482,22 +502,78 @@ class VoiceAssistant:
                 }
             self._event("first_pcm_written", **values)
 
+        completed = True
         try:
-            try:
-                result = self.tts.synthesize(
-                    text,
-                    play=True,
-                    cancel_event=self.cancel_speech,
-                    on_first_pcm=first_pcm,
+            for part in parse_audio_script(text):
+                if self.cancel_speech.is_set():
+                    completed = False
+                    break
+                if isinstance(part, TextPart):
+                    try:
+                        result = self.tts.synthesize(
+                            part.text,
+                            play=True,
+                            cancel_event=self.cancel_speech,
+                            on_first_pcm=first_pcm,
+                        )
+                    except Exception as error:
+                        self._event("tts_error", message=str(error))
+                        return False
+                    if result.get("cancelled"):
+                        completed = False
+                        break
+                    continue
+                if not isinstance(part, CatSoundPart):
+                    raise TypeError(f"unknown audio script part: {part!r}")
+                try:
+                    selection = self.cat_sounds.select(
+                        part.action,
+                        self.args.cat_sound_output,
+                        autonomous=True,
+                    )
+                except CatAudioDenied as error:
+                    self._event(
+                        "cat_sound_fallback",
+                        action=part.action,
+                        reason=str(error),
+                    )
+                    try:
+                        result = self.tts.synthesize(
+                            part.fallback_text,
+                            play=True,
+                            cancel_event=self.cancel_speech,
+                            on_first_pcm=first_pcm,
+                        )
+                    except Exception as error:
+                        self._event("tts_error", message=str(error))
+                        return False
+                    if result.get("cancelled"):
+                        completed = False
+                        break
+                    continue
+                try:
+                    played = self.cat_sound_player.play(
+                        selection,
+                        cancel_event=self.cancel_speech,
+                        on_started=first_pcm,
+                    )
+                except Exception as error:
+                    self._event("cat_sound_error", action=part.action, message=str(error))
+                    return False
+                if not played:
+                    completed = False
+                    break
+                self.cat_sounds.mark_played(selection)
+                self._event(
+                    "cat_sound_complete",
+                    action=part.action,
+                    asset_id=selection.asset_id,
+                    output=selection.output,
                 )
-            except Exception as error:
-                self._event("tts_error", message=str(error))
-                return False
         finally:
             self.speaking.clear()
-        cancelled = bool(result.get("cancelled"))
-        self._event("playback_cancelled" if cancelled else "playback_complete")
-        return not cancelled
+        self._event("playback_complete" if completed else "playback_cancelled")
+        return completed
 
     def _dialogue(self, request: DialogueRequest) -> bool:
         started = time.monotonic()
@@ -676,6 +752,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--gemma-timeout", type=float, default=60.0)
     parser.add_argument("--tts-socket", type=Path, default=DEFAULT_TTS_SOCKET)
+    parser.add_argument(
+        "--cat-sound-output",
+        choices=("speaker", "body_transducer"),
+        default="speaker",
+    )
+    parser.add_argument("--cat-speaker-target")
+    parser.add_argument("--cat-transducer-target")
     parser.add_argument("--no-speak", action="store_true")
     parser.add_argument("--verbose-transcripts", action="store_true")
     parser.add_argument("--max-dialogues", type=int, default=0)

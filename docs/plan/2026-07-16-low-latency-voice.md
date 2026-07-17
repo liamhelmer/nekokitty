@@ -284,16 +284,15 @@ Remaining latency gates:
 - validate English, French, and Spanish comprehension/voice quality separately;
 - cold reboot and two-hour soak.
 
-## Next audio milestone
+## Cat-audio follow-on
 
-The next authorized feature is a manifest-driven cat-sound insertion layer. It
-should not ask the LLM for filesystem paths. The deterministic supervisor should
-map approved semantic markers/actions to the existing disabled allowlist, then
-choose a compatible mastered meow or purr with seeded randomness, no immediate
-repeat, mood/session cooldowns, speaker/transducer routing, and fixed gain.
-Natural sounds may acknowledge wake or replace a written `meow`/`purr`; they
-must not cover required safety text. All selected assets remain subject to their
-per-file licence and the pending hardware listening acceptance.
+The manifest-driven cat-sound insertion layer is now implemented and documented
+in [Curated cat-audio insertion](2026-07-16-cat-audio-insertion.md). It accepts
+strict semantic markers rather than paths, uses weighted seeded-testable
+selection with no immediate repeat, enforces cooldown/approval/hash/output/fixed-
+gain policy, and shares barge-in cancellation. It remains fail-closed and falls
+back to spoken cues because derived listening and real output-hardware acceptance
+are still pending. Natural sounds must never cover required safety text.
 
 ## Rollback
 

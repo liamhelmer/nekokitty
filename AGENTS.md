@@ -52,6 +52,10 @@ The first cat-sound P0 cleanup/mastering build now has 25 reproducible lossless
 bench candidates, complete provenance/attribution, a disabled fail-closed action
 allowlist, and integrity/mastering tests. Derived listening and physical
 speaker/transducer acceptance remain required; no cat-audio action is enabled.
+The voice loop now understands strict expressive `[meow]`/`[purr]` cues and has
+a hash-verifying, weighted, cooldown/no-repeat, fixed-gain, output-routed and
+barge-in-safe playback layer. It falls back to spoken words while policy is
+disabled, so this code does not bypass those acceptance gates.
 System-wide changes must be documented with exact commands, versions, paths,
 validation, and rollback.
 
@@ -226,6 +230,10 @@ Read these before changing the system:
   selected LFM 16K and Piper deployment, official pins and licence boundaries,
   Gemma/LFM memory and latency measurements, continuous-ASR/streaming changes,
   private-fixture 1.309-second result, production gates, and rollback.
+- [Curated cat-audio insertion](docs/plan/2026-07-16-cat-audio-insertion.md) —
+  strict semantic markers, weighted no-repeat selection, cooldown/integrity/
+  approval gates, fixed gain/output routing, barge-in, current disabled state,
+  hardware activation sequence, tests, and rollback.
 - [Owner decisions](docs/decisions/2026-07-13-owner-decisions.md) — durable
   answers for licensing, model residency, headless/Git authority, manual-motion
   scope, character/languages/stories, offline-first behavior, and media privacy.
@@ -438,6 +446,13 @@ the smaller, proven LiteRT CPU resident.
   playback until excerpt selection, lossless mastering/true-peak analysis,
   attribution generation, deterministic action mapping, and final speaker/
   transducer acceptance pass. The manifest is not training-data clearance.
+- `neko/cat_audio.py` combines the earlier gain helpers with a strict marker
+  parser and fail-closed runtime catalog/player. It accepts semantic actions
+  only, requires global/action/autonomy/output and per-asset approvals, verifies
+  SHA-256 before playback, applies a policy-fixed gain, uses weighted randomness
+  without immediate repeats, enforces cooldown and stays cancellable. The
+  production allowlist and every action remain disabled; the attended loop falls
+  back to spoken `meow`/`purr` until derived and hardware acceptance.
 - The P0 derived build uses items 10, 14, 17, 18, 21, 23, and 24 to create 25
   mono 48 kHz/24-bit PCM WAV bench candidates (34,009,384 audio bytes). Recipes
   are in `config/cat-sounds/derived-assets-recipes.json`; exact file hashes,
@@ -953,3 +968,11 @@ For every future model or service, add:
   boot and soak gates. Final verification passed all 99 tests, compilation,
   diff checking, unit source/install comparison, warm restart, LLM API and Piper
   PCM smokes; both new services were active with zero restarts afterward.
+- 2026-07-16: Added the next fail-closed cat-audio milestone. Exact expressive
+  `[meow]`/`[purr]` cues now map to deterministic semantic actions; ordinary
+  prose is untouched. The catalog validates policy/approval/output/duration,
+  hashes the selected asset, applies fixed gain, uses weighted seeded-testable
+  randomness with no immediate repeat and cooldown, and plays through a
+  cancellable fixed PipeWire target. The integrated loop falls back to TTS while
+  all current assets/actions remain pending and disabled. All 106 repository
+  tests, compilation and diff checking pass; no real cat recording was played.

@@ -3001,3 +3001,49 @@ disable its services, remove `/etc/systemd/system/neko-llm.service` and
 `neko-tts-fast.service`, reload systemd, and remove the external Piper venv,
 Piper voice root, and LFM artifact root. Do not remove Gemma, Kiki, Supertonic,
 ASR/VAD/KWS, private fixtures or cat sounds as part of this rollback.
+
+## 2026-07-16 — fail-closed meow/purr insertion layer
+
+No package, model, service or external asset was installed for this milestone,
+and no real cat sound was played. Existing checked-in 48 kHz/24-bit masters,
+their immutable manifest and the disabled runtime allowlist are the only media
+inputs. `neko/cat_audio.py` retains the earlier ReplayGain/peak helpers and now
+adds a semantic catalog/player.
+
+The LLM may emit exact expressive `[meow]` or `[purr]` markers at the start of a
+short response. The deterministic parser maps only those markers to
+`meow_general` or `purr_short`; ordinary prose, unknown brackets and paths do
+not become actions, and a response is limited to two recognized cues. The
+catalog requires all of the following before returning an asset:
+
+- global runtime status `enabled` and default policy `deny`;
+- a known enabled semantic action approved for autonomy;
+- an allowed logical output (`speaker` or `body_transducer`);
+- a candidate within its maximum duration with a positive configured weight;
+- accepted derived-content, hardware and release fields in the checked manifest;
+- a path contained within the repository and a fresh matching SHA-256;
+- elapsed per-action/output cooldown.
+
+The choice uses `SystemRandom` in normal execution and supports an injected
+seeded generator in tests. It excludes the immediately previous asset when at
+least one other approved candidate is available. The model cannot choose path,
+gain or output. The action's new fixed `default_gain_db` must lie inside its
+existing min/max range: initial meow policy is 0 dB relative to the -23 LUFS
+masters, while purr policy is -6 dB. `/usr/bin/pw-play` receives the resulting
+linear volume plus an optional operator-fixed PipeWire target. The same
+barge-in cancellation event terminates it.
+
+`scripts/neko_voice_assistant.py` renders text and cat-sound parts in order under
+one speaking/cancellation scope. A denied marker falls back to TTS speaking
+`meow` or `purr`, so disabled media cannot break conversation. The first-output
+latency event is emitted once across the mixed response. The current checked
+policy has a disabled global status, every action is disabled and non-autonomous,
+and all derived/hardware/release approvals remain pending. A direct production-
+catalog smoke returned the expected `cat-sound runtime is disabled` denial.
+
+The repository suite passed 106 tests, including the four pre-existing cat-audio
+normalization tests plus strict-marker, cue-count, raw/unknown deny, global/action
+disable, accepted-selection, integrity, cooldown, non-repeat, fixed-gain/target,
+and integrated TTS-fallback coverage. Python compilation and `git diff --check`
+passed. Activation and rollback are documented in
+`docs/plan/2026-07-16-cat-audio-insertion.md`.
