@@ -22,15 +22,23 @@ Cat Sounds Master and machine manifests whenever an output is accepted.
 
 ## P0 — first usable soundboard
 
+Build status on 2026-07-16: all seven source rows have deterministic lossless
+bench candidates, provenance, TASL/change notices, a disabled semantic allowlist,
+and automated integrity/mastering tests. This completes the non-hardware build,
+not acceptance. Owner listening remains for every derivative, item 21 still
+needs intensity/multi-cat labels, item 17 needs continuous loop/phase approval,
+and all speaker/transducer candidates need final hardware testing. Exact cuts and
+measurements are in `DERIVED_AUDIO_BENCH.md`.
+
 | Item | Output | Work | Acceptance |
 | ---: | --- | --- | --- |
-| 10 | Speaker | Master unchanged general-purpose meow | Clean start/tail, consistent loudness, no clipping; `meow_general` |
-| 14 | Speaker | Master affectionate thank-you combo | Natural dynamics retained; attribution embedded in ledger; `meow_thank_you` |
-| 21 | Speaker | Split every individual meow; classify neutral/curious/insistent | No overlap/cutoff; each clip intensity-reviewed; full chorus disabled |
-| 17 | Transducer + speaker | Remove final 0.5 s; create natural start, seamless loop, and stop tail | No tail noise or loop click; primary low-level transducer test passes |
-| 23 | Transducer + speaker | Master short relaxing purr | No bass overload/rattle; `purr_short` candidate |
-| 24 | Transducer + speaker | Create sustained and short playful-affection versions | Snuffling remains friendly/natural; no excessive body resonance |
-| 18 | Transducer + speaker | Master short purr interjection | Fast clean onset/stop; does not sound mechanically gated |
+| 10 | Speaker | Bench candidate built | Listen/hardware pending; no clipping; `meow_general` |
+| 14 | Speaker | Bench candidate built | Listen/hardware pending; natural dynamics retained; `meow_thank_you` |
+| 21 | Speaker | Nine bench excerpts built; one overlapping group retained | Owner intensity/multi-cat classification pending; full chorus disabled |
+| 17 | Transducer + speaker | Six start/loop/stop bench candidates built; noisy tail excluded | Continuous loop/phase listening and transducer test pending |
+| 23 | Transducer + speaker | Two short relaxing-purr bench candidates built | Bass/rattle hardware acceptance pending |
+| 24 | Transducer + speaker | Four short/sustained bench candidates built | Character listening pending; speaker versions peak-limited below target; body resonance pending |
+| 18 | Transducer + speaker | Two short-interjection bench candidates built | Onset/stop listening and hardware acceptance pending |
 
 ## P1 — distinct emotional coverage
 

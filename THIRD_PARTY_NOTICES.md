@@ -43,6 +43,13 @@ Current notable boundaries:
   does not apply to any of these recordings or their derivatives. Exact
   attribution, source/license URLs, decisions, and SHA-256 values are in
   `assets/cat-sounds/manifest.json` and the maintained Cat Sounds Master.
+- Twenty-five lossless bench derivatives from seven of those sources are under
+  `assets/cat-sounds/derived`: ten CC0 1.0 files, fourteen CC BY 4.0 files, and
+  one CC BY-NC 3.0 file. They retain the source terms, modification notices, and
+  TASL credits in `assets/cat-sounds/ATTRIBUTION.md` and
+  `assets/cat-sounds/derived/manifest.json`. They are not MIT-licensed, do not
+  imply creator endorsement, and remain disabled pending derived listening and
+  output-hardware acceptance.
 - Stable Audio 3 Small SFX source/runtime and selected optimized weights are
   installed externally as a stopped research profile after owner acceptance.
   Its weights use the Stability AI Community License and include T5Gemma

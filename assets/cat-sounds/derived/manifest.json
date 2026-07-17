@@ -1,0 +1,3768 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-07-16",
+  "asset_root": "assets/cat-sounds/derived",
+  "source_manifest": "config/cat-sounds/curated-freesound.json",
+  "review_ledger": "config/cat-sounds/curated-freesound-listening-review.json",
+  "recipe_file": "config/cat-sounds/derived-assets-recipes.json",
+  "mastering_policy": {
+    "policy_id": "neko-cat-audio-bench-v1",
+    "release_status": "bench_candidate",
+    "sample_rate_hz": 48000,
+    "channels": 1,
+    "container": "wav",
+    "codec": "pcm_s24le",
+    "target_lufs_i": -23.0,
+    "loudness_tolerance_lu": 0.5,
+    "max_true_peak_dbtp": -2.0,
+    "gain_method": "linear_gain_capped_by_true_peak_without_compression_or_limiting",
+    "speaker_filter": "highpass=f=45:p=2",
+    "body_transducer_filter": "highpass=f=25:p=2,lowpass=f=350:p=2",
+    "hardware_note": "Output filters and digital levels are conservative bench candidates. Final acoustic gain/EQ require the installed amplifier, speaker, transducer, enclosure, and cart body.",
+    "analyzer": "FFmpeg loudnorm plus independent ebur128 peak=sample+true",
+    "ffmpeg_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+    "ffprobe_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2007-2025 the FFmpeg developers",
+    "ffmpeg_sha256": "3e74c1741e7e990aa3ae47f774a74baa2df57e27b08b1e0f3846d0d861e181c7",
+    "true_peak_method_note": "FFmpeg's filters report true peak; this build does not expose an oversampling-factor field, so no factor is asserted."
+  },
+  "root_mit_license_applies": false,
+  "runtime_default": "disabled",
+  "asset_count": 25,
+  "content_bytes": 34009384,
+  "entries": [
+    {
+      "asset_id": "meow_general.speaker.v1",
+      "recipe_id": "meow_general.speaker.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/meow_general__speaker__freesound-491690__v1.wav",
+      "sha256": "0cfc59760e69f6a2e98641a4524cc6c9fff2bcacd2af252c7b2b1ebe50a20fd8",
+      "byte_size": 125348,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 41760,
+      "duration_seconds": 0.87,
+      "sample_peak_linear": 0.259473681,
+      "dc_offset": -1.59e-07,
+      "clipped_sample_count": 0,
+      "semantic_action": "meow_general",
+      "variant": "one_shot",
+      "target_output": "speaker",
+      "character_tags": [
+        "neutral-friendly",
+        "general-purpose"
+      ],
+      "intensity": "neutral",
+      "sources": [
+        {
+          "source_id": "freesound-491690",
+          "source_sha256": "2bba25c37a981f81e8f36a281eac668767e3f5df97b44e3d030ca023965853a7",
+          "source_url": "https://freesound.org/s/491690/",
+          "creator": "pizzapoes",
+          "title": "Meow.mp3",
+          "license": "CC-BY-NC-3.0",
+          "license_url": "https://creativecommons.org/licenses/by-nc/3.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 1.097143,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 1440,
+          "end_frame": 43200,
+          "start_seconds": 0.03,
+          "end_seconds": 0.9
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 0.03,
+            "end_seconds": 0.9
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=45:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.01,
+            "fade_out_seconds": 0.025,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": -7.23,
+            "peak_safe_gain_db": 2.45,
+            "applied_gain_db": -7.23,
+            "peak_limited": false
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -23.0,
+        "loudness_range_lu": 0.0,
+        "true_peak_dbtp": -11.68,
+        "independent_ebur128": {
+          "integrated_lufs": -23.0,
+          "loudness_range_lu": 0.0,
+          "sample_peak_dbfs": -11.7,
+          "true_peak_dbtp": -11.7
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC-BY-NC-3.0",
+        "license_url": "https://creativecommons.org/licenses/by-nc/3.0/",
+        "creator": "pizzapoes",
+        "title": "Meow.mp3",
+        "source_url": "https://freesound.org/s/491690/",
+        "attribution_text": "Meow.mp3 by pizzapoes, CC-BY-NC-3.0; modified for Neko.",
+        "changes_notice": "Decoded from MP3, downmixed to mono, resampled, conservatively high-pass filtered, edge-faded, linearly loudness-normalized, and delivered as 24-bit PCM. No semantic content was removed.",
+        "commercial_use_allowed": false,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    },
+    {
+      "asset_id": "meow_thank_you.speaker.v1",
+      "recipe_id": "meow_thank_you.speaker.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/meow_thank_you__speaker__freesound-536703__v1.wav",
+      "sha256": "53871f1df7f7bcfdb7af942104dbd22e825c028bf517621fce998409211ab558",
+      "byte_size": 459428,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 153120,
+      "duration_seconds": 3.19,
+      "sample_peak_linear": 0.346050501,
+      "dc_offset": 1.3755e-05,
+      "clipped_sample_count": 0,
+      "semantic_action": "meow_thank_you",
+      "variant": "one_shot",
+      "target_output": "speaker",
+      "character_tags": [
+        "friendly",
+        "affectionate",
+        "grateful"
+      ],
+      "intensity": "gentle",
+      "sources": [
+        {
+          "source_id": "freesound-536703",
+          "source_sha256": "a4870d3783bc40ec88d32f32fff58ef97bbbb951034c4bda95bb64806a519ca3",
+          "source_url": "https://freesound.org/s/536703/",
+          "creator": "scousemousejb",
+          "title": "Cat meow and purr.wav",
+          "license": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 3.462344,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 1440,
+          "end_frame": 154560,
+          "start_seconds": 0.03,
+          "end_seconds": 3.22
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 0.03,
+            "end_seconds": 3.22
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "aformat=channel_layouts=mono"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=45:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.015,
+            "fade_out_seconds": 0.1,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": 10.83,
+            "peak_safe_gain_db": 18.04,
+            "applied_gain_db": 10.83,
+            "peak_limited": false
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -23.0,
+        "loudness_range_lu": 0.2,
+        "true_peak_dbtp": -9.21,
+        "independent_ebur128": {
+          "integrated_lufs": -22.9,
+          "loudness_range_lu": 20.0,
+          "sample_peak_dbfs": -9.2,
+          "true_peak_dbtp": -9.2
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC-BY-4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
+        "creator": "scousemousejb",
+        "title": "Cat meow and purr.wav",
+        "source_url": "https://freesound.org/s/536703/",
+        "attribution_text": "Cat meow and purr.wav by scousemousejb, CC-BY-4.0; modified for Neko.",
+        "changes_notice": "Full-content derivative downmixed to mono, resampled, conservatively high-pass filtered, edge-faded, linearly loudness-normalized, and delivered as 24-bit PCM. Natural dynamics were retained.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    },
+    {
+      "asset_id": "meow_attention_candidate_01.speaker.v1",
+      "recipe_id": "meow_attention_candidate_01.speaker.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/meow_attention_candidate_01__speaker__freesound-655659__v1.wav",
+      "sha256": "37a43fd5f393d33ebca989820a933670927b1b92802cb3295bceae10b050c558",
+      "byte_size": 114692,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 38208,
+      "duration_seconds": 0.796,
+      "sample_peak_linear": 0.28392756,
+      "dc_offset": 1.773e-05,
+      "clipped_sample_count": 0,
+      "semantic_action": "meow_attention_candidate",
+      "variant": "split_01",
+      "target_output": "speaker",
+      "character_tags": [
+        "attention",
+        "classification-pending"
+      ],
+      "intensity": "pending_owner_classification",
+      "sources": [
+        {
+          "source_id": "freesound-655659",
+          "source_sha256": "9cee60e55d6df3f396573c36951ee65438b862fe2950dc27ea5ef20f315ff0f1",
+          "source_url": "https://freesound.org/s/655659/",
+          "creator": "221316",
+          "title": "Cats asking for attention.wav",
+          "license": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 9.0,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 1440,
+          "end_frame": 39648,
+          "start_seconds": 0.03,
+          "end_seconds": 0.826
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 0.03,
+            "end_seconds": 0.826
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=45:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.01,
+            "fade_out_seconds": 0.025,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": 14.96,
+            "peak_safe_gain_db": 23.88,
+            "applied_gain_db": 14.96,
+            "peak_limited": false
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -23.0,
+        "loudness_range_lu": 0.0,
+        "true_peak_dbtp": -10.92,
+        "independent_ebur128": {
+          "integrated_lufs": -23.0,
+          "loudness_range_lu": 0.0,
+          "sample_peak_dbfs": -10.9,
+          "true_peak_dbtp": -10.9
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC-BY-4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
+        "creator": "221316",
+        "title": "Cats asking for attention.wav",
+        "source_url": "https://freesound.org/s/655659/",
+        "attribution_text": "Cats asking for attention.wav by 221316, CC-BY-4.0; modified for Neko.",
+        "changes_notice": "Excerpted as the first individual attention-call candidate, downmixed, edge-faded, high-pass filtered, and linearly loudness-normalized.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    },
+    {
+      "asset_id": "meow_attention_candidate_02.speaker.v1",
+      "recipe_id": "meow_attention_candidate_02.speaker.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/meow_attention_candidate_02__speaker__freesound-655659__v1.wav",
+      "sha256": "42c536be4c32e7b1bef8492ddae6a5cda9bbd8d8fddf4c904d3c3db759ca04a6",
+      "byte_size": 92804,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 30912,
+      "duration_seconds": 0.644,
+      "sample_peak_linear": 0.16393292,
+      "dc_offset": -1.1627e-05,
+      "clipped_sample_count": 0,
+      "semantic_action": "meow_attention_candidate",
+      "variant": "split_02",
+      "target_output": "speaker",
+      "character_tags": [
+        "attention",
+        "classification-pending"
+      ],
+      "intensity": "pending_owner_classification",
+      "sources": [
+        {
+          "source_id": "freesound-655659",
+          "source_sha256": "9cee60e55d6df3f396573c36951ee65438b862fe2950dc27ea5ef20f315ff0f1",
+          "source_url": "https://freesound.org/s/655659/",
+          "creator": "221316",
+          "title": "Cats asking for attention.wav",
+          "license": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 9.0,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 39648,
+          "end_frame": 70560,
+          "start_seconds": 0.826,
+          "end_seconds": 1.47
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 0.826,
+            "end_seconds": 1.47
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=45:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.02,
+            "fade_out_seconds": 0.025,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": 11.01,
+            "peak_safe_gain_db": 24.65,
+            "applied_gain_db": 11.01,
+            "peak_limited": false
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -23.01,
+        "loudness_range_lu": 0.0,
+        "true_peak_dbtp": -15.64,
+        "independent_ebur128": {
+          "integrated_lufs": -22.9,
+          "loudness_range_lu": 0.0,
+          "sample_peak_dbfs": -15.7,
+          "true_peak_dbtp": -15.6
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC-BY-4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
+        "creator": "221316",
+        "title": "Cats asking for attention.wav",
+        "source_url": "https://freesound.org/s/655659/",
+        "attribution_text": "Cats asking for attention.wav by 221316, CC-BY-4.0; modified for Neko.",
+        "changes_notice": "Excerpted as the second individual attention-call candidate, downmixed, edge-faded, high-pass filtered, and linearly loudness-normalized.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    },
+    {
+      "asset_id": "meow_attention_candidate_03.speaker.v1",
+      "recipe_id": "meow_attention_candidate_03.speaker.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/meow_attention_candidate_03__speaker__freesound-655659__v1.wav",
+      "sha256": "80c0a1e0c0a34ffcc201168188bc17c84035af95c01fe73791bcdd7d32d23760",
+      "byte_size": 135428,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 45120,
+      "duration_seconds": 0.94,
+      "sample_peak_linear": 0.194369674,
+      "dc_offset": -1.3844e-05,
+      "clipped_sample_count": 0,
+      "semantic_action": "meow_attention_candidate",
+      "variant": "split_03",
+      "target_output": "speaker",
+      "character_tags": [
+        "attention",
+        "classification-pending"
+      ],
+      "intensity": "pending_owner_classification",
+      "sources": [
+        {
+          "source_id": "freesound-655659",
+          "source_sha256": "9cee60e55d6df3f396573c36951ee65438b862fe2950dc27ea5ef20f315ff0f1",
+          "source_url": "https://freesound.org/s/655659/",
+          "creator": "221316",
+          "title": "Cats asking for attention.wav",
+          "license": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 9.0,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 84480,
+          "end_frame": 129600,
+          "start_seconds": 1.76,
+          "end_seconds": 2.7
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 1.76,
+            "end_seconds": 2.7
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=45:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.01,
+            "fade_out_seconds": 0.025,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": 7.03,
+            "peak_safe_gain_db": 19.21,
+            "applied_gain_db": 7.03,
+            "peak_limited": false
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -22.98,
+        "loudness_range_lu": 0.0,
+        "true_peak_dbtp": -14.18,
+        "independent_ebur128": {
+          "integrated_lufs": -23.0,
+          "loudness_range_lu": 0.0,
+          "sample_peak_dbfs": -14.2,
+          "true_peak_dbtp": -14.2
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC-BY-4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
+        "creator": "221316",
+        "title": "Cats asking for attention.wav",
+        "source_url": "https://freesound.org/s/655659/",
+        "attribution_text": "Cats asking for attention.wav by 221316, CC-BY-4.0; modified for Neko.",
+        "changes_notice": "Excerpted as the third individual attention-call candidate, downmixed, edge-faded, high-pass filtered, and linearly loudness-normalized.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    },
+    {
+      "asset_id": "meow_attention_candidate_04.speaker.v1",
+      "recipe_id": "meow_attention_candidate_04.speaker.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/meow_attention_candidate_04__speaker__freesound-655659__v1.wav",
+      "sha256": "52ab33251cf2239d2cfadbb363b720069c6c2821c1e0821fe85860a50daad3fe",
+      "byte_size": 111956,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 37296,
+      "duration_seconds": 0.777,
+      "sample_peak_linear": 0.176721215,
+      "dc_offset": -3.323e-06,
+      "clipped_sample_count": 0,
+      "semantic_action": "meow_attention_candidate",
+      "variant": "split_04",
+      "target_output": "speaker",
+      "character_tags": [
+        "attention",
+        "classification-pending"
+      ],
+      "intensity": "pending_owner_classification",
+      "sources": [
+        {
+          "source_id": "freesound-655659",
+          "source_sha256": "9cee60e55d6df3f396573c36951ee65438b862fe2950dc27ea5ef20f315ff0f1",
+          "source_url": "https://freesound.org/s/655659/",
+          "creator": "221316",
+          "title": "Cats asking for attention.wav",
+          "license": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 9.0,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 146880,
+          "end_frame": 184176,
+          "start_seconds": 3.06,
+          "end_seconds": 3.837
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 3.06,
+            "end_seconds": 3.837
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=45:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.01,
+            "fade_out_seconds": 0.025,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": 7.79,
+            "peak_safe_gain_db": 20.84,
+            "applied_gain_db": 7.79,
+            "peak_limited": false
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -23.01,
+        "loudness_range_lu": 0.0,
+        "true_peak_dbtp": -15.05,
+        "independent_ebur128": {
+          "integrated_lufs": -23.0,
+          "loudness_range_lu": 0.0,
+          "sample_peak_dbfs": -15.1,
+          "true_peak_dbtp": -15.1
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC-BY-4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
+        "creator": "221316",
+        "title": "Cats asking for attention.wav",
+        "source_url": "https://freesound.org/s/655659/",
+        "attribution_text": "Cats asking for attention.wav by 221316, CC-BY-4.0; modified for Neko.",
+        "changes_notice": "Excerpted as the fourth individual attention-call candidate, downmixed, edge-faded, high-pass filtered, and linearly loudness-normalized.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    },
+    {
+      "asset_id": "meow_attention_candidate_05.speaker.v1",
+      "recipe_id": "meow_attention_candidate_05.speaker.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/meow_attention_candidate_05__speaker__freesound-655659__v1.wav",
+      "sha256": "b48896fbf975f004472c617489ce68816207dc5ee1e9b80b5af83b79348d1a48",
+      "byte_size": 93668,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 31200,
+      "duration_seconds": 0.65,
+      "sample_peak_linear": 0.156745195,
+      "dc_offset": 2.374e-06,
+      "clipped_sample_count": 0,
+      "semantic_action": "meow_attention_candidate",
+      "variant": "split_05",
+      "target_output": "speaker",
+      "character_tags": [
+        "attention",
+        "classification-pending"
+      ],
+      "intensity": "pending_owner_classification",
+      "sources": [
+        {
+          "source_id": "freesound-655659",
+          "source_sha256": "9cee60e55d6df3f396573c36951ee65438b862fe2950dc27ea5ef20f315ff0f1",
+          "source_url": "https://freesound.org/s/655659/",
+          "creator": "221316",
+          "title": "Cats asking for attention.wav",
+          "license": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 9.0,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 184176,
+          "end_frame": 215376,
+          "start_seconds": 3.837,
+          "end_seconds": 4.487
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 3.837,
+            "end_seconds": 4.487
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=45:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.02,
+            "fade_out_seconds": 0.025,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": 11.27,
+            "peak_safe_gain_db": 25.25,
+            "applied_gain_db": 11.27,
+            "peak_limited": false
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -22.97,
+        "loudness_range_lu": 0.0,
+        "true_peak_dbtp": -15.98,
+        "independent_ebur128": {
+          "integrated_lufs": -22.9,
+          "loudness_range_lu": 0.0,
+          "sample_peak_dbfs": -16.1,
+          "true_peak_dbtp": -16.0
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC-BY-4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
+        "creator": "221316",
+        "title": "Cats asking for attention.wav",
+        "source_url": "https://freesound.org/s/655659/",
+        "attribution_text": "Cats asking for attention.wav by 221316, CC-BY-4.0; modified for Neko.",
+        "changes_notice": "Excerpted as the fifth individual attention-call candidate, downmixed, edge-faded, high-pass filtered, and linearly loudness-normalized.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    },
+    {
+      "asset_id": "meow_attention_candidate_06.speaker.v1",
+      "recipe_id": "meow_attention_candidate_06.speaker.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/meow_attention_candidate_06__speaker__freesound-655659__v1.wav",
+      "sha256": "244ed8af574e5b19f75fa71df78ff73939e04222e33d75c883eff99194f0bd9e",
+      "byte_size": 107636,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 35856,
+      "duration_seconds": 0.747,
+      "sample_peak_linear": 0.151251554,
+      "dc_offset": -2.548e-06,
+      "clipped_sample_count": 0,
+      "semantic_action": "meow_attention_candidate",
+      "variant": "split_06",
+      "target_output": "speaker",
+      "character_tags": [
+        "attention",
+        "classification-pending"
+      ],
+      "intensity": "pending_owner_classification",
+      "sources": [
+        {
+          "source_id": "freesound-655659",
+          "source_sha256": "9cee60e55d6df3f396573c36951ee65438b862fe2950dc27ea5ef20f315ff0f1",
+          "source_url": "https://freesound.org/s/655659/",
+          "creator": "221316",
+          "title": "Cats asking for attention.wav",
+          "license": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 9.0,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 215376,
+          "end_frame": 251232,
+          "start_seconds": 4.487,
+          "end_seconds": 5.234
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 4.487,
+            "end_seconds": 5.234
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=45:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.02,
+            "fade_out_seconds": 0.025,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": 9.02,
+            "peak_safe_gain_db": 23.37,
+            "applied_gain_db": 9.02,
+            "peak_limited": false
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -23.02,
+        "loudness_range_lu": 0.0,
+        "true_peak_dbtp": -16.35,
+        "independent_ebur128": {
+          "integrated_lufs": -23.0,
+          "loudness_range_lu": 0.0,
+          "sample_peak_dbfs": -16.4,
+          "true_peak_dbtp": -16.4
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC-BY-4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
+        "creator": "221316",
+        "title": "Cats asking for attention.wav",
+        "source_url": "https://freesound.org/s/655659/",
+        "attribution_text": "Cats asking for attention.wav by 221316, CC-BY-4.0; modified for Neko.",
+        "changes_notice": "Excerpted as the sixth individual attention-call candidate, downmixed, edge-faded, high-pass filtered, and linearly loudness-normalized.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    },
+    {
+      "asset_id": "meow_attention_group_candidate_07.speaker.v1",
+      "recipe_id": "meow_attention_group_candidate_07.speaker.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/meow_attention_group_candidate_07__speaker__freesound-655659__v1.wav",
+      "sha256": "b97aaa34610ff08fe58ef545c159438ffa0ba10fa353b1f5799a77578222cb9d",
+      "byte_size": 274388,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 91440,
+      "duration_seconds": 1.905,
+      "sample_peak_linear": 0.208815575,
+      "dc_offset": -2.9e-07,
+      "clipped_sample_count": 0,
+      "semantic_action": "meow_attention_group_candidate",
+      "variant": "overlapping_duet_07",
+      "target_output": "speaker",
+      "character_tags": [
+        "attention",
+        "overlapping-calls",
+        "classification-pending"
+      ],
+      "intensity": "pending_owner_classification",
+      "sources": [
+        {
+          "source_id": "freesound-655659",
+          "source_sha256": "9cee60e55d6df3f396573c36951ee65438b862fe2950dc27ea5ef20f315ff0f1",
+          "source_url": "https://freesound.org/s/655659/",
+          "creator": "221316",
+          "title": "Cats asking for attention.wav",
+          "license": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 9.0,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 251232,
+          "end_frame": 342672,
+          "start_seconds": 5.234,
+          "end_seconds": 7.139
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 5.234,
+            "end_seconds": 7.139
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=45:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.01,
+            "fade_out_seconds": 0.025,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": 11.04,
+            "peak_safe_gain_db": 22.64,
+            "applied_gain_db": 11.04,
+            "peak_limited": false
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -22.99,
+        "loudness_range_lu": 0.0,
+        "true_peak_dbtp": -13.6,
+        "independent_ebur128": {
+          "integrated_lufs": -23.0,
+          "loudness_range_lu": 0.0,
+          "sample_peak_dbfs": -13.6,
+          "true_peak_dbtp": -13.6
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC-BY-4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
+        "creator": "221316",
+        "title": "Cats asking for attention.wav",
+        "source_url": "https://freesound.org/s/655659/",
+        "attribution_text": "Cats asking for attention.wav by 221316, CC-BY-4.0; modified for Neko.",
+        "changes_notice": "Excerpted as an overlapping two-call attention candidate because the source contours could not be separated without an audible cut; downmixed, edge-faded, high-pass filtered, and linearly loudness-normalized.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    },
+    {
+      "asset_id": "meow_attention_candidate_08.speaker.v1",
+      "recipe_id": "meow_attention_candidate_08.speaker.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/meow_attention_candidate_08__speaker__freesound-655659__v1.wav",
+      "sha256": "e10ff7f5a5024295e7c42f208d5ad4b6459ac3302db09e3e77d56825585a74a4",
+      "byte_size": 98276,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 32736,
+      "duration_seconds": 0.682,
+      "sample_peak_linear": 0.160370946,
+      "dc_offset": -1.0629e-05,
+      "clipped_sample_count": 0,
+      "semantic_action": "meow_attention_candidate",
+      "variant": "split_08",
+      "target_output": "speaker",
+      "character_tags": [
+        "attention",
+        "classification-pending"
+      ],
+      "intensity": "pending_owner_classification",
+      "sources": [
+        {
+          "source_id": "freesound-655659",
+          "source_sha256": "9cee60e55d6df3f396573c36951ee65438b862fe2950dc27ea5ef20f315ff0f1",
+          "source_url": "https://freesound.org/s/655659/",
+          "creator": "221316",
+          "title": "Cats asking for attention.wav",
+          "license": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 9.0,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 342672,
+          "end_frame": 375408,
+          "start_seconds": 7.139,
+          "end_seconds": 7.821
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 7.139,
+            "end_seconds": 7.821
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=45:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.01,
+            "fade_out_seconds": 0.025,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": 9.0,
+            "peak_safe_gain_db": 22.9,
+            "applied_gain_db": 9.0,
+            "peak_limited": false
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -23.0,
+        "loudness_range_lu": 0.0,
+        "true_peak_dbtp": -15.9,
+        "independent_ebur128": {
+          "integrated_lufs": -23.0,
+          "loudness_range_lu": 0.0,
+          "sample_peak_dbfs": -15.9,
+          "true_peak_dbtp": -15.9
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC-BY-4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
+        "creator": "221316",
+        "title": "Cats asking for attention.wav",
+        "source_url": "https://freesound.org/s/655659/",
+        "attribution_text": "Cats asking for attention.wav by 221316, CC-BY-4.0; modified for Neko.",
+        "changes_notice": "Excerpted as the eighth individual attention-call candidate, downmixed, edge-faded, high-pass filtered, and linearly loudness-normalized.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    },
+    {
+      "asset_id": "meow_attention_candidate_09.speaker.v1",
+      "recipe_id": "meow_attention_candidate_09.speaker.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/meow_attention_candidate_09__speaker__freesound-655659__v1.wav",
+      "sha256": "f4b45619cc876617c2a2784b054faea7cfba2d39e59311431bcb6832c89c6bd9",
+      "byte_size": 116852,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 38928,
+      "duration_seconds": 0.811,
+      "sample_peak_linear": 0.198468924,
+      "dc_offset": -4.54e-07,
+      "clipped_sample_count": 0,
+      "semantic_action": "meow_attention_candidate",
+      "variant": "split_09",
+      "target_output": "speaker",
+      "character_tags": [
+        "attention",
+        "classification-pending"
+      ],
+      "intensity": "pending_owner_classification",
+      "sources": [
+        {
+          "source_id": "freesound-655659",
+          "source_sha256": "9cee60e55d6df3f396573c36951ee65438b862fe2950dc27ea5ef20f315ff0f1",
+          "source_url": "https://freesound.org/s/655659/",
+          "creator": "221316",
+          "title": "Cats asking for attention.wav",
+          "license": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 9.0,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 375408,
+          "end_frame": 414336,
+          "start_seconds": 7.821,
+          "end_seconds": 8.632
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 7.821,
+            "end_seconds": 8.632
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=45:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.02,
+            "fade_out_seconds": 0.025,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": 12.8,
+            "peak_safe_gain_db": 24.85,
+            "applied_gain_db": 12.8,
+            "peak_limited": false
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -23.0,
+        "loudness_range_lu": 0.0,
+        "true_peak_dbtp": -14.05,
+        "independent_ebur128": {
+          "integrated_lufs": -23.0,
+          "loudness_range_lu": 0.0,
+          "sample_peak_dbfs": -14.0,
+          "true_peak_dbtp": -14.0
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC-BY-4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
+        "creator": "221316",
+        "title": "Cats asking for attention.wav",
+        "source_url": "https://freesound.org/s/655659/",
+        "attribution_text": "Cats asking for attention.wav by 221316, CC-BY-4.0; modified for Neko.",
+        "changes_notice": "Excerpted as the ninth individual attention-call candidate, downmixed, edge-faded, high-pass filtered, and linearly loudness-normalized.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    },
+    {
+      "asset_id": "purr_primary.start.speaker.v1",
+      "recipe_id": "purr_primary.start.speaker.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/purr_primary_start__speaker__freesound-550941__v1.wav",
+      "sha256": "76a83bbad0a3cf3cfedd5d9b5d0eaf210e3d0ff9d5025b5af5e8e7abb28722f0",
+      "byte_size": 478868,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 159600,
+      "duration_seconds": 3.325,
+      "sample_peak_linear": 0.590741992,
+      "dc_offset": -6.35e-07,
+      "clipped_sample_count": 0,
+      "semantic_action": "purr_primary",
+      "variant": "start",
+      "target_output": "speaker",
+      "character_tags": [
+        "contented",
+        "calm",
+        "phase-candidate"
+      ],
+      "intensity": "gentle",
+      "sources": [
+        {
+          "source_id": "freesound-550941",
+          "source_sha256": "ea5df39a5c4c437d95b1bef2cfc8478c4e1111f6d8976bea3d9a8ec4c64d433a",
+          "source_url": "https://freesound.org/s/550941/",
+          "creator": "kadka_funkenflug",
+          "title": "purring cat_01.wav",
+          "license": "CC0-1.0",
+          "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 35.293625,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 19200,
+          "end_frame": 178800,
+          "start_seconds": 0.4,
+          "end_seconds": 3.725
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 0.4,
+            "end_seconds": 3.725
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=45:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.05,
+            "fade_out_seconds": 0.1,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": 12.02,
+            "peak_safe_gain_db": 14.59,
+            "applied_gain_db": 12.02,
+            "peak_limited": false
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -23.0,
+        "loudness_range_lu": 1.0,
+        "true_peak_dbtp": -4.57,
+        "independent_ebur128": {
+          "integrated_lufs": -22.9,
+          "loudness_range_lu": 20.3,
+          "sample_peak_dbfs": -4.6,
+          "true_peak_dbtp": -4.6
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC0-1.0",
+        "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "creator": "kadka_funkenflug",
+        "title": "purring cat_01.wav",
+        "source_url": "https://freesound.org/s/550941/",
+        "attribution_text": "purring cat_01.wav by kadka_funkenflug, CC0-1.0; modified for Neko.",
+        "changes_notice": "Excerpted as a candidate natural purr start, downmixed, high-pass filtered, edge-faded, and linearly loudness-normalized.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    },
+    {
+      "asset_id": "purr_primary.loop.speaker.v1",
+      "recipe_id": "purr_primary.loop.speaker.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/purr_primary_loop__speaker__freesound-550941__v1.wav",
+      "sha256": "430158d738c7d5cd3055a34771e3855b0edf7f369305eea23bdea6252429d865",
+      "byte_size": 3754868,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 1251600,
+      "duration_seconds": 26.075,
+      "sample_peak_linear": 0.643871784,
+      "dc_offset": -2.83e-07,
+      "clipped_sample_count": 0,
+      "loop_boundary_amplitude_delta": 0.000167847,
+      "loop_boundary_slope_delta": 0.000319839,
+      "semantic_action": "purr_primary",
+      "variant": "loop",
+      "target_output": "speaker",
+      "character_tags": [
+        "contented",
+        "calm",
+        "loop-candidate"
+      ],
+      "intensity": "gentle",
+      "sources": [
+        {
+          "source_id": "freesound-550941",
+          "source_sha256": "ea5df39a5c4c437d95b1bef2cfc8478c4e1111f6d8976bea3d9a8ec4c64d433a",
+          "source_url": "https://freesound.org/s/550941/",
+          "creator": "kadka_funkenflug",
+          "title": "purring cat_01.wav",
+          "license": "CC0-1.0",
+          "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 35.293625,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 178800,
+          "end_frame": 1466400,
+          "start_seconds": 3.725,
+          "end_seconds": 30.55
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 3.725,
+            "end_seconds": 30.55
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=45:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "cyclic_crossfade",
+          "parameters": {
+            "duration_seconds": 0.75,
+            "curves": "qsin/qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": 7.92,
+            "peak_safe_gain_db": 9.74,
+            "applied_gain_db": 7.92,
+            "peak_limited": false
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -23.02,
+        "loudness_range_lu": 4.6,
+        "true_peak_dbtp": -3.82,
+        "independent_ebur128": {
+          "integrated_lufs": -22.8,
+          "loudness_range_lu": 4.8,
+          "sample_peak_dbfs": -3.8,
+          "true_peak_dbtp": -3.8
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC0-1.0",
+        "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "creator": "kadka_funkenflug",
+        "title": "purring cat_01.wav",
+        "source_url": "https://freesound.org/s/550941/",
+        "attribution_text": "purring cat_01.wav by kadka_funkenflug, CC0-1.0; modified for Neko.",
+        "changes_notice": "Selected the clean loop body from the owner-approved source, downmixed, high-pass filtered, and built a cyclic candidate with a 0.75-second equal-power tail-to-head crossfade before linear loudness normalization. The noisy tail after 33.5 seconds is excluded.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      },
+      "loop": {
+        "loop_start_frame": 0,
+        "loop_end_frame": 1251600,
+        "crossfade_frames": 36000,
+        "listening_approval": "pending"
+      }
+    },
+    {
+      "asset_id": "purr_primary.stop.speaker.v1",
+      "recipe_id": "purr_primary.stop.speaker.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/purr_primary_stop__speaker__freesound-550941__v1.wav",
+      "sha256": "3095b2a36db5c988446f16c48547c02fbe8dd945ab51947ffa1124a1654ec65f",
+      "byte_size": 424868,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 141600,
+      "duration_seconds": 2.95,
+      "sample_peak_linear": 0.441568613,
+      "dc_offset": 6.78e-07,
+      "clipped_sample_count": 0,
+      "semantic_action": "purr_primary",
+      "variant": "stop",
+      "target_output": "speaker",
+      "character_tags": [
+        "contented",
+        "calm",
+        "phase-candidate"
+      ],
+      "intensity": "gentle",
+      "sources": [
+        {
+          "source_id": "freesound-550941",
+          "source_sha256": "ea5df39a5c4c437d95b1bef2cfc8478c4e1111f6d8976bea3d9a8ec4c64d433a",
+          "source_url": "https://freesound.org/s/550941/",
+          "creator": "kadka_funkenflug",
+          "title": "purring cat_01.wav",
+          "license": "CC0-1.0",
+          "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 35.293625,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 1466400,
+          "end_frame": 1608000,
+          "start_seconds": 30.55,
+          "end_seconds": 33.5
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 30.55,
+            "end_seconds": 33.5
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=45:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.1,
+            "fade_out_seconds": 0.3,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": 6.22,
+            "peak_safe_gain_db": 11.32,
+            "applied_gain_db": 6.22,
+            "peak_limited": false
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -23.01,
+        "loudness_range_lu": 0.0,
+        "true_peak_dbtp": -7.1,
+        "independent_ebur128": {
+          "integrated_lufs": -23.0,
+          "loudness_range_lu": 0.0,
+          "sample_peak_dbfs": -7.1,
+          "true_peak_dbtp": -7.1
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC0-1.0",
+        "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "creator": "kadka_funkenflug",
+        "title": "purring cat_01.wav",
+        "source_url": "https://freesound.org/s/550941/",
+        "attribution_text": "purring cat_01.wav by kadka_funkenflug, CC0-1.0; modified for Neko.",
+        "changes_notice": "Excerpted before the noisy final half-second as a candidate purr stop, downmixed, high-pass filtered, naturally faded, and linearly loudness-normalized.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    },
+    {
+      "asset_id": "purr_primary.start.body_transducer.v1",
+      "recipe_id": "purr_primary.start.body_transducer.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/purr_primary_start__body-transducer__freesound-550941__v1.wav",
+      "sha256": "0206f75bef4754886486cd8f99047e9c1c80647d82fbbdd57b2b3e99631230f9",
+      "byte_size": 478868,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 159600,
+      "duration_seconds": 3.325,
+      "sample_peak_linear": 0.64097333,
+      "dc_offset": -3.293e-06,
+      "clipped_sample_count": 0,
+      "semantic_action": "purr_primary",
+      "variant": "start",
+      "target_output": "body_transducer",
+      "character_tags": [
+        "contented",
+        "calm",
+        "phase-candidate"
+      ],
+      "intensity": "gentle",
+      "sources": [
+        {
+          "source_id": "freesound-550941",
+          "source_sha256": "ea5df39a5c4c437d95b1bef2cfc8478c4e1111f6d8976bea3d9a8ec4c64d433a",
+          "source_url": "https://freesound.org/s/550941/",
+          "creator": "kadka_funkenflug",
+          "title": "purring cat_01.wav",
+          "license": "CC0-1.0",
+          "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 35.293625,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 19200,
+          "end_frame": 178800,
+          "start_seconds": 0.4,
+          "end_seconds": 3.725
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 0.4,
+            "end_seconds": 3.725
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=25:p=2,lowpass=f=350:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.05,
+            "fade_out_seconds": 0.1,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": 11.98,
+            "peak_safe_gain_db": 13.84,
+            "applied_gain_db": 11.98,
+            "peak_limited": false
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -22.99,
+        "loudness_range_lu": 0.9,
+        "true_peak_dbtp": -3.86,
+        "independent_ebur128": {
+          "integrated_lufs": -22.9,
+          "loudness_range_lu": 20.3,
+          "sample_peak_dbfs": -3.9,
+          "true_peak_dbtp": -3.9
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC0-1.0",
+        "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "creator": "kadka_funkenflug",
+        "title": "purring cat_01.wav",
+        "source_url": "https://freesound.org/s/550941/",
+        "attribution_text": "purring cat_01.wav by kadka_funkenflug, CC0-1.0; modified for Neko.",
+        "changes_notice": "Excerpted as a candidate natural purr start, downmixed, provisionally band-pass filtered for a body transducer, edge-faded, and linearly loudness-normalized.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    },
+    {
+      "asset_id": "purr_primary.loop.body_transducer.v1",
+      "recipe_id": "purr_primary.loop.body_transducer.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/purr_primary_loop__body-transducer__freesound-550941__v1.wav",
+      "sha256": "2eb332b198e37b988b6658eee8ff7ba055a6defb3b0211394a0b8d64d880f49d",
+      "byte_size": 3754868,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 1251600,
+      "duration_seconds": 26.075,
+      "sample_peak_linear": 0.782413483,
+      "dc_offset": -1.092e-06,
+      "clipped_sample_count": 0,
+      "loop_boundary_amplitude_delta": 2.4915e-05,
+      "loop_boundary_slope_delta": 1.0967e-05,
+      "semantic_action": "purr_primary",
+      "variant": "loop",
+      "target_output": "body_transducer",
+      "character_tags": [
+        "contented",
+        "calm",
+        "loop-candidate"
+      ],
+      "intensity": "gentle",
+      "sources": [
+        {
+          "source_id": "freesound-550941",
+          "source_sha256": "ea5df39a5c4c437d95b1bef2cfc8478c4e1111f6d8976bea3d9a8ec4c64d433a",
+          "source_url": "https://freesound.org/s/550941/",
+          "creator": "kadka_funkenflug",
+          "title": "purring cat_01.wav",
+          "license": "CC0-1.0",
+          "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 35.293625,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 178800,
+          "end_frame": 1466400,
+          "start_seconds": 3.725,
+          "end_seconds": 30.55
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 3.725,
+            "end_seconds": 30.55
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=25:p=2,lowpass=f=350:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "cyclic_crossfade",
+          "parameters": {
+            "duration_seconds": 0.75,
+            "curves": "qsin/qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": 7.79,
+            "peak_safe_gain_db": 7.92,
+            "applied_gain_db": 7.79,
+            "peak_limited": false
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -23.0,
+        "loudness_range_lu": 4.5,
+        "true_peak_dbtp": -2.13,
+        "independent_ebur128": {
+          "integrated_lufs": -22.8,
+          "loudness_range_lu": 4.7,
+          "sample_peak_dbfs": -2.1,
+          "true_peak_dbtp": -2.1
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC0-1.0",
+        "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "creator": "kadka_funkenflug",
+        "title": "purring cat_01.wav",
+        "source_url": "https://freesound.org/s/550941/",
+        "attribution_text": "purring cat_01.wav by kadka_funkenflug, CC0-1.0; modified for Neko.",
+        "changes_notice": "Selected the clean loop body from the owner-approved source, downmixed, provisionally band-pass filtered for a body transducer, and built a cyclic candidate with a 0.75-second equal-power tail-to-head crossfade before linear loudness normalization. The noisy tail after 33.5 seconds is excluded.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      },
+      "loop": {
+        "loop_start_frame": 0,
+        "loop_end_frame": 1251600,
+        "crossfade_frames": 36000,
+        "listening_approval": "pending"
+      }
+    },
+    {
+      "asset_id": "purr_primary.stop.body_transducer.v1",
+      "recipe_id": "purr_primary.stop.body_transducer.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/purr_primary_stop__body-transducer__freesound-550941__v1.wav",
+      "sha256": "bc86cb7dc1ae533f67fe1c3c92f881b34355831b692bf87620f9e41f00008372",
+      "byte_size": 424868,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 141600,
+      "duration_seconds": 2.95,
+      "sample_peak_linear": 0.583400607,
+      "dc_offset": 2.761e-06,
+      "clipped_sample_count": 0,
+      "semantic_action": "purr_primary",
+      "variant": "stop",
+      "target_output": "body_transducer",
+      "character_tags": [
+        "contented",
+        "calm",
+        "phase-candidate"
+      ],
+      "intensity": "gentle",
+      "sources": [
+        {
+          "source_id": "freesound-550941",
+          "source_sha256": "ea5df39a5c4c437d95b1bef2cfc8478c4e1111f6d8976bea3d9a8ec4c64d433a",
+          "source_url": "https://freesound.org/s/550941/",
+          "creator": "kadka_funkenflug",
+          "title": "purring cat_01.wav",
+          "license": "CC0-1.0",
+          "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 35.293625,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 1466400,
+          "end_frame": 1608000,
+          "start_seconds": 30.55,
+          "end_seconds": 33.5
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 30.55,
+            "end_seconds": 33.5
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=25:p=2,lowpass=f=350:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.1,
+            "fade_out_seconds": 0.3,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": 5.8,
+            "peak_safe_gain_db": 8.48,
+            "applied_gain_db": 5.8,
+            "peak_limited": false
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -23.0,
+        "loudness_range_lu": 0.0,
+        "true_peak_dbtp": -4.68,
+        "independent_ebur128": {
+          "integrated_lufs": -23.0,
+          "loudness_range_lu": 0.0,
+          "sample_peak_dbfs": -4.7,
+          "true_peak_dbtp": -4.7
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC0-1.0",
+        "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "creator": "kadka_funkenflug",
+        "title": "purring cat_01.wav",
+        "source_url": "https://freesound.org/s/550941/",
+        "attribution_text": "purring cat_01.wav by kadka_funkenflug, CC0-1.0; modified for Neko.",
+        "changes_notice": "Excerpted before the noisy final half-second as a candidate purr stop, downmixed, provisionally band-pass filtered for a body transducer, naturally faded, and linearly loudness-normalized.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    },
+    {
+      "asset_id": "purr_short.speaker.v1",
+      "recipe_id": "purr_short.speaker.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/purr_short__speaker__freesound-553375__v1.wav",
+      "sha256": "0933703e33a8e16254fe09e1a0f99b0f227e46afe90100515eb5c5a6de45d4ab",
+      "byte_size": 967748,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 322560,
+      "duration_seconds": 6.72,
+      "sample_peak_linear": 0.794754744,
+      "dc_offset": 2.155e-06,
+      "clipped_sample_count": 0,
+      "semantic_action": "purr_short",
+      "variant": "one_shot",
+      "target_output": "speaker",
+      "character_tags": [
+        "contented",
+        "short",
+        "interjection"
+      ],
+      "intensity": "gentle",
+      "sources": [
+        {
+          "source_id": "freesound-553375",
+          "source_sha256": "c8918e90c7d8439d61d78b0d455a48bc8ed51e721e72a8be8ba0f0ed0cbd98ab",
+          "source_url": "https://freesound.org/s/553375/",
+          "creator": "xoiziox",
+          "title": "Kitty Purr.aif",
+          "license": "CC0-1.0",
+          "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 6.94737,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 4800,
+          "end_frame": 327360,
+          "start_seconds": 0.1,
+          "end_seconds": 6.82
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 0.1,
+            "end_seconds": 6.82
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=45:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.08,
+            "fade_out_seconds": 0.12,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": 11.88,
+            "peak_safe_gain_db": 11.61,
+            "applied_gain_db": 11.61,
+            "peak_limited": true
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -23.27,
+        "loudness_range_lu": 0.8,
+        "true_peak_dbtp": -2.0,
+        "independent_ebur128": {
+          "integrated_lufs": -23.3,
+          "loudness_range_lu": 1.3,
+          "sample_peak_dbfs": -2.0,
+          "true_peak_dbtp": -2.0
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC0-1.0",
+        "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "creator": "xoiziox",
+        "title": "Kitty Purr.aif",
+        "source_url": "https://freesound.org/s/553375/",
+        "attribution_text": "Kitty Purr.aif by xoiziox, CC0-1.0; modified for Neko.",
+        "changes_notice": "Full-content short purr downmixed, high-pass filtered, edge-faded, resampled, and linearly loudness-normalized.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    },
+    {
+      "asset_id": "purr_short.body_transducer.v1",
+      "recipe_id": "purr_short.body_transducer.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/purr_short__body-transducer__freesound-553375__v1.wav",
+      "sha256": "d3953fd71153023fb3990e3f8f3673e78e9892dfe539fb732794407b4f938f09",
+      "byte_size": 967748,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 322560,
+      "duration_seconds": 6.72,
+      "sample_peak_linear": 0.687522888,
+      "dc_offset": 4.38e-06,
+      "clipped_sample_count": 0,
+      "semantic_action": "purr_short",
+      "variant": "one_shot",
+      "target_output": "body_transducer",
+      "character_tags": [
+        "contented",
+        "short",
+        "interjection"
+      ],
+      "intensity": "gentle",
+      "sources": [
+        {
+          "source_id": "freesound-553375",
+          "source_sha256": "c8918e90c7d8439d61d78b0d455a48bc8ed51e721e72a8be8ba0f0ed0cbd98ab",
+          "source_url": "https://freesound.org/s/553375/",
+          "creator": "xoiziox",
+          "title": "Kitty Purr.aif",
+          "license": "CC0-1.0",
+          "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 6.94737,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 4800,
+          "end_frame": 327360,
+          "start_seconds": 0.1,
+          "end_seconds": 6.82
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 0.1,
+            "end_seconds": 6.82
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=25:p=2,lowpass=f=350:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.08,
+            "fade_out_seconds": 0.12,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": 13.73,
+            "peak_safe_gain_db": 14.98,
+            "applied_gain_db": 13.73,
+            "peak_limited": false
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -23.02,
+        "loudness_range_lu": 0.6,
+        "true_peak_dbtp": -3.25,
+        "independent_ebur128": {
+          "integrated_lufs": -23.0,
+          "loudness_range_lu": 1.2,
+          "sample_peak_dbfs": -3.3,
+          "true_peak_dbtp": -3.3
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC0-1.0",
+        "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "creator": "xoiziox",
+        "title": "Kitty Purr.aif",
+        "source_url": "https://freesound.org/s/553375/",
+        "attribution_text": "Kitty Purr.aif by xoiziox, CC0-1.0; modified for Neko.",
+        "changes_notice": "Full-content short purr downmixed, provisionally band-pass filtered for a body transducer, edge-faded, resampled, and linearly loudness-normalized.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    },
+    {
+      "asset_id": "purr_relaxing_short.speaker.v1",
+      "recipe_id": "purr_relaxing_short.speaker.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/purr_relaxing_short__speaker__freesound-779220__v1.wav",
+      "sha256": "ea5395c9d4243e684e459e04b8222cbe78ef38b61e0adda5880f3d11ab02152c",
+      "byte_size": 1282566,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 427499,
+      "duration_seconds": 8.906229,
+      "sample_peak_linear": 0.313940525,
+      "dc_offset": -5.59e-07,
+      "clipped_sample_count": 0,
+      "semantic_action": "purr_relaxing_short",
+      "variant": "one_shot",
+      "target_output": "speaker",
+      "character_tags": [
+        "relaxing",
+        "bass-forward",
+        "short"
+      ],
+      "intensity": "gentle",
+      "sources": [
+        {
+          "source_id": "freesound-779220",
+          "source_sha256": "cff6727bebef85a229369ad74fc21353450769f2cbc36649befa6e636c9be08f",
+          "source_url": "https://freesound.org/s/779220/",
+          "creator": "scwambled",
+          "title": "cat purring",
+          "license": "CC0-1.0",
+          "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 8.906236,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 0,
+          "end_frame": 427499,
+          "start_seconds": 0.0,
+          "end_seconds": 8.906236
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 0.0,
+            "end_seconds": 8.906236
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=45:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.08,
+            "fade_out_seconds": 0.15,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": -7.91,
+            "peak_safe_gain_db": 0.15,
+            "applied_gain_db": -7.91,
+            "peak_limited": false
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -23.0,
+        "loudness_range_lu": 1.1,
+        "true_peak_dbtp": -10.06,
+        "independent_ebur128": {
+          "integrated_lufs": -23.1,
+          "loudness_range_lu": 1.8,
+          "sample_peak_dbfs": -10.1,
+          "true_peak_dbtp": -10.1
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC0-1.0",
+        "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "creator": "scwambled",
+        "title": "cat purring",
+        "source_url": "https://freesound.org/s/779220/",
+        "attribution_text": "cat purring by scwambled, CC0-1.0; modified for Neko.",
+        "changes_notice": "Full-content relaxing purr downmixed, high-pass filtered, edge-faded, resampled, and linearly loudness-normalized.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    },
+    {
+      "asset_id": "purr_relaxing_short.body_transducer.v1",
+      "recipe_id": "purr_relaxing_short.body_transducer.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/purr_relaxing_short__body-transducer__freesound-779220__v1.wav",
+      "sha256": "72e72e2bdfd73a0c642cc4f445582c9394efb428c7e94b85773a11c171ba39f5",
+      "byte_size": 1282566,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 427499,
+      "duration_seconds": 8.906229,
+      "sample_peak_linear": 0.314723015,
+      "dc_offset": -9.28e-07,
+      "clipped_sample_count": 0,
+      "semantic_action": "purr_relaxing_short",
+      "variant": "one_shot",
+      "target_output": "body_transducer",
+      "character_tags": [
+        "relaxing",
+        "bass-forward",
+        "short"
+      ],
+      "intensity": "gentle",
+      "sources": [
+        {
+          "source_id": "freesound-779220",
+          "source_sha256": "cff6727bebef85a229369ad74fc21353450769f2cbc36649befa6e636c9be08f",
+          "source_url": "https://freesound.org/s/779220/",
+          "creator": "scwambled",
+          "title": "cat purring",
+          "license": "CC0-1.0",
+          "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 8.906236,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 0,
+          "end_frame": 427499,
+          "start_seconds": 0.0,
+          "end_seconds": 8.906236
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 0.0,
+            "end_seconds": 8.906236
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=25:p=2,lowpass=f=350:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.08,
+            "fade_out_seconds": 0.15,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": -8.37,
+            "peak_safe_gain_db": -0.33,
+            "applied_gain_db": -8.37,
+            "peak_limited": false
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -23.0,
+        "loudness_range_lu": 1.1,
+        "true_peak_dbtp": -10.04,
+        "independent_ebur128": {
+          "integrated_lufs": -23.1,
+          "loudness_range_lu": 1.8,
+          "sample_peak_dbfs": -10.0,
+          "true_peak_dbtp": -10.0
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC0-1.0",
+        "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "creator": "scwambled",
+        "title": "cat purring",
+        "source_url": "https://freesound.org/s/779220/",
+        "attribution_text": "cat purring by scwambled, CC0-1.0; modified for Neko.",
+        "changes_notice": "Full-content relaxing purr downmixed, provisionally band-pass filtered for a body transducer, edge-faded, resampled, and linearly loudness-normalized.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    },
+    {
+      "asset_id": "purr_playful_affection.short.speaker.v1",
+      "recipe_id": "purr_playful_affection.short.speaker.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/purr_playful_affection_short__speaker__freesound-790281__v1.wav",
+      "sha256": "261b482473057797ced1c28fc7be8c4a6bd20fcde239a5a81feb5bfce239679c",
+      "byte_size": 594788,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 198240,
+      "duration_seconds": 4.13,
+      "sample_peak_linear": 0.794092298,
+      "dc_offset": -4e-08,
+      "clipped_sample_count": 0,
+      "semantic_action": "purr_playful_affection",
+      "variant": "short",
+      "target_output": "speaker",
+      "character_tags": [
+        "playful",
+        "snuffly",
+        "affectionate",
+        "curious"
+      ],
+      "intensity": "gentle-active",
+      "sources": [
+        {
+          "source_id": "freesound-790281",
+          "source_sha256": "63dee0b5a1606ab19f7941762a4e12abaa9fd41e99c3d7bd82a11555745b7772",
+          "source_url": "https://freesound.org/s/790281/",
+          "creator": "dudeawesome",
+          "title": "Cat Pur Purring Snoring Sleeping Beautiful Real Sounds Of My Kitty",
+          "license": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 62.462667,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 226560,
+          "end_frame": 424800,
+          "start_seconds": 4.72,
+          "end_seconds": 8.85
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 4.72,
+            "end_seconds": 8.85
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=45:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.08,
+            "fade_out_seconds": 0.15,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": 16.72,
+            "peak_safe_gain_db": 12.58,
+            "applied_gain_db": 12.58,
+            "peak_limited": true
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -27.13,
+        "loudness_range_lu": 1.9,
+        "true_peak_dbtp": -2.0,
+        "independent_ebur128": {
+          "integrated_lufs": -26.6,
+          "loudness_range_lu": 0.8,
+          "sample_peak_dbfs": -2.0,
+          "true_peak_dbtp": -2.0
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": false,
+        "target_miss_reason": "true_peak_limited_without_destructive_dynamics_processing",
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC-BY-4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
+        "creator": "dudeawesome",
+        "title": "Cat Pur Purring Snoring Sleeping Beautiful Real Sounds Of My Kitty",
+        "source_url": "https://freesound.org/s/790281/",
+        "attribution_text": "Cat Pur Purring Snoring Sleeping Beautiful Real Sounds Of My Kitty by dudeawesome, CC-BY-4.0; modified for Neko.",
+        "changes_notice": "Excerpted as a short playful-affection purr, downmixed, high-pass filtered, edge-faded, resampled, and linearly loudness-normalized.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    },
+    {
+      "asset_id": "purr_playful_affection.short.body_transducer.v1",
+      "recipe_id": "purr_playful_affection.short.body_transducer.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/purr_playful_affection_short__body-transducer__freesound-790281__v1.wav",
+      "sha256": "451276c24f088e81070b2dcbeee7930b6f28c589d50b84da4cfb1de4332e80dd",
+      "byte_size": 594788,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 198240,
+      "duration_seconds": 4.13,
+      "sample_peak_linear": 0.456938982,
+      "dc_offset": 1.418e-06,
+      "clipped_sample_count": 0,
+      "semantic_action": "purr_playful_affection",
+      "variant": "short",
+      "target_output": "body_transducer",
+      "character_tags": [
+        "playful",
+        "snuffly",
+        "affectionate",
+        "curious"
+      ],
+      "intensity": "gentle-active",
+      "sources": [
+        {
+          "source_id": "freesound-790281",
+          "source_sha256": "63dee0b5a1606ab19f7941762a4e12abaa9fd41e99c3d7bd82a11555745b7772",
+          "source_url": "https://freesound.org/s/790281/",
+          "creator": "dudeawesome",
+          "title": "Cat Pur Purring Snoring Sleeping Beautiful Real Sounds Of My Kitty",
+          "license": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 62.462667,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 226560,
+          "end_frame": 424800,
+          "start_seconds": 4.72,
+          "end_seconds": 8.85
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 4.72,
+            "end_seconds": 8.85
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=25:p=2,lowpass=f=350:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.08,
+            "fade_out_seconds": 0.15,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": 20.05,
+            "peak_safe_gain_db": 24.85,
+            "applied_gain_db": 20.05,
+            "peak_limited": false
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -23.01,
+        "loudness_range_lu": 0.8,
+        "true_peak_dbtp": -6.8,
+        "independent_ebur128": {
+          "integrated_lufs": -22.7,
+          "loudness_range_lu": 0.5,
+          "sample_peak_dbfs": -6.8,
+          "true_peak_dbtp": -6.8
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC-BY-4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
+        "creator": "dudeawesome",
+        "title": "Cat Pur Purring Snoring Sleeping Beautiful Real Sounds Of My Kitty",
+        "source_url": "https://freesound.org/s/790281/",
+        "attribution_text": "Cat Pur Purring Snoring Sleeping Beautiful Real Sounds Of My Kitty by dudeawesome, CC-BY-4.0; modified for Neko.",
+        "changes_notice": "Excerpted as a short playful-affection purr, downmixed, provisionally band-pass filtered for a body transducer, edge-faded, resampled, and linearly loudness-normalized.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    },
+    {
+      "asset_id": "purr_playful_affection.sustained.speaker.v1",
+      "recipe_id": "purr_playful_affection.sustained.speaker.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/purr_playful_affection_sustained__speaker__freesound-790281__v1.wav",
+      "sha256": "31523c36af93adbd1b3777147e589abe55f3bd02263fd2a5091755421bcb6b2a",
+      "byte_size": 8635748,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 2878560,
+      "duration_seconds": 59.97,
+      "sample_peak_linear": 0.792045593,
+      "dc_offset": -7e-08,
+      "clipped_sample_count": 0,
+      "semantic_action": "purr_playful_affection",
+      "variant": "sustained",
+      "target_output": "speaker",
+      "character_tags": [
+        "playful",
+        "snuffly",
+        "affectionate",
+        "curious"
+      ],
+      "intensity": "gentle-active",
+      "sources": [
+        {
+          "source_id": "freesound-790281",
+          "source_sha256": "63dee0b5a1606ab19f7941762a4e12abaa9fd41e99c3d7bd82a11555745b7772",
+          "source_url": "https://freesound.org/s/790281/",
+          "creator": "dudeawesome",
+          "title": "Cat Pur Purring Snoring Sleeping Beautiful Real Sounds Of My Kitty",
+          "license": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 62.462667,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 47040,
+          "end_frame": 2925600,
+          "start_seconds": 0.98,
+          "end_seconds": 60.95
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 0.98,
+            "end_seconds": 60.95
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=45:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.1,
+            "fade_out_seconds": 0.25,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": 17.03,
+            "peak_safe_gain_db": 11.26,
+            "applied_gain_db": 11.26,
+            "peak_limited": true
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -28.76,
+        "loudness_range_lu": 3.3,
+        "true_peak_dbtp": -2.0,
+        "independent_ebur128": {
+          "integrated_lufs": -28.7,
+          "loudness_range_lu": 3.3,
+          "sample_peak_dbfs": -2.0,
+          "true_peak_dbtp": -2.0
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": false,
+        "target_miss_reason": "true_peak_limited_without_destructive_dynamics_processing",
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC-BY-4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
+        "creator": "dudeawesome",
+        "title": "Cat Pur Purring Snoring Sleeping Beautiful Real Sounds Of My Kitty",
+        "source_url": "https://freesound.org/s/790281/",
+        "attribution_text": "Cat Pur Purring Snoring Sleeping Beautiful Real Sounds Of My Kitty by dudeawesome, CC-BY-4.0; modified for Neko.",
+        "changes_notice": "Excerpted as a sustained playful-affection purr, downmixed, high-pass filtered, edge-faded, resampled, and linearly loudness-normalized.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    },
+    {
+      "asset_id": "purr_playful_affection.sustained.body_transducer.v1",
+      "recipe_id": "purr_playful_affection.sustained.body_transducer.v1",
+      "revision": 1,
+      "repo_path": "assets/cat-sounds/derived/purr_playful_affection_sustained__body-transducer__freesound-790281__v1.wav",
+      "sha256": "02fd6546dfd1cfed86465e738cc7045a26d6d3609ce2d9c97c76eb94a21e630d",
+      "byte_size": 8635748,
+      "container": "wav",
+      "codec": "pcm_s24le",
+      "sample_rate_hz": 48000,
+      "channels": 1,
+      "sample_format": "signed_24_bit_pcm",
+      "sample_frames": 2878560,
+      "duration_seconds": 59.97,
+      "sample_peak_linear": 0.555222154,
+      "dc_offset": -5.2e-08,
+      "clipped_sample_count": 0,
+      "semantic_action": "purr_playful_affection",
+      "variant": "sustained",
+      "target_output": "body_transducer",
+      "character_tags": [
+        "playful",
+        "snuffly",
+        "affectionate",
+        "curious"
+      ],
+      "intensity": "gentle-active",
+      "sources": [
+        {
+          "source_id": "freesound-790281",
+          "source_sha256": "63dee0b5a1606ab19f7941762a4e12abaa9fd41e99c3d7bd82a11555745b7772",
+          "source_url": "https://freesound.org/s/790281/",
+          "creator": "dudeawesome",
+          "title": "Cat Pur Purring Snoring Sleeping Beautiful Real Sounds Of My Kitty",
+          "license": "CC-BY-4.0",
+          "license_url": "https://creativecommons.org/licenses/by/4.0/",
+          "decoder": "ffmpeg",
+          "decoder_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers",
+          "decoded_timeline_note": "Times refer to FFmpeg's decoded timeline; compressed-source delay/padding may differ from the source manifest duration.",
+          "source_duration_seconds_probed": 62.462667,
+          "decoded_sample_rate_hz": 48000,
+          "start_frame": 47040,
+          "end_frame": 2925600,
+          "start_seconds": 0.98,
+          "end_seconds": 60.95
+        }
+      ],
+      "processing": [
+        {
+          "operation": "trim",
+          "parameters": {
+            "start_seconds": 0.98,
+            "end_seconds": 60.95
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "downmix",
+          "parameters": {
+            "method": "pan=mono|c0=0.5*c0+0.5*c1"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "resample",
+          "parameters": {
+            "rate_hz": 48000,
+            "resampler": "soxr",
+            "precision": 28
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "output_filter",
+          "parameters": {
+            "ffmpeg_filter": "highpass=f=25:p=2,lowpass=f=350:p=2"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "edge_fade",
+          "parameters": {
+            "fade_in_seconds": 0.1,
+            "fade_out_seconds": 0.25,
+            "curve": "qsin"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "linear_gain",
+          "parameters": {
+            "requested_gain_db": 19.93,
+            "peak_safe_gain_db": 23.04,
+            "applied_gain_db": 19.93,
+            "peak_limited": false
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        },
+        {
+          "operation": "quantize_and_dither",
+          "parameters": {
+            "sample_format": "signed_24_bit_pcm",
+            "dither": "ffmpeg_aresample_triangular_hp"
+          },
+          "tool": "ffmpeg",
+          "tool_version": "n8.0.1-9-g90b8004959-1ubuntu0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+        }
+      ],
+      "measured_mastering": {
+        "integrated_lufs": -23.0,
+        "loudness_range_lu": 2.1,
+        "true_peak_dbtp": -5.11,
+        "independent_ebur128": {
+          "integrated_lufs": -22.9,
+          "loudness_range_lu": 2.4,
+          "sample_peak_dbfs": -5.1,
+          "true_peak_dbtp": -5.1
+        },
+        "target_lufs_i": -23.0,
+        "target_reached": true,
+        "target_miss_reason": null,
+        "true_peak_ceiling_dbtp": -2.0,
+        "true_peak_method": "ffmpeg_loudnorm_analysis",
+        "independent_method": "ffmpeg_ebur128_peak_sample_and_true"
+      },
+      "rights": {
+        "license": "CC-BY-4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
+        "creator": "dudeawesome",
+        "title": "Cat Pur Purring Snoring Sleeping Beautiful Real Sounds Of My Kitty",
+        "source_url": "https://freesound.org/s/790281/",
+        "attribution_text": "Cat Pur Purring Snoring Sleeping Beautiful Real Sounds Of My Kitty by dudeawesome, CC-BY-4.0; modified for Neko.",
+        "changes_notice": "Excerpted as a sustained playful-affection purr, downmixed, provisionally band-pass filtered for a body transducer, edge-faded, resampled, and linearly loudness-normalized.",
+        "commercial_use_allowed": true,
+        "root_mit_license_applies": false
+      },
+      "approvals": {
+        "source_content_review": "owner_accepted",
+        "derived_content_review": "pending",
+        "bench_listen": "pending",
+        "hardware_acceptance": "pending",
+        "release_status": "bench_candidate"
+      }
+    }
+  ]
+}

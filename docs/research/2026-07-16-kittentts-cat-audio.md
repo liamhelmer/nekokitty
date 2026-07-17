@@ -216,11 +216,26 @@ for explicit novelty or music play only. Items 20 and 22 are superseded by
 cleaner purrs. The owner did not hear distress in items 9 or 21; both were
 reclassified as food/attention material, with bounded duration and cooldowns.
 
-The listening decision does not enable playback. The next gate is to create
-lossless derived excerpts while preserving the original hashes, measure
-integrated loudness plus oversampled true peak, remove or avoid identified
-impacts/scratches/tails, generate attribution from the source ledger, and test
-separate conservative masters on the final speaker and body transducer.
+The listening decision does not enable playback. On 2026-07-16 the non-hardware
+portion of the next gate produced 25 reproducible, lossless P0 bench candidates
+from items 10, 14, 17, 18, 21, 23, and 24. Originals remain hash-identical.
+Exact cuts, ordered DSP, FFmpeg build/hash, loudness/true-peak measurements,
+attribution, output paths, known peak-limited exceptions, and rollback are in
+`docs/cat-sounds/DERIVED_AUDIO_BENCH.md` and the machine manifest under
+`assets/cat-sounds/derived`.
+
+The common build target is -23 LUFS-I within 0.5 LU and no more than -2 dBTP,
+using only linear gain capped by peak. All 25 are within the peak ceiling and
+have zero clipped samples; 23 reach the loudness target. Item 24's two speaker
+copies remain at -27.13/-28.76 LUFS-I because the friendly snuffle transients
+reach -2 dBTP. Compression/limiting was rejected at this stage to preserve the
+owner-approved natural dynamics. The transducer copies reach target.
+
+The outputs are not approved runtime media. Item 21's nine splits require owner
+intensity/multi-cat classification, item 17's loop/phase sequence requires
+continuous listening, all derived clips need a post-master audition, and all
+speaker/transducer copies need the final physical hardware test. The semantic
+allowlist is therefore present but entirely disabled and fail-closed.
 
 The maintained human catalog is `docs/cat-sounds/CAT_SOUNDS_MASTER.md`; the
 separate worklist is `docs/cat-sounds/PROCESSING_AND_REMIX_QUEUE.md`. Distributed

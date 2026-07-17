@@ -57,6 +57,7 @@ transcripts/
 !assets/cat-sounds/originals/*.aiff
 !assets/cat-sounds/originals/*.flac
 !assets/cat-sounds/originals/*.mp3
+!assets/cat-sounds/derived/*.wav
 
 # Runtime state and diagnostics
 *.log

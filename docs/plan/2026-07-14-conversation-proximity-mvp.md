@@ -209,18 +209,24 @@ generation:
 2. Use CatMeows brushing and food recordings only to fill remaining meow gaps;
    exclude isolation calls by default. Add individually cleared Wikimedia clips
    only for missing trills/chirps. Preserve per-file provenance in the manifest.
-3. **Next:** make the first derived palette from the strongest reviewed sources.
+3. **Bench build completed 2026-07-16:** made the first derived palette from the
+   strongest reviewed sources.
    The 20 `keep_*` originals are now versioned under
    `assets/cat-sounds/originals` with per-file Creative Commons provenance. Keep
    annotations current in `docs/cat-sounds/CAT_SOUNDS_MASTER.md` and track all
    transformations in `docs/cat-sounds/PROCESSING_AND_REMIX_QUEUE.md`.
    Start with items 10, 14, and split item 21 for meows; items 17, 24, 23, and 18
-   for purrs. Then add items 1, 3, 4, 6, 7, 9, 13, 15, 5, 11, and 16 only where
+   for purrs. The result is 25 hash-pinned mono 48 kHz/24-bit PCM bench
+   candidates with exact recipes, TASL/change notices, a -23 LUFS-I/-2 dBTP
+   policy, and integrity/mastering tests. Then add items 1, 3, 4, 6, 7, 9, 13,
+   15, 5, 11, and 16 only where
    they fill a distinct emotional/action slot. Preserve lossless originals;
    trim the documented tails/impacts/noise, measure integrated loudness and
    oversampled true peak, and emit attribution alongside every derived asset.
-4. Add deterministic semantic actions, separate speaker/transducer masters,
-   gain bounds, cooldowns, interruption, and per-action allowlists. An LLM may
+4. **Part complete:** a fail-closed deterministic semantic allowlist, bounded
+   gain/cooldown/duration, and separate provisional speaker/transducer candidates
+   exist. Every action remains disabled until derived listening and production
+   hardware acceptance. An LLM may
    request `friendly_trill` or `playful_purr`, but the supervisor chooses the
    exact approved asset and safe gain. Keep item 8 manual-only.
 5. Stable Audio 3 Small SFX was benchmarked with other model workers stopped.

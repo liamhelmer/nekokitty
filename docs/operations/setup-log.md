@@ -2391,3 +2391,104 @@ Rollback is to remove `assets/cat-sounds`, the two cat-sound documents, and the
 narrow `.gitignore` exceptions, then revert source-manifest, notice, README,
 AGENTS, plan/research, and setup-log references. The owner's external originals
 are not changed by rollback.
+
+## 2026-07-16 — Deterministic P0 cat-audio cleanup and mastering
+
+The P0 plan required decoded MP3 support, integrated loudness, and true-peak
+analysis that the installed SoX/GStreamer tool set did not provide together.
+Installed the single NVIDIA Jetson repository package:
+
+```bash
+sudo -n apt-get install --simulate ffmpeg
+sudo -n apt-get install -y ffmpeg
+dpkg-query -W -f='${Package}\t${Version}\t${Installed-Size}\n' ffmpeg
+sha256sum /usr/bin/ffmpeg
+```
+
+Exact result:
+
+```text
+package             ffmpeg 7:8.0.1-nvidia
+installed size      81,845 KiB (APT reported 83.8 MB additional disk)
+download            22.9 MB from repo.download.nvidia.com/jetson/ffmpeg r39.2
+FFmpeg build         n8.0.1-9-g90b8004959-1ubuntu0.1
+/usr/bin/ffmpeg      3e74c1741e7e990aa3ae47f774a74baa2df57e27b08b1e0f3846d0d861e181c7
+```
+
+No other package was installed or upgraded. The command did not run
+`apt autoremove`. No systemd unit, model, audio device, PipeWire route, default
+sink, or boot dependency changed.
+
+Added `config/cat-sounds/derived-assets-recipes.json` and
+`scripts/neko_master_cat_sounds.py`. The builder verifies original SHA-256s,
+uses absolute `/usr/bin/ffmpeg` and `/usr/bin/ffprobe`, and never rewrites an
+original. It produces mono 48 kHz signed 24-bit PCM WAV with:
+
+- exact decoded-timeline trims and qsin edge fades;
+- conservative `0.5L+0.5R` stereo downmix;
+- SoXR 48 kHz resampling at precision 28;
+- provisional second-order 45 Hz speaker high-pass or 25–350 Hz transducer
+  band-pass;
+- a 750 ms qsin/qsin cyclic crossfade for item 17's loop;
+- linear gain to -23 LUFS-I, capped at -2 dBTP without compression/limiting;
+- high-pass triangular dither for 24-bit integer delivery;
+- FFmpeg `loudnorm` measurement plus an independent
+  `ebur128=peak=sample+true` verification.
+
+The FFmpeg filters report true peak but expose no oversampling-factor field in
+their CLI output, so the manifest records the exact method/build/hash and does
+not fabricate a factor. Recipes include source 10 `0.030–0.900 s`, source 14
+`0.030–3.220 s`, nine source-21 candidate ranges, source-17 contiguous
+start/loop/stop regions through `33.500 s`, source 18 `0.100–6.820 s`, full
+source 23 with fades, and source-24 short `4.720–8.850 s` plus sustained
+`0.980–60.950 s`. Source-21 range `5.234–7.139 s` retains overlapping calls
+because the candidate split point risked an audible cut.
+
+Build command and results:
+
+```bash
+python3 scripts/neko_master_cat_sounds.py
+# built 25 assets, 34009384 bytes, runtime remains disabled
+```
+
+Outputs are under `assets/cat-sounds/derived`; their manifest records exact
+hashes/bytes/frames, source decode ranges, ordered processing, measured LUFS/LRA/
+true peak/sample peak/DC/clipped samples, loop seam metrics, rights, and pending
+approvals. `assets/cat-sounds/ATTRIBUTION.md` provides human TASL/change notices.
+The rights distribution is ten CC0 1.0, fourteen CC BY 4.0, and one CC BY-NC
+3.0 derivative; the root MIT licence applies to none. The NC file remains
+personal/noncommercial.
+
+All 25 have zero clipped samples and are <= -2.0 dBTP. Twenty-three are within
+0.03 LU of -23 LUFS-I. The two item-24 speaker files are peak-limited at -2.0
+dBTP and remain at -27.13/-28.76 LUFS-I; preserving natural snuffle dynamics was
+preferred to compression/limiting. Their transducer copies reach target. The two
+item-17 loop boundary amplitude/slope deltas are below 0.001 full scale, but
+continuous listening is still mandatory.
+
+`config/cat-sounds/runtime-allowlist.json` names only semantic actions, bounds
+gain/cooldown/duration/output, denies raw paths/unknown actions, and prevents an
+LLM from choosing path/gain/output. Every action and autonomous flag is false.
+The builder marks every derivative `bench_candidate` with derived listen,
+hardware acceptance, and child-facing review pending.
+
+Validation:
+
+```bash
+python3 scripts/neko_master_cat_sounds.py --check
+python3 -m unittest tests.test_cat_sound_assets tests.test_cat_sound_derived_assets
+python3 -m unittest discover -s tests
+git diff --check
+```
+
+The deterministic rebuild compares exact audio bytes, manifest/attribution text,
+and file set. Unit tests cover hashes/media format/frames, mastering bounds/no
+clipping, source ranges, TASL/NC rights, loop bounds/seams, and the fail-closed
+allowlist. The deterministic rebuild reported 25 verified assets; the complete
+repository suite ran 76 tests successfully. Derived owner listening and final Visaton/transducer hardware tests
+remain outstanding; no file is eligible for unattended playback.
+
+Rollback is a Git revert of the derived files, recipe, manifest, attribution,
+allowlist, builder/tests, and documentation. After confirming no other workflow
+needs the analyzer, remove it with `sudo apt-get remove ffmpeg`; do not use
+`autoremove` without a separate audit. Originals remain byte-identical.

@@ -46,6 +46,10 @@ quality and combined-workload validation remain required before integration.
 The full pinned Audex repository is on NVMe with major weights hashed; no Audex code has
 run, and the unquantized speech path cannot fit in usable DRAM. Audex is a stopped,
 selectable noncommercial laboratory profile, never a core boot dependency.
+The first cat-sound P0 cleanup/mastering build now has 25 reproducible lossless
+bench candidates, complete provenance/attribution, a disabled fail-closed action
+allowlist, and integrity/mastering tests. Derived listening and physical
+speaker/transducer acceptance remain required; no cat-audio action is enabled.
 System-wide changes must be documented with exact commands, versions, paths,
 validation, and rollback.
 
@@ -112,7 +116,7 @@ Inventory was collected locally on 2026-07-12 in America/Vancouver.
 | Extra storage | 500 GiB FAT volume mounted at `/media/neko/disk`; a SanDisk USB device also enumerates |
 | Network | NetworkManager reports full connectivity; Realtek RTL8822CE Wi-Fi and RTL8111/8168 Ethernet |
 | Container tools | Docker client 29.1.3, containerd, NVIDIA Container Toolkit 1.19.1 and NVIDIA runtime config present; `neko` lacks Docker-socket access |
-| Python/tools | Python 3.12.3 without `pip`; uv 0.11.28 and LiteRT-LM 0.14.0 now installed under `/home/neko/.local/bin` |
+| Python/tools | Python 3.12.3 without `pip`; uv 0.11.28 and LiteRT-LM 0.14.0 under `/home/neko/.local/bin`; NVIDIA FFmpeg package 7:8.0.1-nvidia installed at `/usr/bin/ffmpeg`/`ffprobe` |
 | Node/Codex | Node 24.18.0; Codex CLI 0.144.2 |
 | Claude Code | 2.1.207 at `/home/neko/.local/bin/claude`; installed but that directory was absent from the non-interactive shell `PATH` |
 
@@ -201,6 +205,9 @@ Read these before changing the system:
 - [Cat sound processing/remix queue](docs/cat-sounds/PROCESSING_AND_REMIX_QUEUE.md)
   — trim/split/cleanup/mastering priorities, manual remix boundaries, derived
   asset contract, and runtime-enablement checklist.
+- [Derived cat-audio bench](docs/cat-sounds/DERIVED_AUDIO_BENCH.md) — exact P0
+  cuts, mastering policy/results, FFmpeg pin, rights, deterministic rebuild,
+  disabled allowlist, known peak-limited exceptions, acceptance, and rollback.
 - [Social perception BOM](docs/research/2026-07-13-perception-bom.md) — earlier
   OAK/lidar/radar and premium-tier research, geometry, power, privacy, and tests;
   the Canadian one-week decision controls revision-one procurement.
@@ -358,6 +365,24 @@ the smaller, proven LiteRT CPU resident.
   playback until excerpt selection, lossless mastering/true-peak analysis,
   attribution generation, deterministic action mapping, and final speaker/
   transducer acceptance pass. The manifest is not training-data clearance.
+- The P0 derived build uses items 10, 14, 17, 18, 21, 23, and 24 to create 25
+  mono 48 kHz/24-bit PCM WAV bench candidates (34,009,384 audio bytes). Recipes
+  are in `config/cat-sounds/derived-assets-recipes.json`; exact file hashes,
+  cuts, ordered DSP, measurements, rights, and approval states are in
+  `assets/cat-sounds/derived/manifest.json`; human TASL/change notices are in
+  `assets/cat-sounds/ATTRIBUTION.md`. The deterministic builder/verifier is
+  `scripts/neko_master_cat_sounds.py`, and the fail-closed semantic map is
+  `config/cat-sounds/runtime-allowlist.json`. Its target is -23 LUFS-I within
+  0.5 LU and <= -2 dBTP using only peak-capped linear gain. All files avoid
+  clipping/peak violations; 23 reach target. Item 24's two speaker copies remain
+  quieter because natural snuffle transients reached the peak ceiling. All 25
+  remain `bench_candidate`, all actions remain disabled, item-21 labels and the
+  item-17 loop need owner listening, and every output needs final hardware tests.
+- NVIDIA's Jetson FFmpeg package `7:8.0.1-nvidia` is installed for deterministic
+  decoding, SoXR resampling, loudness/true-peak analysis, and PCM mastering.
+  `/usr/bin/ffmpeg` reports build `n8.0.1-9-g90b8004959-1ubuntu0.1` and SHA-256
+  `3e74c1741e7e990aa3ae47f774a74baa2df57e27b08b1e0f3846d0d861e181c7`.
+  No service, model, audio route, or default sink changed with this package.
 - Stable Audio 3 source is pinned at commit
   `0385302ea26522f00c80392c4b708df5ebf1adf5` under
   `/home/neko/models/stable-audio-3`. Its isolated 24-package ARM LiteRT runtime
@@ -793,3 +818,11 @@ For every future model or service, add:
   The six NC sources remain personal/noncommercial and no source is runtime-
   enabled; derived assets still require mastering, attribution, and hardware
   tests. Asset integrity/licence tests and the complete 71-test suite pass.
+- 2026-07-16: Installed NVIDIA FFmpeg 7:8.0.1-nvidia and built 25 deterministic
+  P0 cat-audio bench candidates from seven reviewed sources. Added exact recipes,
+  per-file provenance/DSP/loudness/true-peak/hash ledgers, TASL/change notices, a
+  fully disabled fail-closed semantic allowlist, and integrity/policy tests.
+  Twenty-three files hit -23 LUFS-I; two natural-dynamics item-24 speaker copies
+  are explicitly peak-limited below target. Runtime remains disabled pending
+  derived listening and final speaker/transducer acceptance. The deterministic
+  25-asset rebuild and complete 76-test repository suite pass.
