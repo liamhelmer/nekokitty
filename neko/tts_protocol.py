@@ -18,11 +18,65 @@ MAX_HEADER_BYTES = 64 * 1024
 MAX_AUDIO_BYTES = 32 * 1024 * 1024
 NEKO_NAME_RE = re.compile(r"\bneko\b", re.IGNORECASE)
 
+# These are deliberately limited to ordinary, unambiguous spoken contractions.
+# More aggressive slang (for example, rewriting every "going to" as "gonna")
+# belongs in the persona prompt: doing it mechanically can distort quotations,
+# titles, and factual language.
+_SPOKEN_CONTRACTIONS = (
+    (re.compile(r"\bI am\b", re.IGNORECASE), "I'm"),
+    (re.compile(r"\bI have\b", re.IGNORECASE), "I've"),
+    (re.compile(r"\bI will\b", re.IGNORECASE), "I'll"),
+    (re.compile(r"\bI would\b", re.IGNORECASE), "I'd"),
+    (re.compile(r"\byou are\b", re.IGNORECASE), "you're"),
+    (re.compile(r"\byou have\b", re.IGNORECASE), "you've"),
+    (re.compile(r"\byou will\b", re.IGNORECASE), "you'll"),
+    (re.compile(r"\bwe are\b", re.IGNORECASE), "we're"),
+    (re.compile(r"\bwe have\b", re.IGNORECASE), "we've"),
+    (re.compile(r"\bwe will\b", re.IGNORECASE), "we'll"),
+    (re.compile(r"\bthey are\b", re.IGNORECASE), "they're"),
+    (re.compile(r"\bit is\b", re.IGNORECASE), "it's"),
+    (re.compile(r"\bthat is\b", re.IGNORECASE), "that's"),
+    (re.compile(r"\bthere is\b", re.IGNORECASE), "there's"),
+    (re.compile(r"\bhere is\b", re.IGNORECASE), "here's"),
+    (re.compile(r"\bwhat is\b", re.IGNORECASE), "what's"),
+    (re.compile(r"\bwho is\b", re.IGNORECASE), "who's"),
+    (re.compile(r"\blet us\b", re.IGNORECASE), "let's"),
+    (re.compile(r"\bdo not\b", re.IGNORECASE), "don't"),
+    (re.compile(r"\bdoes not\b", re.IGNORECASE), "doesn't"),
+    (re.compile(r"\bdid not\b", re.IGNORECASE), "didn't"),
+    (re.compile(r"\bcannot\b|\bcan not\b", re.IGNORECASE), "can't"),
+    (re.compile(r"\bwill not\b", re.IGNORECASE), "won't"),
+    (re.compile(r"\bwould not\b", re.IGNORECASE), "wouldn't"),
+    (re.compile(r"\bshould not\b", re.IGNORECASE), "shouldn't"),
+    (re.compile(r"\bcould not\b", re.IGNORECASE), "couldn't"),
+    (re.compile(r"\bis not\b", re.IGNORECASE), "isn't"),
+    (re.compile(r"\bare not\b", re.IGNORECASE), "aren't"),
+    (re.compile(r"\bwas not\b", re.IGNORECASE), "wasn't"),
+    (re.compile(r"\bwere not\b", re.IGNORECASE), "weren't"),
+    (re.compile(r"\bhave not\b", re.IGNORECASE), "haven't"),
+    (re.compile(r"\bhas not\b", re.IGNORECASE), "hasn't"),
+    (re.compile(r"\bhad not\b", re.IGNORECASE), "hadn't"),
+)
+
+
+def _match_case(source: str, replacement: str) -> str:
+    if source.isupper():
+        return replacement.upper()
+    if source[:1].isupper() and not replacement.startswith("I"):
+        return replacement[:1].upper() + replacement[1:]
+    return replacement
+
 
 def prepare_tts_text(text: str) -> str:
-    """Apply pronunciation-only rewrites without changing logs or LLM context."""
+    """Apply speech-only rewrites without changing logs or LLM context."""
 
-    return NEKO_NAME_RE.sub("Nekko", text)
+    prepared = NEKO_NAME_RE.sub("Nekko", text)
+    for pattern, replacement in _SPOKEN_CONTRACTIONS:
+        prepared = pattern.sub(
+            lambda match, value=replacement: _match_case(match.group(0), value),
+            prepared,
+        )
+    return prepared
 
 
 def write_json(stream: BinaryIO, value: dict[str, Any]) -> None:

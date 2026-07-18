@@ -24,6 +24,22 @@ class TtsProtocolTests(unittest.TestCase):
         )
         self.assertEqual(prepare_tts_text("Nekoness"), "Nekoness")
 
+    def test_common_formal_phrases_become_spoken_contractions(self) -> None:
+        self.assertEqual(
+            prepare_tts_text(
+                "I am ready. You are welcome! Let us play, but do not run. "
+                "It is okay; we will wait."
+            ),
+            "I'm ready. You're welcome! Let's play, but don't run. "
+            "It's okay; we'll wait.",
+        )
+
+    def test_contractions_preserve_sentence_case_and_word_boundaries(self) -> None:
+        self.assertEqual(
+            prepare_tts_text("There is one. THERE IS another. Cannotation is a word."),
+            "There's one. THERE'S another. Cannotation is a word.",
+        )
+
     def test_json_header_and_binary_frame_remain_separate(self) -> None:
         stream = BytesIO()
         write_json(stream, {"event": "audio", "bytes": 4})

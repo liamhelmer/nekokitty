@@ -15,6 +15,7 @@ import json
 from pathlib import Path
 import queue
 import random
+import re
 import signal
 import subprocess
 import sys
@@ -82,6 +83,10 @@ SAMPLE_RATE = 16_000
 VAD_WINDOW_SAMPLES = 512
 VAD_WINDOW_BYTES = VAD_WINDOW_SAMPLES * 2
 MAX_WAKE_PREFIX_SECONDS = 2.0
+PURR_WORD_RE = re.compile(
+    r"\bp+u+r+(?:s|ed|ing|y|fect(?:ly)?)?\b",
+    re.IGNORECASE,
+)
 
 
 def wake_is_in_prefix_window(speech_frames_seen: int) -> bool:
@@ -649,6 +654,29 @@ class VoiceAssistant:
             for phrase in ("like neko", "love neko", "love you", "you are nice")
         )
 
+    @staticmethod
+    def _answer_mentions_purr(answer: str) -> bool:
+        """Treat purr words and purr cue tags as a post-speech purr request."""
+
+        return PURR_WORD_RE.search(answer) is not None
+
+    @staticmethod
+    def _has_tail_purr_marker(answer: str) -> bool:
+        return any(
+            isinstance(part, CatSoundPart) and part.action == "purr_primary"
+            for part in parse_audio_script(answer)
+        )
+
+    def _should_start_tail_purr(self, request_text: str, answer: str) -> bool:
+        if self._has_tail_purr_marker(answer):
+            return False
+        if self._answer_mentions_purr(answer):
+            return True
+        return (
+            self._warm_tail_purr(request_text, answer)
+            and self._audio_cue_count(answer) < 3
+        )
+
     def _start_tail_purr(self) -> None:
         """Start a long post-speech purr; child speech intentionally does not stop it."""
 
@@ -1033,11 +1061,7 @@ class VoiceAssistant:
         completed = self._speak(answer, vad_finalized_s=self.current_vad_finalized_s)
         if completed:
             self.history.append(request.text, answer, request.language)
-            if (
-                self._warm_tail_purr(request.text, answer)
-                and "[purr:tail]" not in answer
-                and self._audio_cue_count(answer) < 3
-            ):
+            if self._should_start_tail_purr(request.text, answer):
                 self._start_tail_purr()
         else:
             self.history.append_interrupted(request.text, request.language)

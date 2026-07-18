@@ -3,6 +3,41 @@
 All dates are America/Vancouver unless marked UTC. Never add credentials or
 private recordings to this file.
 
+## 2026-07-18 — casual speech and spoken-purr follow-up
+
+No package, model, media asset, systemd unit, or boot setting changed. Updated
+the LFM persona/per-turn instruction, reduced ordinary response generation to
+80 tokens, added a bounded TTS-only contraction pass, and made purr language in
+a completed model answer request the existing asynchronous post-speech tail
+purr. Temperature remains 0.45. Reviewed stories retain their separate local
+path and existing sound behavior.
+
+An eight-prompt warm local comparison showed the chosen short positive-example
+prompt producing more casual language (`I'm gonna`, `let's`, `yep`, and `sure
+thing`) than the prior prompt. A tested intermediate prompt with a long list of
+negative examples was discarded because LFM repeated prohibited formal phrases
+and rambled. The chosen prompt still cannot make the 1.2B model perfectly obey
+sentence-count, greeting, or emoji rules, so common safe contractions are also
+rewritten only at the TTS boundary. Logs and model history retain the original
+answer. Full observations and rollback are in
+`docs/plan/2026-07-18-casual-voice-and-purr-followup.md`.
+
+The attended assistant previously running from the old imports was stopped and
+restarted with the same command and flags:
+
+```bash
+/home/neko/.local/share/neko/venvs/asr/bin/python \
+  scripts/neko_voice_assistant.py --device pipewire --language en \
+  --attended-cat-sounds --verbose-transcripts
+```
+
+It reported ready after 5.414 seconds with the expected LFM model, streaming-
+text route, and `/run/neko/tts.sock`. The exact pre-restart live answer included
+the phrase `thinking and purring a bit`; under the new policy that representative
+case schedules a long purr after speech. No private recording or transcript was
+committed. Targeted tests passed 37/37; final repository validation passed all
+144 tests, Python compilation, and `git diff --check`.
+
 ## 2026-07-17 — What If offline schedule cache
 
 No Python package or model was installed. The implementation uses Python 3.12

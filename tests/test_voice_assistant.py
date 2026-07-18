@@ -367,6 +367,39 @@ class VoiceAssistantMixedAudioTests(unittest.TestCase):
             "Pip found a feather. [meow] It tickled her whiskers.",
         )
 
+    def test_spoken_purr_variants_request_a_post_speech_purr(self) -> None:
+        variants = (
+            "I'm purring because that was lovely.",
+            "Cats purred together.",
+            "What a purrrrrfect story!",
+            "[purr:playful] I'm happy!",
+        )
+        for answer in variants:
+            with self.subTest(answer=answer):
+                self.assertTrue(VoiceAssistant._answer_mentions_purr(answer))
+        self.assertFalse(VoiceAssistant._answer_mentions_purr("Purple paws!"))
+
+    def test_tail_purr_marker_is_detected_structurally(self) -> None:
+        self.assertTrue(
+            VoiceAssistant._has_tail_purr_marker("That was cozy. [purr:tail]")
+        )
+        self.assertFalse(VoiceAssistant._has_tail_purr_marker("[purr] Cozy!"))
+
+    def test_purr_language_forces_tail_even_after_three_other_cues(self) -> None:
+        assistant = VoiceAssistant.__new__(VoiceAssistant)
+        self.assertTrue(
+            assistant._should_start_tail_purr(
+                "How are you?",
+                "[meow] I'm [meow] happily [meow] purring!",
+            )
+        )
+        self.assertFalse(
+            assistant._should_start_tail_purr(
+                "How are you?",
+                "I'm purring! [purr:tail]",
+            )
+        )
+
     def test_disabled_cat_marker_falls_back_to_tts_and_remains_interruptible(self) -> None:
         class FakeTts:
             def __init__(self) -> None:

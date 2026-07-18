@@ -68,7 +68,7 @@ class GemmaClientTests(unittest.TestCase):
         self.assertIn("cat-like", payload["messages"][0]["content"])
         self.assertIn("use emoji", payload["messages"][0]["content"])
         self.assertIn("français", payload["messages"][1]["content"])
-        self.assertEqual(payload["max_completion_tokens"], 96)
+        self.assertEqual(payload["max_completion_tokens"], 80)
         self.assertEqual(payload["temperature"], 0.45)
 
     @patch("neko.gemma_client.request.urlopen")

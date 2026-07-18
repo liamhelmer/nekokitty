@@ -26,7 +26,7 @@ The perception evaluation must include ZipDepth: <https://zipdepth.github.io/>.
 
 ## Current phase and change policy
 
-Status on 2026-07-16: the host/model foundation is deployed, the owner reports
+Status on 2026-07-18: the host/model foundation is deployed, the owner reports
 that the production hardware has been ordered, and pre-arrival integration work
 is active. The machine permanently targets headless
 `multi-user.target`; GDM, X, GNOME Shell, and Firefox are absent. CUDA 13.2
@@ -49,9 +49,10 @@ The full pinned Audex repository is on NVMe with major weights hashed; no Audex 
 run, and the unquantized speech path cannot fit in usable DRAM. Audex is a stopped,
 selectable noncommercial laboratory profile, never a core boot dependency.
 The first cat-sound P0 cleanup/mastering build now has 25 reproducible lossless
-bench candidates, complete provenance/attribution, a disabled fail-closed action
-allowlist, and integrity/mastering tests. Derived listening and physical
-speaker/transducer acceptance remain required; no cat-audio action is enabled.
+bench candidates, complete provenance/attribution, fail-closed production and
+attended-headphone policies, and integrity/mastering tests. Derived listening
+and physical speaker/transducer acceptance remain required; production cat
+audio is disabled, while the explicit attended-headphone policy is usable.
 The voice loop now understands strict expressive `[meow]`/`[purr]` cues and has
 a hash-verifying, weighted, cooldown/no-repeat, fixed-gain, output-routed and
 barge-in-safe playback layer. It falls back to spoken words while policy is
@@ -93,8 +94,10 @@ tests with private owner-spoken fixtures. It continuously buffers 16 kHz audio
 in memory, uses Silero VAD plus a sherpa-onnx open-vocabulary keyword spotter,
 recognizes `Neko Neko` independently of Nemotron's unreliable rendering of the
 wake phrase, streams Nemotron ASR while the person is still speaking, sends the
-finished text to local LFM, stops generation at the first useful complete
-sentence, and supports addressed barge-in by cancelling PipeWire playback. A
+finished text to local LFM, collects a bounded complete ordinary reply, and
+supports addressed barge-in by cancelling PipeWire playback. Ordinary replies
+use an 80-token ceiling, a casual contraction-heavy persona, and the accepted
+Kiki/Micro voice; reviewed stories use their separate local path. A
 turn that starts while Neko is actively speaking must begin with `Neko` or
 `Neko Neko`; ordinary speech and cross-talk do not cancel output. Once her spoken
 turn completes, ordinary follow-ups work within the active session, including
@@ -132,8 +135,8 @@ prompting. Raw generation is closed for revision one.
 The project is now the top-level Git repository with `main` as its default/base
 branch and public MIT-licensed remote
 `https://github.com/liamhelmer/nekokitty.git`. Work is on
-`agent/interruptible-voice`; draft PR 6 contains the first buffered voice-loop
-milestone at commit `47b0c92`. PR 2 previously merged the local conversation/
+`agent/interruptible-voice`; draft PR 6 carries the buffered voice, story,
+schedule, and interaction refinements. PR 2 previously merged the local conversation/
 proximity bench at commit `ae63d3b6cee10b0f82467d5cecdaaa55f3e300a6`.
 An accidental empty nested clone
 was preserved outside the worktree at
@@ -283,6 +286,9 @@ Read these before changing the system:
   — attended Kiki-versus-Piper findings, measured component timing, current
   interaction profile, factual-quality boundary, and acknowledgement-sound
   gates.
+- [Casual voice and spoken-purr follow-up](docs/plan/2026-07-18-casual-voice-and-purr-followup.md)
+  — post-speech purr trigger, conservative TTS contractions, prompt/cap tuning,
+  local comparison results, known small-model limits, and rollback.
 - [What If offline schedule](docs/research/2026-07-17-what-if-schedule.md) —
   Dust API contract, local/Pacific-time interpretation, atomic hourly cache,
   subset TF-IDF vector ranking, child filter, deployment, validation, and
@@ -1160,3 +1166,14 @@ For every future model or service, add:
   time window; the original window and current refinement are separate tool-only
   state. Added weekday abbreviations, joined `at8 PM`, and filler handling for
   the observed `Uh let's do music`. Full suite: 139 tests.
+- 2026-07-18: Model answers that say `purr`, `purring`, related inflections or
+  approved purr cues now start the asynchronous long purr only after spoken TTS
+  finishes; an existing final tail marker is not duplicated. The LFM persona and
+  per-turn instruction now favor short, playful, contraction-heavy everyday
+  language, and ordinary generation is capped at 80 tokens without affecting
+  reviewed stories. A conservative TTS-only rewrite guarantees common audible
+  contractions while leaving logs and context untouched. Eight-prompt local
+  iteration found the shorter positive-example prompt more casual than both the
+  prior prompt and a discarded negative-instruction variant; the 1.2B model can
+  still occasionally ignore sentence-count, greeting, or emoji constraints.
+  Full evidence and rollback are in the linked casual-voice plan.
