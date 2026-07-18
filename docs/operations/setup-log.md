@@ -3,6 +3,96 @@
 All dates are America/Vancouver unless marked UTC. Never add credentials or
 private recordings to this file.
 
+## 2026-07-17 — What If offline schedule cache
+
+No Python package or model was installed. The implementation uses Python 3.12
+stdlib `urllib`, `sqlite3`, `zoneinfo`, and an in-process sparse TF-IDF/cosine
+ranker. Upstream retrieval used the public Dust API documented at
+<https://dust.events/docs/Integrations/api/> and the four `what-if` JSON feeds.
+
+Installed and started the repository unit/timer with:
+
+```bash
+sudo install -o root -g root -m 0644 \
+  deploy/systemd/neko-what-if-refresh.service \
+  /etc/systemd/system/neko-what-if-refresh.service
+sudo install -o root -g root -m 0644 \
+  deploy/systemd/neko-what-if-refresh.timer \
+  /etc/systemd/system/neko-what-if-refresh.timer
+sudo systemctl daemon-reload
+sudo systemctl enable --now neko-what-if-refresh.timer
+sudo systemctl start neko-what-if-refresh.service
+```
+
+The first oneshot completed successfully at 10:40:49 PM PDT. The enabled timer
+scheduled the next run for 11:40:48 PM PDT. Runtime files are owner `neko`, mode
+0644 inside `/var/lib/neko/what-if` (directory 0755): schedule 316 KiB, music
+75 KiB, art 39 KiB, camps 40 KiB, and SQLite approximately 1.2 MiB. Database
+metadata recorded 333/152/70/67 source items, `America/Vancouver`, schema 1, and
+normalized feed SHA-256 values:
+
+- schedule: `3e7805ca4da649e5ae9dcf138e92d09dd019f3593cfc43bb187c66965d79775b`
+- music: `145ec9579ccf2e488faae361a2eacc66d979954021b7ced482b75844e94e9cba`
+- art: `b4c168e46ad175268023b2f89bb9cd293c35b3a81fa26ec88be56b84e5b7f940`
+- camps: `8bc15ac116ecaa1bd7b0b6b00f116c07f613fa99c8ba55ba0cf42040c5d172b2`
+
+At 10:44 PM PDT, `timedatectl` confirmed the host was already configured for
+`America/Vancouver (PDT, -0700)`, the system clock was synchronized, NTP was
+active, and the RTC remained correctly stored in UTC (`RTC in local TZ: no`).
+No clock or timezone setting needed to be changed.
+
+`systemd-analyze verify` passed the new source units; it printed only existing
+obsolete-syslog warnings from unrelated NVIDIA units. The first deployed suite passed 133
+tests. Exact architecture, safety filtering, checks, failure behavior, known
+limitations, and rollback are in
+`docs/research/2026-07-17-what-if-schedule.md`.
+
+The first live query exposed an ASR/parser boundary: a missing `at` or spoken
+`eight p.m.` could turn an 8 PM query into a full-Saturday query and rank a short
+noon opening-hours record. The parser now accepts those forms and bare `at 8`
+as the owner-approved event-evening default. Real data has seven kid-visible
+matches around Saturday 8 PM, so the tool now asks for category; five music
+matches ask for style/performer/camp. Tool questions/results never enter LFM
+history; only an unresolved refinement is retained separately. Music search text
+is enriched with matching camp descriptions. A dedicated `Neko stop` keyword
+and control flag immediately cancel all output and finalize as the existing
+deterministic stop command. The corrected full suite passed 136 tests.
+
+An attended retry with owner-authorized verbose transcript logging supplied the
+previously missing evidence: Nemotron emitted `Nico, what's going on Sat day at
+eight PM`. The policy now removes Nico/Niko/Nikko/Nekko as observed Neko address
+aliases after KWS, while schedule parsing canonicalizes `Sat day` to Saturday.
+That exact regression input returns the seven-match refinement prompt. The suite
+then passed 137 tests.
+
+The next verbose retry showed the remaining boundary precisely: behavior
+normalization turns `what's` into `what s`. Sparse search treated the orphan `s`
+as required and retained only two long-span records. `s` is now a query stopword,
+and the regression passes the normalized `what s going on Saturday at eight pm`
+text through the real schedule tool. It returns seven candidates and the
+category refinement prompt.
+
+A third attended rendering was `Neco Neko, what's going on Saturday at eight
+P`. Wake repair now uses the independent KWS decision to strip up to two leading
+name-like ASR tokens and inject exactly one canonical `Neko`, avoiding an open-
+ended list of full phrases. Time parsing accepts truncated standalone `P`/`A` as
+PM/AM. The complete exact pipeline regression returns seven candidates and the
+refinement prompt; the full suite passed 138 tests.
+
+The first successful refinement turn exposed filler leakage: `How about music`
+treated `how` as a required vector term. Common conversational scaffolding is
+now removed from schedule-specific terms. The real cached query returns five
+music choices and asks for style/performer/camp; adding `I'd like downtempo`
+returns Leonardo Ojeda at Bass n Nova.
+
+The owner also identified the repeated spoken letters `M R R P`: wake-only
+acknowledgement passed the invented spelling `Mrrp?` to Kiki. It now invokes the
+real curated `[meow]` action. Refinement accepts natural filler, no-preference,
+anything, and explicit list-all forms. If a category/style produces zero matches,
+the assistant reports that and reads every result from the separately retained
+original time window. Weekday abbreviations and joined `at8 PM` are supported.
+The full suite passed 139 tests.
+
 ## 2026-07-12 — initial state
 
 - Repository directory existed but was empty and was not a Git repository.

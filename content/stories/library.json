@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "id": "original.magic-girl-gummy-worm-moon",
+      "kind": "original",
+      "path": "content/stories/originals/mina-neko-gummy-worm-moon.md",
+      "title": "Magic Girl, Neko, and the Gummy-Worm Moon",
+      "ages": [5, 7],
+      "tags": ["magic-girl", "neko", "otherworld", "gummy-worms", "silly"],
+      "summary": "Magic Girl and Neko enter Otherworld and use surprising magic plus a rainbow of gummy worms to turn its square, crumb-dropping moon round again.",
+      "essentials": ["Magic Girl’s imperfect magic is useful", "Neko carries emergency gummy worms", "the friends solve the moon problem together"],
+      "status": "approved_for_owner_test"
+    },
+    {
+      "id": "original.luna-stick-garden",
+      "kind": "original",
+      "path": "content/stories/originals/luna-stick-garden.md",
+      "title": "Luna’s Very Important Stick Garden",
+      "ages": [5, 7],
+      "tags": ["luna", "puppy", "elk", "garden", "silly"],
+      "summary": "Luna, a black stick-loving puppy, helps Moss the elk find a polite path to clover and discovers mushrooms decorating her pretend stick garden.",
+      "essentials": ["Luna normally patrols the farm garden", "Moss performs an antler wiggle", "Luna never eats unknown mushrooms"],
+      "status": "approved_for_owner_test"
+    },
+    {
+      "id": "original.heidi-ravens-muddy-masterpiece",
+      "kind": "original",
+      "path": "content/stories/originals/heidi-ravens-muddy-masterpiece.md",
+      "title": "Heidi and the Ravens’ Muddy Masterpiece",
+      "ages": [5, 7],
+      "tags": ["heidi", "old-dog", "ravens", "muddy-pond", "silly"],
+      "summary": "Old dog Heidi helps ravens Pepper and Pickle reach a very spoonish blue spoon, and an accidental splash becomes a temporary muddy masterpiece.",
+      "essentials": ["Heidi enjoys slow exploration", "Pepper and Pickle collect shiny objects", "their mud art washes gently back into the earth"],
+      "status": "approved_for_owner_test"
+    },
+    {
+      "id": "original.neko-great-gummy-worm-parade",
+      "kind": "original",
+      "path": "content/stories/originals/neko-great-gummy-worm-parade.md",
+      "title": "Neko and the Great Gummy-Worm Parade",
+      "ages": [5, 7],
+      "tags": ["magic-girl", "neko", "otherworld", "gummy-worms", "parade", "silly"],
+      "summary": "Neko drives Magic Girl through a wacky Otherworld parade route to hand out gummy worms, help a snail band, and persuade an upside-down bridge to flip.",
+      "essentials": ["the candy comes from Neko’s clean magical rear drawer", "Magic Girl hands treats to everyone", "Neko tastes pickle-birthday-cake candy"],
+      "status": "approved_for_owner_test"
+    },
+    {
+      "id": "fan.elsa-wacky-wand-concert",
+      "kind": "unofficial_fan_story",
+      "path": "content/stories/originals/elsa-wacky-wand-concert.md",
+      "title": "Elsa’s Wacky Wand Concert",
+      "ages": [5, 7],
+      "tags": ["elsa", "magic-girl", "otherworld", "music", "magic-wands", "silly"],
+      "summary": "In an unofficial fan-story, Elsa visits Otherworld, sings a new kindness song, and gives children magic wands that make harmless silly surprises.",
+      "essentials": ["wand magic requires kindness and permission", "Magic Girl’s shoes quack", "Neko briefly grows a fluffy moustache"],
+      "status": "approved_for_owner_test"
+    },
+    {
+      "id": "cc.clever-cat",
+      "kind": "external_candidate",
+      "title": "Clever cat",
+      "ages": [5, 7],
+      "tags": ["cat", "home", "silly"],
+      "status": "metadata_only_pending_ingestion",
+      "source_url": "https://africanstorybook.org/newviewer/index.php?bt=3&dual=false&id=8878",
+      "license": "CC BY 4.0"
+    }
+  ]
+}

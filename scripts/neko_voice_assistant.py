@@ -14,6 +14,7 @@ from dataclasses import dataclass
 import json
 from pathlib import Path
 import queue
+import random
 import signal
 import subprocess
 import sys
@@ -32,6 +33,12 @@ from neko.events import (  # noqa: E402
     SpeakText,
     TranscriptEvent,
 )
+from neko.event_schedule import (  # noqa: E402
+    EventSchedule,
+    is_schedule_query,
+    is_schedule_refinement,
+    requests_all_results,
+)
 from neko.cat_audio import (  # noqa: E402
     CatAudioDenied,
     CatSoundCatalog,
@@ -46,7 +53,9 @@ from neko.gemma_client import (  # noqa: E402
     ConversationHistory,
     GemmaClient,
 )
-from neko.tts_protocol import TtsClient  # noqa: E402
+from neko.story_library import StoryLibrary  # noqa: E402
+from neko.tts_protocol import NEKO_NAME_RE, TtsClient  # noqa: E402
+from neko.tts_chunking import chunk_text, is_sentence_boundary  # noqa: E402
 from scripts.neko_asr_transcribe import (  # noqa: E402
     DEFAULT_MODEL as DEFAULT_ASR_MODEL,
     build_recognizer,
@@ -61,10 +70,42 @@ DEFAULT_KWS_MODEL = Path(
     "sherpa-onnx-kws-zipformer-zh-en-3M-2025-12-20"
 )
 DEFAULT_KEYWORDS = Path(__file__).resolve().parents[1] / "config/asr/neko-keywords.txt"
-DEFAULT_TTS_SOCKET = Path("/run/neko/tts-fast.sock")
+DEFAULT_TTS_SOCKET = Path("/run/neko/tts.sock")
+ATTENDED_CAT_SOUND_ALLOWLIST = (
+    Path(__file__).resolve().parents[1]
+    / "config/cat-sounds/attended-headphone-allowlist.json"
+)
+PRODUCTION_CAT_SOUND_ALLOWLIST = (
+    Path(__file__).resolve().parents[1] / "config/cat-sounds/runtime-allowlist.json"
+)
 SAMPLE_RATE = 16_000
 VAD_WINDOW_SAMPLES = 512
 VAD_WINDOW_BYTES = VAD_WINDOW_SAMPLES * 2
+MAX_WAKE_PREFIX_SECONDS = 2.0
+
+
+def wake_is_in_prefix_window(speech_frames_seen: int) -> bool:
+    """Accept KWS as an address only near the beginning of active speech."""
+
+    elapsed = speech_frames_seen * VAD_WINDOW_SAMPLES / SAMPLE_RATE
+    return speech_frames_seen > 0 and elapsed <= MAX_WAKE_PREFIX_SECONDS
+
+
+WAKE_ADDRESS_TOKENS = {
+    "neko", "nekko", "nico", "niko", "nikko", "neco", "eko", "echo", "necho",
+}
+
+
+def canonicalize_wake_transcript(text: str) -> str:
+    """Use accepted KWS evidence to replace noisy leading name renderings."""
+
+    tokens = normalize_phrase(text).split()
+    removed = 0
+    while tokens and removed < 2 and tokens[0] in WAKE_ADDRESS_TOKENS:
+        tokens.pop(0)
+        removed += 1
+    remainder = " ".join(tokens)
+    return f"Neko {remainder}".strip()
 
 
 @dataclass(frozen=True, slots=True)
@@ -73,6 +114,7 @@ class SpeechSegment:
     captured_at_s: float
     wake_detected: bool = False
     sleep_detected: bool = False
+    stop_detected: bool = False
     sequence: int = 0
     transcript: str = ""
     asr_steps: int = 0
@@ -90,7 +132,8 @@ class ContinuousSpeechInput:
         recognizer: object,
         language: str,
         on_speech_start: Callable[[], None],
-        on_wake: Callable[[], None],
+        on_wake: Callable[[], bool | None],
+        on_stop: Callable[[], None],
         *,
         queue_size: int = 8,
     ) -> None:
@@ -102,6 +145,7 @@ class ContinuousSpeechInput:
         self.language = language
         self.on_speech_start = on_speech_start
         self.on_wake = on_wake
+        self.on_stop = on_stop
         self.segments: queue.Queue[SpeechSegment] = queue.Queue(maxsize=queue_size)
         self.stop_event = threading.Event()
         self.ready_event = threading.Event()
@@ -113,6 +157,8 @@ class ContinuousSpeechInput:
         self._was_speech = False
         self._wake_for_segment = False
         self._sleep_for_segment = False
+        self._stop_for_segment = False
+        self._speech_frames_seen = 0
         self._asr_pre_roll: deque[tuple[float, ...]] = deque(maxlen=16)
         self._asr_stream: object | None = None
         self._asr_steps = 0
@@ -143,6 +189,7 @@ class ContinuousSpeechInput:
         samples: tuple[float, ...],
         wake_detected: bool,
         sleep_detected: bool,
+        stop_detected: bool,
         transcript: str,
         asr_steps: int,
         asr_finalize_seconds: float,
@@ -154,6 +201,7 @@ class ContinuousSpeechInput:
             time.monotonic(),
             wake_detected,
             sleep_detected,
+            stop_detected,
             self.speech_sequence,
             transcript,
             asr_steps,
@@ -205,18 +253,26 @@ class ContinuousSpeechInput:
     def _accept_samples(self, samples: list[float]) -> None:
         self.vad.accept_waveform(samples)
         self.keyword_stream.accept_waveform(SAMPLE_RATE, samples)
+        is_speech = bool(self.vad.is_speech_detected())
+        speech_started = is_speech and not self._was_speech
+        if speech_started:
+            self._speech_frames_seen = 1
+        elif is_speech:
+            self._speech_frames_seen += 1
         while self.keyword_spotter.is_ready(self.keyword_stream):
             self.keyword_spotter.decode_stream(self.keyword_stream)
             detected = self.keyword_spotter.get_result(self.keyword_stream)
             if detected:
-                if detected.startswith("SLEEP_"):
+                if detected.startswith("STOP_"):
+                    self._stop_for_segment = True
+                    self.on_stop()
+                elif detected.startswith("SLEEP_"):
                     self._sleep_for_segment = True
-                else:
-                    self._wake_for_segment = True
-                    self.on_wake()
+                elif wake_is_in_prefix_window(self._speech_frames_seen):
+                    accepted = self.on_wake()
+                    if accepted is not False:
+                        self._wake_for_segment = True
                 self.keyword_spotter.reset_stream(self.keyword_stream)
-        is_speech = bool(self.vad.is_speech_detected())
-        speech_started = is_speech and not self._was_speech
         self._asr_pre_roll.append(tuple(samples))
         if speech_started:
             self.speech_sequence += 1
@@ -233,12 +289,14 @@ class ContinuousSpeechInput:
                 segment_samples,
                 self._wake_for_segment,
                 self._sleep_for_segment,
+                self._stop_for_segment,
                 transcript,
                 asr_steps,
                 asr_finalize_seconds,
             )
             self._wake_for_segment = False
             self._sleep_for_segment = False
+            self._stop_for_segment = False
             self.vad.pop()
 
     def _run(self) -> None:
@@ -297,7 +355,8 @@ class ReplaySpeechInput(ContinuousSpeechInput):
         recognizer: object,
         language: str,
         on_speech_start: Callable[[], None],
-        on_wake: Callable[[], None],
+        on_wake: Callable[[], bool | None],
+        on_stop: Callable[[], None],
         speaking: threading.Event,
     ) -> None:
         super().__init__(
@@ -308,6 +367,7 @@ class ReplaySpeechInput(ContinuousSpeechInput):
             language,
             on_speech_start,
             on_wake,
+            on_stop,
         )
         self.paths = paths
         self.speaking = speaking
@@ -404,7 +464,25 @@ class VoiceAssistant:
         self.args = args
         self.shutdown = threading.Event()
         self.cancel_speech = threading.Event()
+        self.cancel_cat_sound = threading.Event()
+        self.cancel_tail_purr = threading.Event()
         self.speaking = threading.Event()
+        self.spoken_turn_active = threading.Event()
+        self.story_playing = threading.Event()
+        self.story_followup_pending = threading.Event()
+        self.story_interrupt_armed = threading.Event()
+        self.self_wake_guard = threading.Event()
+        self.ignored_story_sequences: set[int] = set()
+        self.cat_sound_playing = threading.Event()
+        self.tail_purr_playing = threading.Event()
+        self._thinking_sound_thread: threading.Thread | None = None
+        self._tail_purr_thread: threading.Thread | None = None
+        self._cue_rng = random.SystemRandom()
+        self.story_library = StoryLibrary()
+        self.event_schedule = EventSchedule()
+        self.pending_schedule_query: str | None = None
+        self.pending_schedule_base_query: str | None = None
+        self.last_story_id: str | None = None
         self.controller = BehaviorController()
         self.history = ConversationHistory(
             max_turns=args.history_turns,
@@ -416,7 +494,14 @@ class VoiceAssistant:
             timeout_s=args.gemma_timeout,
         )
         self.tts = TtsClient(socket_path=args.tts_socket)
-        self.cat_sounds = CatSoundCatalog()
+        self.cat_sounds = CatSoundCatalog(
+            allowlist_path=(
+                ATTENDED_CAT_SOUND_ALLOWLIST
+                if args.attended_cat_sounds
+                else PRODUCTION_CAT_SOUND_ALLOWLIST
+            ),
+            attended_bench_test=args.attended_cat_sounds,
+        )
         self.cat_sound_player = CatSoundPlayer(
             {
                 "speaker": args.cat_speaker_target,
@@ -451,6 +536,7 @@ class VoiceAssistant:
                 args.language,
                 self._on_speech_start,
                 self._on_wake,
+                self._on_stop,
                 self.speaking,
             )
         else:
@@ -462,25 +548,225 @@ class VoiceAssistant:
                 args.language,
                 self._on_speech_start,
                 self._on_wake,
+                self._on_stop,
             )
 
     def _event(self, kind: str, **values: object) -> None:
         print(json.dumps({"event": kind, **values}, ensure_ascii=False), flush=True)
 
     def _on_speech_start(self) -> None:
-        if self.speaking.is_set():
+        if self.spoken_turn_active.is_set():
+            sequence = self.audio.speech_sequence
+            if self.story_interrupt_armed.is_set():
+                self.story_followup_pending.set()
+            else:
+                self.ignored_story_sequences.add(sequence)
+                self._event("output_nonwake_speech_ignored", sequence=sequence)
+                return
             self.cancel_speech.set()
             self._event("barge_in_detected")
 
-    def _on_wake(self) -> None:
+    def _on_wake(self) -> bool:
+        if self.spoken_turn_active.is_set() and self.self_wake_guard.is_set():
+            self._event("self_wake_echo_ignored")
+            return False
+        if self.spoken_turn_active.is_set():
+            self.story_interrupt_armed.set()
+            self.story_followup_pending.set()
+            self.cancel_speech.set()
+            self._event("addressed_barge_in_armed")
         self._event("wake_keyword_detected")
+        return True
+
+    def _on_stop(self) -> None:
+        """Cancel every output immediately; the finalized segment closes state."""
+
+        self.cancel_speech.set()
+        self.cancel_cat_sound.set()
+        self.cancel_tail_purr.set()
+        self._event("stop_keyword_detected")
+
+    def _thinking_cue_action(self, text: str) -> str | None:
+        """Choose a short, local acknowledgement before an LLM reply starts."""
+
+        rate = self.args.thinking_cue_rate
+        if rate <= 0 or self._cue_rng.random() >= rate:
+            return None
+        normalized = normalize_phrase(text)
+        if any(word in normalized for word in ("thank", "thanks", "merci", "gracias")):
+            return "meow_thank_you"
+        if any(word in normalized for word in ("like neko", "love neko", "love you")):
+            return "purr_playful_affection"
+        return "meow_general"
+
+    def _response_cue_action(self, request_text: str, answer: str) -> str | None:
+        """Select a varied mid-reply cue when the model omitted one itself."""
+
+        if any(isinstance(part, CatSoundPart) for part in parse_audio_script(answer)):
+            return None
+        is_story = "story" in normalize_phrase(request_text)
+        if not is_story and (
+            self.args.response_cue_rate <= 0
+            or self._cue_rng.random() >= self.args.response_cue_rate
+        ):
+            return None
+        normalized = normalize_phrase(f"{request_text} {answer}")
+        if any(word in normalized for word in ("thank", "thanks", "merci", "gracias")):
+            return "meow_thank_you"
+        return "meow_general"
+
+    @staticmethod
+    def _audio_cue_count(text: str) -> int:
+        return sum(isinstance(part, CatSoundPart) for part in parse_audio_script(text))
+
+    def _insert_response_cue(self, request_text: str, answer: str) -> str:
+        """Place a semantic real-cat cue between sentences, never as a preamble."""
+
+        action = self._response_cue_action(request_text, answer)
+        if action is None:
+            return answer
+        marker = {
+            "meow_general": "[meow]",
+            "meow_thank_you": "[meow:thanks]",
+            "purr_short": "[purr]",
+            "purr_relaxing_short": "[purr:relaxed]",
+            "purr_playful_affection": "[purr:playful]",
+        }[action]
+        for index in range(len(answer)):
+            if is_sentence_boundary(answer, index):
+                remainder = answer[index + 1 :].lstrip()
+                if remainder:
+                    return f"{answer[: index + 1]} {marker} {remainder}"
+        # A one-sentence reply remains uninterrupted rather than acquiring the
+        # old, deterministic pre-answer meow.
+        return answer
+
+    @staticmethod
+    def _warm_tail_purr(request_text: str, answer: str) -> bool:
+        normalized = normalize_phrase(f"{request_text} {answer}")
+        return "story" in normalized or any(
+            phrase in normalized
+            for phrase in ("like neko", "love neko", "love you", "you are nice")
+        )
+
+    def _start_tail_purr(self) -> None:
+        """Start a long post-speech purr; child speech intentionally does not stop it."""
+
+        try:
+            selection = self.cat_sounds.select(
+                "purr_primary", self.args.cat_sound_output, autonomous=True
+            )
+        except CatAudioDenied as error:
+            self._event("cat_sound_fallback", action="purr_primary", reason=str(error))
+            return
+        self.cancel_tail_purr.clear()
+
+        def play() -> None:
+            self.tail_purr_playing.set()
+            try:
+                played = self.cat_sound_player.play(
+                    selection,
+                    cancel_event=self.cancel_tail_purr,
+                    on_started=lambda: self._event(
+                        "tail_purr_started", asset_id=selection.asset_id
+                    ),
+                )
+                if played:
+                    self.cat_sounds.mark_played(selection)
+                    self._event("tail_purr_complete", asset_id=selection.asset_id)
+                else:
+                    self._event("tail_purr_interrupted", asset_id=selection.asset_id)
+            except Exception as error:
+                self._event("cat_sound_error", action="purr_primary", message=str(error))
+            finally:
+                self.tail_purr_playing.clear()
+
+        self._tail_purr_thread = threading.Thread(
+            target=play, name="neko-tail-purr", daemon=True
+        )
+        self._tail_purr_thread.start()
+
+    def _stop_tail_purr_for_neko_speech(self) -> None:
+        """Only Neko's next reply (or an explicit command) ends a tail purr."""
+
+        self.cancel_tail_purr.set()
+        thread = self._tail_purr_thread
+        if thread is not None:
+            thread.join(timeout=1)
+        self._tail_purr_thread = None
+
+    def _start_thinking_cue(self, text: str) -> None:
+        """Play a real acknowledgement while the model thinks, when approved.
+
+        A child speaking does not cancel this clip.  Model readiness does: this
+        keeps a purr from delaying Neko's actual spoken answer.
+        """
+
+        action = self._thinking_cue_action(text)
+        if action is None:
+            return
+        try:
+            selection = self.cat_sounds.select(
+                action,
+                self.args.cat_sound_output,
+                autonomous=True,
+            )
+        except CatAudioDenied as error:
+            self._event("cat_sound_fallback", action=action, reason=str(error))
+            return
+        self.cancel_cat_sound.clear()
+
+        def play() -> None:
+            self.speaking.set()
+            self.cat_sound_playing.set()
+            try:
+                played = self.cat_sound_player.play(
+                    selection,
+                    cancel_event=self.cancel_cat_sound,
+                    on_started=lambda: self._event(
+                        "thinking_cat_sound_started",
+                        action=selection.action,
+                        asset_id=selection.asset_id,
+                    ),
+                )
+                if played:
+                    self.cat_sounds.mark_played(selection)
+                    self._event(
+                        "thinking_cat_sound_complete",
+                        action=selection.action,
+                        asset_id=selection.asset_id,
+                    )
+                else:
+                    self._event("thinking_cat_sound_interrupted", action=selection.action)
+            except Exception as error:
+                self._event("cat_sound_error", action=selection.action, message=str(error))
+            finally:
+                self.cat_sound_playing.clear()
+                self.speaking.clear()
+
+        self._thinking_sound_thread = threading.Thread(
+            target=play, name="neko-thinking-cat-sound", daemon=True
+        )
+        self._thinking_sound_thread.start()
+
+    def _stop_thinking_cue_for_speech(self) -> None:
+        """Stop the cue only because Neko's generated speech is now ready."""
+
+        self.cancel_cat_sound.set()
+        thread = self._thinking_sound_thread
+        if thread is not None:
+            thread.join(timeout=1)
+        self._thinking_sound_thread = None
 
     def _speak(self, text: str, *, vad_finalized_s: float | None = None) -> bool:
         if self.args.no_speak:
             self._event("reply", text=text)
             return True
         self.cancel_speech.clear()
+        self.cancel_cat_sound.clear()
+        self.story_interrupt_armed.clear()
         self.speaking.set()
+        self.spoken_turn_active.set()
         first_output_started = False
 
         def first_pcm() -> None:
@@ -504,27 +790,38 @@ class VoiceAssistant:
 
         completed = True
         try:
-            for part in parse_audio_script(text):
+            parts = parse_audio_script(text)
+            for index, part in enumerate(parts):
                 if self.cancel_speech.is_set():
                     completed = False
                     break
                 if isinstance(part, TextPart):
-                    try:
-                        result = self.tts.synthesize(
-                            part.text,
-                            play=True,
-                            cancel_event=self.cancel_speech,
-                            on_first_pcm=first_pcm,
-                        )
-                    except Exception as error:
-                        self._event("tts_error", message=str(error))
-                        return False
-                    if result.get("cancelled"):
-                        completed = False
+                    for chunk in chunk_text(part.text):
+                        if NEKO_NAME_RE.search(chunk):
+                            self.self_wake_guard.set()
+                        try:
+                            result = self.tts.synthesize(
+                                chunk,
+                                play=True,
+                                cancel_event=self.cancel_speech,
+                                on_first_pcm=first_pcm,
+                            )
+                        except Exception as error:
+                            self._event("tts_error", message=str(error))
+                            return False
+                        finally:
+                            self.self_wake_guard.clear()
+                        if result.get("cancelled"):
+                            completed = False
+                            break
+                    if not completed:
                         break
                     continue
                 if not isinstance(part, CatSoundPart):
                     raise TypeError(f"unknown audio script part: {part!r}")
+                if part.action == "purr_primary" and index == len(parts) - 1:
+                    self._start_tail_purr()
+                    continue
                 try:
                     selection = self.cat_sounds.select(
                         part.action,
@@ -554,7 +851,7 @@ class VoiceAssistant:
                 try:
                     played = self.cat_sound_player.play(
                         selection,
-                        cancel_event=self.cancel_speech,
+                        cancel_event=self.cancel_cat_sound,
                         on_started=first_pcm,
                     )
                 except Exception as error:
@@ -571,12 +868,114 @@ class VoiceAssistant:
                     output=selection.output,
                 )
         finally:
+            self.spoken_turn_active.clear()
             self.speaking.clear()
+            self.story_interrupt_armed.clear()
         self._event("playback_complete" if completed else "playback_cancelled")
         return completed
 
     def _dialogue(self, request: DialogueRequest) -> bool:
         started = time.monotonic()
+        self._start_thinking_cue(request.text)
+        schedule_followup = (
+            self.pending_schedule_query is not None
+            and is_schedule_refinement(request.text)
+        )
+        if is_schedule_query(request.text) or schedule_followup:
+            schedule_query = request.text
+            list_requested = requests_all_results(request.text)
+            if schedule_followup and list_requested:
+                assert self.pending_schedule_query is not None
+                schedule_query = self.pending_schedule_query
+            elif schedule_followup:
+                schedule_query = f"{self.pending_schedule_query} {request.text}"
+            reply = self.event_schedule.respond(schedule_query, force_list=list_requested)
+            if (
+                schedule_followup
+                and not list_requested
+                and reply.match_count == 0
+                and self.pending_schedule_base_query is not None
+            ):
+                fallback = self.event_schedule.respond(
+                    self.pending_schedule_base_query,
+                    force_list=True,
+                )
+                reply = type(reply)(
+                    "I couldn't find a match for that. Here are all the choices "
+                    f"from that time instead. {fallback.text}",
+                    needs_refinement=False,
+                    match_count=fallback.match_count,
+                )
+            answer = reply.text
+            if reply.needs_refinement:
+                if self.pending_schedule_base_query is None:
+                    self.pending_schedule_base_query = request.text
+                self.pending_schedule_query = schedule_query
+            else:
+                self.pending_schedule_query = None
+                self.pending_schedule_base_query = None
+            self._event(
+                "event_schedule_lookup",
+                available=self.event_schedule.available(),
+                source="local_cache",
+                match_count=reply.match_count,
+                needs_refinement=reply.needs_refinement,
+            )
+            self._stop_thinking_cue_for_speech()
+            self._stop_tail_purr_for_neko_speech()
+            completed = self._speak(
+                answer,
+                vad_finalized_s=self.current_vad_finalized_s,
+            )
+            if completed:
+                self.controller.extend_active_session(time.monotonic())
+            return completed
+        self.pending_schedule_query = None
+        self.pending_schedule_base_query = None
+        if "story" in normalize_phrase(request.text):
+            try:
+                story = self.story_library.choose(
+                    request.text,
+                    exclude_id=self.last_story_id,
+                    rng=self._cue_rng,
+                )
+                answer = self.story_library.spoken_text(story)
+                self.last_story_id = story.story_id
+                self._event(
+                    "story_selected",
+                    story_id=story.story_id,
+                    title=story.title,
+                    retrieval="local_manifest",
+                )
+            except (LookupError, OSError, ValueError) as error:
+                self._event("story_library_error", message=str(error))
+                answer = ""
+            if answer:
+                self._stop_thinking_cue_for_speech()
+                self._stop_tail_purr_for_neko_speech()
+                answer = self._insert_response_cue(request.text, answer)
+                self.story_interrupt_armed.clear()
+                self.story_playing.set()
+                try:
+                    completed = self._speak(
+                        answer,
+                        vad_finalized_s=self.current_vad_finalized_s,
+                    )
+                finally:
+                    self.story_playing.clear()
+                    self.story_interrupt_armed.clear()
+                context_note = self.story_library.context_note(
+                    story,
+                    interrupted=not completed,
+                )
+                if completed:
+                    self.history.append(request.text, context_note, request.language)
+                    self.controller.extend_active_session(time.monotonic())
+                    if self._audio_cue_count(answer) < 3:
+                        self._start_tail_purr()
+                else:
+                    self.history.append(request.text, context_note, request.language)
+                return completed
         try:
             if self.args.llm_route == "audio":
                 answer = self.gemma.reply_audio(
@@ -586,13 +985,20 @@ class VoiceAssistant:
                     request.language,
                     self.history,
                 )
-            else:
+            elif self.args.response_mode == "first-sentence":
                 answer = self.gemma.reply_first_sentence(
                     request.text,
                     request.language,
                     self.history,
                 )
+            else:
+                answer = self.gemma.reply_complete_streamed(
+                    request.text,
+                    request.language,
+                    self.history,
+                )
         except Exception as error:
+            self._stop_thinking_cue_for_speech()
             self._event("llm_error", message=str(error))
             self._speak("Oops, my thoughts got tangled. Try that once more?")
             return False
@@ -600,27 +1006,52 @@ class VoiceAssistant:
             "reply_ready",
             latency_seconds=round(time.monotonic() - started, 3),
             route=self.args.llm_route,
+            response_mode=self.args.response_mode,
             **({"text": answer} if self.args.verbose_transcripts else {}),
         )
+        self._stop_thinking_cue_for_speech()
+        self._stop_tail_purr_for_neko_speech()
 
         # If another utterance already began while Gemma was thinking, do not
         # talk over it. Preserve the unanswered prompt and process the queued
         # speech next.
-        if self.audio.speech_sequence != self.current_segment_sequence:
+        superseded = self.audio.speech_sequence != self.current_segment_sequence
+        if superseded and self.tail_purr_playing.is_set():
+            # With the Bluetooth headset, the long local purr can occasionally
+            # create a VAD edge of its own.  The child utterance that produced
+            # this request is already finalized, so do not discard its reply
+            # solely because the tail-purr output was seen by capture.
+            self._event("tail_purr_self_audio_ignored")
+            superseded = False
+        if superseded:
             self.history.append_interrupted(request.text, request.language)
             self._event("reply_superseded_before_playback")
             return False
 
+        answer = self._insert_response_cue(request.text, answer)
+
         completed = self._speak(answer, vad_finalized_s=self.current_vad_finalized_s)
         if completed:
             self.history.append(request.text, answer, request.language)
+            if (
+                self._warm_tail_purr(request.text, answer)
+                and "[purr:tail]" not in answer
+                and self._audio_cue_count(answer) < 3
+            ):
+                self._start_tail_purr()
         else:
             self.history.append_interrupted(request.text, request.language)
         return completed
 
     def _handle_segment(self, segment: SpeechSegment) -> bool:
+        ignored_during_output = segment.sequence in self.ignored_story_sequences
+        if ignored_during_output:
+            self.ignored_story_sequences.discard(segment.sequence)
+            if not segment.wake_detected and not segment.sleep_detected and not segment.stop_detected:
+                self._event("output_nonwake_segment_discarded", sequence=segment.sequence)
+                return False
         text = segment.transcript
-        if not text and not segment.wake_detected and not segment.sleep_detected:
+        if not text and not segment.wake_detected and not segment.sleep_detected and not segment.stop_detected:
             self._event("empty_transcript")
             return False
         language = self.args.language if self.args.language != "auto" else "unknown"
@@ -636,46 +1067,59 @@ class VoiceAssistant:
         else:
             self._event(
                 "keyword_only_command",
-                command="sleep" if segment.sleep_detected else "wake",
+                command=(
+                    "stop" if segment.stop_detected
+                    else "sleep" if segment.sleep_detected
+                    else "wake"
+                ),
             )
         was_active = self.controller.session_active
         self.current_segment_sequence = segment.sequence
         self.current_audio_samples = segment.samples
         self.current_vad_finalized_s = segment.captured_at_s
         policy_text = text
-        if segment.sleep_detected:
+        if segment.stop_detected:
+            policy_text = "Neko stop"
+        elif segment.sleep_detected:
             policy_text = "bye bye"
-        elif segment.wake_detected and not was_active:
-            normalized = normalize_phrase(text)
-            recognized_wake = (
-                normalized.startswith("neko neko")
-                or normalized.startswith("eko neko")
-                or normalized.startswith("echo neko")
-                or normalized.startswith("echo necho")
-                or normalized.startswith("eko necho")
-                or normalized == "neko"
-                or normalized.startswith("neko ")
+        elif segment.wake_detected:
+            policy_text = canonicalize_wake_transcript(text)
+        if self.tail_purr_playing.is_set() or self.story_followup_pending.is_set():
+            # Preserve the existing session and history across a tail purr or
+            # addressed interruption. A tail purr follows a completed spoken
+            # turn, so an ordinary in-session follow-up remains valid; only
+            # speech that began during spoken output requires Neko's name.
+            self.controller.extend_active_session(segment.captured_at_s)
+            self._event(
+                "output_session_extended",
+                tail_purr=self.tail_purr_playing.is_set(),
+                story_barge_in=self.story_followup_pending.is_set(),
             )
-            if not recognized_wake:
-                policy_text = f"Neko Neko {text}"
+            self.story_followup_pending.clear()
         actions = self.controller.handle(
             TranscriptEvent(policy_text, language, segment.captured_at_s)  # type: ignore[arg-type]
         )
         if not was_active and self.controller.session_active:
             self.history.clear()
+            self.pending_schedule_query = None
+            self.pending_schedule_base_query = None
             self._event("session_started")
         dialogue_seen = False
         for action in actions:
             if isinstance(action, Acknowledge):
                 self._event("wake_acknowledged")
                 if not any(isinstance(item, DialogueRequest) for item in actions):
-                    self._speak("Mrrp?")
+                    self._speak("[meow]")
             elif isinstance(action, DialogueRequest):
                 dialogue_seen = True
                 self._dialogue(action)
             elif isinstance(action, CancelAudio):
                 self.cancel_speech.set()
+                self.cancel_cat_sound.set()
+                self.cancel_tail_purr.set()
                 self.history.clear()
+                self.pending_schedule_query = None
+                self.pending_schedule_base_query = None
                 self._event("audio_cancelled", reason=action.reason)
             elif isinstance(action, SetMuted):
                 self._event("muted", value=action.muted)
@@ -715,6 +1159,8 @@ class VoiceAssistant:
                         return 0
         finally:
             self.cancel_speech.set()
+            self.cancel_cat_sound.set()
+            self.cancel_tail_purr.set()
             self.audio.close()
         return 0
 
@@ -750,6 +1196,12 @@ def build_parser() -> argparse.ArgumentParser:
         choices=("streaming-text", "audio"),
         default="streaming-text",
     )
+    parser.add_argument(
+        "--response-mode",
+        choices=("complete", "first-sentence"),
+        default="complete",
+        help="complete keeps natural multi-sentence replies; first-sentence is a latency lab mode",
+    )
     parser.add_argument("--gemma-timeout", type=float, default=60.0)
     parser.add_argument("--tts-socket", type=Path, default=DEFAULT_TTS_SOCKET)
     parser.add_argument(
@@ -759,6 +1211,26 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--cat-speaker-target")
     parser.add_argument("--cat-transducer-target")
+    parser.add_argument(
+        "--thinking-cue-rate",
+        type=float,
+        default=0.12,
+        help="chance of a short approved real-cat acknowledgement while LLM text is generated",
+    )
+    parser.add_argument(
+        "--response-cue-rate",
+        type=float,
+        default=0.75,
+        help="chance of a varied real-cat cue between sentences when LLM omitted one",
+    )
+    parser.add_argument(
+        "--attended-cat-sounds",
+        action="store_true",
+        help=(
+            "allow selected bench recordings only for a supervised headphone "
+            "listening pass; never use this for cart hardware or boot"
+        ),
+    )
     parser.add_argument("--no-speak", action="store_true")
     parser.add_argument("--verbose-transcripts", action="store_true")
     parser.add_argument("--max-dialogues", type=int, default=0)
@@ -780,11 +1252,18 @@ def main() -> int:
             raise FileNotFoundError(f"replay WAV not found: {replay}")
     if not 0 < args.vad_threshold < 1:
         raise ValueError("VAD threshold must be between zero and one")
+    if not 0 <= args.thinking_cue_rate <= 1:
+        raise ValueError("thinking cue rate must be between zero and one")
+    if not 0 <= args.response_cue_rate <= 1:
+        raise ValueError("response cue rate must be between zero and one")
+    if args.attended_cat_sounds and args.cat_sound_output != "speaker":
+        raise ValueError("attended cat-sound testing supports speaker output only")
     assistant = VoiceAssistant(args)
 
     def stop(_signum: int, _frame: object) -> None:
         assistant.shutdown.set()
         assistant.cancel_speech.set()
+        assistant.cancel_cat_sound.set()
 
     signal.signal(signal.SIGINT, stop)
     signal.signal(signal.SIGTERM, stop)

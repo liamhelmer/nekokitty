@@ -18,8 +18,29 @@ from typing import Callable, Literal
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = REPO_ROOT / "assets/cat-sounds/derived/manifest.json"
 DEFAULT_ALLOWLIST = REPO_ROOT / "config/cat-sounds/runtime-allowlist.json"
-MARKER_ACTIONS = {"meow": "meow_general", "purr": "purr_short"}
-MARKER_RE = re.compile(r"\[(meow|purr)\]", re.IGNORECASE)
+# The model may ask for a *meaning*, not a recording.  These are deliberately
+# small, closed vocabularies: the supervisor retains all file, gain, output,
+# cooldown, and approval authority.
+MARKER_ACTIONS = {
+    "meow": ("meow_general", "meow"),
+    "purr": ("purr_short", "purr"),
+    "meow:thanks": ("meow_thank_you", "meow"),
+    "meow:attention": ("meow_attention_candidate", "meow"),
+    "purr:relaxed": ("purr_relaxing_short", "purr"),
+    "purr:playful": ("purr_playful_affection", "purr"),
+    "purr:tail": ("purr_primary", "purr"),
+    # Emotion aliases keep the language model's output readable and map to the
+    # same reviewed, deterministic sound actions.
+    "feeling:curious": ("meow_general", "meow"),
+    "feeling:grateful": ("meow_thank_you", "meow"),
+    "feeling:happy": ("purr_playful_affection", "purr"),
+    "feeling:cozy": ("purr_relaxing_short", "purr"),
+}
+MARKER_RE = re.compile(
+    r"\[(meow(?::(?:thanks|attention))?|purr(?::(?:relaxed|playful|tail))?|"
+    r"feeling:(?:curious|grateful|happy|cozy))\]",
+    re.IGNORECASE,
+)
 OutputName = Literal["speaker", "body_transducer"]
 
 
@@ -101,7 +122,7 @@ class CatSoundSelection:
     interruptible: bool
 
 
-def parse_audio_script(text: str, *, max_markers: int = 2) -> tuple[AudioPart, ...]:
+def parse_audio_script(text: str, *, max_markers: int = 3) -> tuple[AudioPart, ...]:
     """Split strict expressive markers from text without treating prose as actions."""
 
     if max_markers < 0:
@@ -116,7 +137,8 @@ def parse_audio_script(text: str, *, max_markers: int = 2) -> tuple[AudioPart, .
         if before:
             parts.append(TextPart(before))
         name = match.group(1).lower()
-        parts.append(CatSoundPart(MARKER_ACTIONS[name], name))
+        action, fallback_text = MARKER_ACTIONS[name]
+        parts.append(CatSoundPart(action, fallback_text))
         markers += 1
         cursor = match.end()
     tail = text[cursor:].strip()
@@ -143,6 +165,7 @@ class CatSoundCatalog:
         *,
         repo_root: Path = REPO_ROOT,
         rng: random.Random | None = None,
+        attended_bench_test: bool = False,
     ) -> None:
         self.repo_root = repo_root.resolve()
         self.allowlist = json.loads(allowlist_path.read_text(encoding="utf-8"))
@@ -154,6 +177,13 @@ class CatSoundCatalog:
         if len(self.assets) != len(manifest["entries"]):
             raise ValueError("duplicate cat-sound asset ID")
         self.rng = rng or random.SystemRandom()
+        # This narrow escape hatch exists only for an attended headphone
+        # listening pass.  It must be requested both by the caller and by a
+        # separately named test policy; normal cart playback still requires
+        # every production approval below.
+        self.attended_bench_test = (
+            attended_bench_test and self.allowlist.get("attended_test_only") is True
+        )
         self.last_asset: dict[tuple[str, str], str] = {}
         self.last_played: dict[tuple[str, str], float] = {}
 
@@ -189,11 +219,20 @@ class CatSoundCatalog:
             if asset is None or asset.get("target_output") != output:
                 continue
             approvals = asset.get("approvals", {})
-            if approvals.get("derived_content_review") != "accepted":
+            if approvals.get("derived_content_review") != "accepted" and not (
+                self.attended_bench_test
+                and approvals.get("derived_content_review") == "pending"
+            ):
                 continue
-            if approvals.get("hardware_acceptance") != "accepted":
+            if approvals.get("hardware_acceptance") != "accepted" and not (
+                self.attended_bench_test
+                and approvals.get("hardware_acceptance") == "pending"
+            ):
                 continue
-            if approvals.get("release_status") != "accepted":
+            if approvals.get("release_status") != "accepted" and not (
+                self.attended_bench_test
+                and approvals.get("release_status") == "bench_candidate"
+            ):
                 continue
             if float(asset["duration_seconds"]) > float(policy["max_duration_seconds"]):
                 continue

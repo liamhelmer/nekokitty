@@ -94,10 +94,18 @@ in memory, uses Silero VAD plus a sherpa-onnx open-vocabulary keyword spotter,
 recognizes `Neko Neko` independently of Nemotron's unreliable rendering of the
 wake phrase, streams Nemotron ASR while the person is still speaking, sends the
 finished text to local LFM, stops generation at the first useful complete
-sentence, and supports real barge-in by cancelling PipeWire playback. The former
+sentence, and supports addressed barge-in by cancelling PipeWire playback. A
+turn that starts while Neko is actively speaking must begin with `Neko` or
+`Neko Neko`; ordinary speech and cross-talk do not cancel output. Once her spoken
+turn completes, ordinary follow-ups work within the active session, including
+during a standalone thinking meow or tail purr; generic cat-sound playback is
+tracked separately from synthesized spoken-turn state. Keyword detection is
+limited to the opening two seconds of a VAD utterance. The former
 same-buffer inline-WAV Gemma route remains diagnostic-only. `bye bye`,
 `goodbye`, and `good bye` close the session locally even when ASR returns no
-text. A six-turn/2,400-character in-memory history is implemented. Negative,
+text. `Neko stop` has a dedicated KWS entry, cancels speech/cat audio immediately,
+and deterministically closes the session and clears both general and pending
+schedule context when its segment finalizes. A six-turn/2,400-character in-memory history is implemented. Negative,
 wake, interruption, replacement-response, and sleep replay tests pass; the
 owner recordings stay mode-restricted outside Git and are not identified or
 hashed in public notes. This loop is deliberately not boot-enabled pending
@@ -271,6 +279,14 @@ Read these before changing the system:
   exact R39.2 reproduction comment and upstream URL.
 - [Setup log](docs/operations/setup-log.md) — every installation/attempt, exact
   versions/paths/hashes, sudo/headless status, rollback, and current model table.
+- [Quality/latency rebalance](docs/plan/2026-07-17-quality-latency-rebalance.md)
+  — attended Kiki-versus-Piper findings, measured component timing, current
+  interaction profile, factual-quality boundary, and acknowledgement-sound
+  gates.
+- [What If offline schedule](docs/research/2026-07-17-what-if-schedule.md) —
+  Dust API contract, local/Pacific-time interpretation, atomic hourly cache,
+  subset TF-IDF vector ranking, child filter, deployment, validation, and
+  rollback.
 - [Pre-hardware smoke tests](docs/operations/2026-07-14-pre-hardware-smoke-tests.md)
   — privacy-preserving temporary webcam/USB-audio harness, production swap-over
   contracts, current test boundary, and commands to repeat after device changes.
@@ -370,6 +386,15 @@ the smaller, proven LiteRT CPU resident.
   exit-1-on-bounded-SIGINT contract only when PCM is present and stderr is empty.
   No integrated assistant/orchestration service is boot-enabled; Gemma and the
   separate English TTS worker are boot dependencies.
+- What If schedule/music/art/camp data is cached under
+  `/var/lib/neko/what-if` in raw JSON plus SQLite form. The hardened
+  `neko-what-if-refresh.timer` is enabled hourly; failed refreshes retain the
+  last good copy. `EventSchedule` time-filters first, then builds an on-demand
+  sparse TF-IDF vector space over only the candidate subset. The child-facing
+  route excludes mature listings and answers directly without sending feed text
+  to LFM or retaining queries/results in LLM history. High-cardinality time
+  results ask a category/style refinement using separate one-query tool state.
+  Exact behavior and rollback are in the What If schedule note.
 - Silero VAD and sherpa-onnx's 3M bilingual open-vocabulary keyword model are
   pinned externally on NVMe and run through the existing sherpa-onnx 1.13.4
   environment. `scripts/neko_voice_assistant.py` combines them with continuous
@@ -976,3 +1001,162 @@ For every future model or service, add:
   cancellable fixed PipeWire target. The integrated loop falls back to TTS while
   all current assets/actions remain pending and disabled. All 106 repository
   tests, compilation and diff checking pass; no real cat recording was played.
+- 2026-07-17: The first live latency test exposed that Piper plus the forced
+  2–4-word LFM answer was fast but audibly poor and wooden. The attended voice
+  loop now defaults in source to the owner-selected Kiki/Micro 1.2x worker and
+  complete bounded LFM replies; the Piper/first-sentence path remains an
+  explicit latency experiment. Warm component measurements show a realistic
+  2.5–4.5-second PCM-start target for natural ordinary replies, contingent on
+  an early short clause. LFM remains unsuitable as an unsupervised factual
+  authority; acknowledgement cat sounds remain disabled pending their existing
+  derived-listening and hardware gates. The full evidence and follow-on work are
+  in `docs/plan/2026-07-17-quality-latency-rebalance.md`.
+- 2026-07-17: The owner accepted Kiki's live voice and normal response timing,
+  and requested regular real-cat vocalizations plus Neko's physical character
+  and story persona. Source now has a closed cue contract for six sound actions
+  and four emotion aliases; parsing and selection are local, so they add no LLM
+  round trip and preserve the supervisor's asset/gain/output/cooldown control.
+  Production cat audio remains disabled. A separate explicit
+  `--attended-cat-sounds` speaker/headphone mode can audition selected mastered
+  bench assets only; it is not valid for boot, outdoor speaker, or transducer
+  operation and does not mark hardware accepted. Persona now records the
+  orange-and-black striped, fuzzy-pawed, long-tailed kitty carrier and its
+  occasional non-gross gummy-worm treat-hatch joke. A deterministic, reviewed
+  local story-library route remains the next implementation boundary; see the
+  quality/latency plan for its fixed-story and bounded-remix constraints.
+- 2026-07-17: LFM did not reliably produce requested cue tags in the attended
+  test, so the voice supervisor now starts a deterministic context-selected
+  real-cat *thinking cue* while it waits for local model text (always in the
+  explicit headphone test, otherwise a configurable future-production rate).
+  Model readiness, not child barge-in, interrupts that cue; child speech still
+  cancels Kiki voice. Stop, sleep and shutdown cancel both. This preserves short
+  conversational latency and the owner's requested cat-sound turn-taking rule.
+- 2026-07-17: The LFM persona prompt now makes exactly one real meow/purr cue
+  normal in most ordinary replies (two only for unusually playful, affectionate,
+  or story-like moments), with explicit clarity exceptions for safety, factual
+  correction, very short commands, and literal discussion of the words. The
+  deterministic thinking-cue path remains necessary because prompt compliance
+  alone is not a reliable real-audio trigger on the 1.2B model.
+- 2026-07-17: Owner found the forced attended thinking cue repetitive. Its
+  default rate is now 12%, while a 75%-rate local response scaffold inserts a
+  varied approved semantic cue between the first and second sentence only when
+  LFM omitted one. It preserves one-sentence replies and existing valid model
+  markers. The current LFM temperature is 0.45. No new voice recording is
+  needed to test this audio-selection/timing layer; shorter purr derivatives
+  may be needed after listening because current speaker purr candidates run
+  roughly 4--9 seconds.
+- 2026-07-17: The owner set Neko's sound grammar: meows are beginning/inter-
+  sentence punctuation; short happy purrs are occasional beginnings; long purrs
+  begin after warm endings such as a happy story or affection for Neko. The
+  response scaffold now inserts a meow, not a purr, between ordinary sentences.
+  The attended-only policy permits the 26-second primary purr loop as an
+  asynchronous tail: it continues through child speech and stops when Neko's
+  next generated speech is ready, or on explicit stop/sleep/shutdown. No new
+  recording is required to test this; production hardware approval remains
+  separate.
+- 2026-07-17: First long-purr follow-up test showed the existing 30-second
+  dialogue deadline could expire during story-plus-purr output and force a new
+  wake word. `extend_active_session()` now renews only an existing unmuted
+  session while an asynchronous tail purr is active, so ordinary child follow-
+  ups remain in the same conversation. A tail-purr-only VAD speech edge no
+  longer discards an already-finalized request. The owner authorizes retaining
+  their test audio/transcripts for private fixture work, but capture remains
+  opt-in and has not yet been enabled or persisted by the live loop. MeowLLM is
+  a 3.45M non-factual cat-quip toy only; it may later provide fully policy-
+  checked optional quips, never conversation, stories, facts, translation, TTS,
+  or safety control.
+- 2026-07-17: Story responses now use light cat-sound treatment: an unmarked
+  multi-sentence story receives one inter-sentence meow and a warm ending may
+  receive the asynchronous tail purr. Prompt/parser/supervisor cap the entire
+  story at three sounds; usual treatment is two. This applies to the temporary
+  bounded LFM story path and is the contract for the future reviewed local story
+  library. It does not imply that a licensed stored story corpus already exists.
+- 2026-07-17: Added five owner-editable 500--617-word story drafts for ages 5--7:
+  Magic Girl/Neko and the gummy-worm moon, Luna’s stick garden and elk patrol,
+  Heidi and the ravens’ muddy masterpiece, Neko driving Magic Girl in an
+  Otherworld gummy-worm parade, and an explicitly unofficial Elsa fan-story.
+  The manifest-gated `StoryLibrary` uses local exact-token/tag retrieval,
+  excludes metadata-only CC candidates, strips Markdown for speech, and avoids
+  immediate repeats. The attended voice loop now routes requests containing
+  “story” to this local shelf without LFM generation, retains barge-in and the
+  three-sound cap, and starts a warm tail purr after completion. This is a
+  runnable exact-story baseline, not yet generative/RAG remix mode. Five
+  verified CC BY 4.0 candidates remain metadata-only pending exact download,
+  hash, attribution, ingestion, and owner review.
+- 2026-07-17: Hardened story turn-taking after live stories stopped on incidental
+  noise. While `story_playing` is active, ordinary VAD speech segments are
+  tracked by sequence and discarded without cancelling playback; only an
+  opening `Neko`/`Neko Neko` KWS event arms and performs story barge-in. A wake
+  interruption renews the existing dialogue session. Completing a story also
+  renews the session before its tail purr, so natural follow-up remains possible.
+  Each approved manifest entry now has a curated summary and three essentials;
+  conversation history stores that bounded note (under 600 characters), never
+  the full 500--617-word narration. Tests cover non-wake immunity, wake-word
+  interruption, bounded context notes, and absence of story prose from metadata.
+- 2026-07-17: Generalized addressed turn-taking for noisy event use. A request
+  that begins while Neko is actively speaking must start with `Neko` or
+  `Neko Neko`; ordinary speech cannot interrupt regular replies or stories.
+  After her spoken turn completes, unprefixed follow-ups work inside the active
+  session, including during a standalone thinking meow or tail purr. Generic
+  audio playback is tracked separately from synthesized spoken-turn state. The
+  KWS interruption path accepts the name only in the first two
+  seconds of a VAD utterance, while the deterministic policy separately checks
+  the recognized-text prefix. `bye bye`/`goodbye` remain global sleep escapes.
+  Sessions and bounded story summaries remain intact across addressed turns.
+  Added a TTS-boundary-only whole-word rewrite from written `Neko` to `Nekko`,
+  leaving prompts, transcripts, logs, story text, and character spelling intact.
+  Spoken text is sentence-chunked, and KWS detections are suppressed only while
+  a sentence containing Neko's own name is playing, preventing obvious
+  loudspeaker self-wake. This narrow guard can also mask a simultaneous human
+  address during that sentence; production far-end-reference AEC and noisy-field
+  false-accept/false-reject testing remain required.
+- 2026-07-17: Added and deployed the offline-first What If event tool. The first
+  atomic sync cached 333 schedule, 152 music, 70 art, and 67 camp records in
+  `/var/lib/neko/what-if`; 124 mature-tagged records are cached but excluded from
+  child answers. Immediate lookup filters to events ending more than 15 minutes
+  out or starting within 30 minutes, prefers narrow time windows, then builds a
+  transient TF-IDF vector map over that subset. Broader when/where/name and
+  art/camp discovery searches the applicable remaining/local catalog. Times are
+  rendered in 12-hour America/Vancouver time; `timedatectl` independently
+  confirms the host is on synchronized PDT with its RTC in UTC. A hardened hourly systemd timer is
+  enabled, and download/build failures preserve the last good cache. Schedule
+  answers bypass LFM. The complete suite passes 139 tests; live voice phrasing,
+  stale-cache language, French localization, and offline-failure recovery remain.
+- 2026-07-17: Corrected the first live schedule failure. Time parsing now accepts
+  `at 8 PM`, `8pm`, `8 p.m.`, spoken `eight p.m.`, and bare `at 8` (event-policy
+  default PM), preventing an ASR-dropped preposition from widening the query to
+  all Saturday. More than three unspecific matches now prompt for category,
+  music style/performer/camp, or art kind/name. The pending refinement is kept in
+  isolated tool state; schedule queries and results never enter LFM history.
+  Music vectors now include matching camp descriptions for genre recall. Added
+  a dedicated `Neko stop` KWS/control path that immediately cancels all output,
+  then closes the session and clears general plus schedule state on finalization.
+- 2026-07-17: The first repeated live schedule phrase was transcribed as
+  `Nico, what's going on Sat day at eight PM`. KWS had detected the address, but
+  the residual `Nico` became a false vector keyword and `Sat day` was not a
+  weekday. Added removable Nico/Niko/Nikko/Nekko address aliases and canonical
+  `Sat day` parsing. The exact transcript now resolves to Saturday 8 PM, seven
+  candidates, and the category refinement prompt. The suite passes 137 tests.
+- 2026-07-17: A second verbose retry showed that deterministic punctuation
+  normalization converts `what's` to `what s`; the orphan `s` was mistakenly
+  treated as a required vector term and reduced seven correct candidates to two
+  all-day records. Added apostrophe-fragment filtering and a regression over the
+  exact behavior-controller output. The normalized live phrase now returns all
+  seven candidates and asks for category refinement.
+- 2026-07-17: A third retry varied to `Neco Neko ... eight P`. Replaced manual
+  whole-prefix recognition with KWS-backed canonicalization: strip up to two
+  leading Neko-like ASR tokens, insert one canonical `Neko`, and treat lone
+  meridiem `P`/`A` as PM/AM. The full exact raw-to-policy-to-schedule regression
+  returns seven candidates and refinement. The suite passes 138 tests.
+- 2026-07-17: The successful seven-match live prompt was followed by `How about
+  music`; `how` was incorrectly treated as a required genre and produced zero
+  matches. Refinement search now removes common conversational scaffolding while
+  preserving music/art/style/name terms. Real data yields five music choices;
+  `I'd like downtempo` then resolves to Leonardo Ojeda at Bass n Nova.
+- 2026-07-17: Replaced the wake-only TTS text `Mrrp?`, which Kiki pronounced as
+  separate letters, with a real curated `[meow]` cue. Schedule refinement now
+  recognizes `no preference`/`anything`/explicit list-all requests. A zero-match
+  category or style reports the miss and enumerates all events from the original
+  time window; the original window and current refinement are separate tool-only
+  state. Added weekday abbreviations, joined `at8 PM`, and filler handling for
+  the observed `Uh let's do music`. Full suite: 139 tests.

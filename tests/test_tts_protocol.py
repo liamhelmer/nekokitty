@@ -6,10 +6,24 @@ import threading
 import unittest
 from unittest.mock import patch
 
-from neko.tts_protocol import MAX_AUDIO_BYTES, TtsClient, read_exact, read_json, write_json
+from neko.tts_protocol import (
+    MAX_AUDIO_BYTES,
+    TtsClient,
+    prepare_tts_text,
+    read_exact,
+    read_json,
+    write_json,
+)
 
 
 class TtsProtocolTests(unittest.TestCase):
+    def test_neko_name_is_rewritten_for_pronunciation_only(self) -> None:
+        self.assertEqual(
+            prepare_tts_text("Neko is Neko's written name. neko!"),
+            "Nekko is Nekko's written name. Nekko!",
+        )
+        self.assertEqual(prepare_tts_text("Nekoness"), "Nekoness")
+
     def test_json_header_and_binary_frame_remain_separate(self) -> None:
         stream = BytesIO()
         write_json(stream, {"event": "audio", "bytes": 4})

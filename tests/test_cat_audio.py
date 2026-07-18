@@ -66,6 +66,31 @@ class AudioScriptTests(unittest.TestCase):
         self.assertEqual(parts[0], CatSoundPart("meow_general", "meow"))
         self.assertEqual(parts[1], TextPart("[purr] [meow]"))
 
+    def test_emotion_and_specific_sound_cues_are_closed_and_semantic(self) -> None:
+        parts = parse_audio_script(
+            "[feeling:curious] What is that? [purr:playful] Let's peek!"
+        )
+        self.assertEqual(
+            parts,
+            (
+                CatSoundPart("meow_general", "meow"),
+                TextPart("What is that?"),
+                CatSoundPart("purr_playful_affection", "purr"),
+                TextPart("Let's peek!"),
+            ),
+        )
+        self.assertEqual(
+            parse_audio_script("[feeling:worried] Nope."),
+            (TextPart("[feeling:worried] Nope."),),
+        )
+        self.assertEqual(
+            parse_audio_script("That was lovely. [purr:tail]"),
+            (
+                TextPart("That was lovely."),
+                CatSoundPart("purr_primary", "purr"),
+            ),
+        )
+
 
 class CatSoundCatalogTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -163,6 +188,29 @@ class CatSoundCatalogTests(unittest.TestCase):
             (self.root / asset["repo_path"]).write_bytes(b"modified")
         with self.assertRaisesRegex(CatAudioDenied, "failed integrity"):
             self.catalog.select("meow_general", "speaker", now=10)
+
+    def test_attended_bench_mode_requires_named_test_policy(self) -> None:
+        manifest_path = self.root / "manifest.json"
+        manifest = json.loads(manifest_path.read_text())
+        for asset in manifest["entries"]:
+            asset["approvals"] = {
+                "derived_content_review": "pending",
+                "hardware_acceptance": "pending",
+                "release_status": "bench_candidate",
+            }
+        manifest_path.write_text(json.dumps(manifest))
+        allowlist_path = self.root / "allowlist.json"
+        allowlist = json.loads(allowlist_path.read_text())
+        allowlist["attended_test_only"] = True
+        allowlist_path.write_text(json.dumps(allowlist))
+        self.catalog = CatSoundCatalog(
+            manifest_path,
+            allowlist_path,
+            repo_root=self.root,
+            attended_bench_test=True,
+        )
+        selected = self.catalog.select("meow_general", "speaker", now=10)
+        self.assertIn(selected.asset_id, {"one.speaker.v1", "two.speaker.v1"})
 
 
 class CatSoundPlayerTests(unittest.TestCase):

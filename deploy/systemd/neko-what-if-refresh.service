@@ -1,0 +1,41 @@
+[Unit]
+Description=Refresh Neko's offline What If event cache
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=neko
+Group=neko
+WorkingDirectory=/home/neko/repos/nekokitty
+StateDirectory=neko/what-if
+StateDirectoryMode=0755
+ExecStart=/usr/bin/python3 /home/neko/repos/nekokitty/scripts/neko_refresh_what_if.py --state-dir /var/lib/neko/what-if
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectProc=invisible
+ProcSubset=pid
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=true
+RestrictRealtime=true
+RemoveIPC=true
+SystemCallArchitectures=native
+LockPersonality=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+MemoryMax=128M
+MemorySwapMax=0
+CPUWeight=10
+Nice=10
+TasksMax=16
+UMask=0022
+

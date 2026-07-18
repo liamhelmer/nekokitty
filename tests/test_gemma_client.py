@@ -65,11 +65,11 @@ class GemmaClientTests(unittest.TestCase):
         self.assertEqual(payload["model"], "LFM2.5-1.2B-Instruct-Q5_K_M.gguf")
         self.assertEqual(payload["messages"][0]["role"], "system")
         self.assertIn("contractions", payload["messages"][0]["content"])
-        self.assertIn("silliness", payload["messages"][0]["content"])
-        self.assertIn("Do not use emoji", payload["messages"][0]["content"])
+        self.assertIn("cat-like", payload["messages"][0]["content"])
+        self.assertIn("use emoji", payload["messages"][0]["content"])
         self.assertIn("français", payload["messages"][1]["content"])
         self.assertEqual(payload["max_completion_tokens"], 96)
-        self.assertEqual(payload["temperature"], 0.1)
+        self.assertEqual(payload["temperature"], 0.45)
 
     @patch("neko.gemma_client.request.urlopen")
     def test_first_sentence_returns_before_later_streamed_text(self, opened: object) -> None:
@@ -86,6 +86,14 @@ class GemmaClientTests(unittest.TestCase):
     def test_first_sentence_uses_final_unpunctuated_stream(self, opened: object) -> None:
         opened.return_value = FakeSseResponse(["Soft ", "paws"])
         self.assertEqual(GemmaClient().reply_first_sentence("Tell me"), "Soft paws")
+
+    @patch("neko.gemma_client.request.urlopen")
+    def test_complete_streamed_reply_keeps_all_sentence_text(self, opened: object) -> None:
+        opened.return_value = FakeSseResponse(["Soft paws!", " Then a purr."])
+        self.assertEqual(
+            GemmaClient().reply_complete_streamed("Tell me"),
+            "Soft paws! Then a purr.",
+        )
 
     @patch("neko.gemma_client.request.urlopen")
     def test_empty_reply_fails_closed(self, opened: object) -> None:

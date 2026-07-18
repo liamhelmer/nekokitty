@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import re
 import socket
 import subprocess
 import threading
@@ -15,6 +16,13 @@ from typing import Any, BinaryIO
 DEFAULT_SOCKET = Path("/run/neko/tts.sock")
 MAX_HEADER_BYTES = 64 * 1024
 MAX_AUDIO_BYTES = 32 * 1024 * 1024
+NEKO_NAME_RE = re.compile(r"\bneko\b", re.IGNORECASE)
+
+
+def prepare_tts_text(text: str) -> str:
+    """Apply pronunciation-only rewrites without changing logs or LLM context."""
+
+    return NEKO_NAME_RE.sub("Nekko", text)
 
 
 def write_json(stream: BinaryIO, value: dict[str, Any]) -> None:
@@ -66,6 +74,7 @@ class TtsClient:
     ) -> dict[str, Any]:
         if not text.strip():
             raise ValueError("TTS text must not be empty")
+        text = prepare_tts_text(text)
         if output is None and not play:
             raise ValueError("select output, playback, or both")
 
