@@ -1,8 +1,8 @@
 # Luna’s Very Important Stick Garden
 
-Luna was a black puppy with bright eyes, muddy toes, and one great purpose in
-life: collecting sticks. Short sticks went beside her bed. Curly sticks went
-under the porch. Her best stick looked exactly like a dancing carrot.
+Luna was a black puppy with bright eyes, muddy toes, and one big mission:
+collecting sticks. Short sticks went beside her bed. Curly sticks went under
+the porch. Her very best stick looked exactly like a dancing carrot.
 
 One morning Luna carried the dancing-carrot stick into the garden. “This will be
 my stick garden,” she said. “Soon I will grow hundreds of sticks.” She planted
@@ -12,31 +12,31 @@ Luna to throw!”
 Nothing happened. Then an elk stood outside the fence, tall and golden-brown,
 with antlers like tree branches.
 
-“That is the biggest collection of sticks I have ever seen,” Luna said.
+“That’s the biggest bunch of sticks I’ve ever seen,” Luna said.
 
 “These are antlers,” said the elk.
 
 “Do you fetch them? Bury them? Chew the ends when nobody is looking?”
 
-“Certainly not.”
+“Nope.”
 
-“You are missing three wonderful hobbies,” Luna said.
+“You’re missing three wonderful hobbies,” Luna said.
 
 The elk was named Moss. He had come for sweet clover, but the gate was too
 narrow for his antlers. Luna tugged the gate, pushed the fence, and dug until
 dirt flew onto her nose. Nothing moved.
 
-Usually Luna chased elk away when they leaned toward the farm garden. She would
-race along the fence barking, “Those beans are busy being beans!” The elk would
-trot back toward the trees, and Luna would return looking extremely official.
-But Moss had asked politely, and the clover grew outside the vegetable beds.
-Luna decided that one supervised clover snack could be a neighborly experiment.
+Usually Luna chased elk away when they leaned toward the farm garden. She’d race
+along the fence barking, “Those beans are busy being beans!” The elk would trot
+back to the trees, and Luna would return looking extremely official. But Moss
+had asked nicely, and the clover grew outside the veggie beds. Maybe one
+supervised clover snack would be okay.
 
 Then she saw a wheelbarrow full of wind-fallen sticks. “My garden grew already!”
 
-Moss gently explained that the wind had probably collected them.
+Moss gently explained that the wind had probably put them there.
 
-“Then the wind is an excellent gardener.” Luna laid sticks from the clover patch
+“Then the wind’s an excellent gardener.” Luna laid sticks from the clover patch
 to a loose board at the back fence. Short sticks marked the sides, straight ones
 made arrows, and curly ones spelled a wobbly word: SNACKS.
 
@@ -51,14 +51,14 @@ a cabbage leaf landed on one antler.
 
 “You’re wearing salad!” Luna laughed, rolling into the beans.
 
-“It is the newest forest fashion,” Moss said.
+“It’s the newest forest fashion,” Moss said.
 
-Before he left, Moss pressed soil around Luna’s stick with one hoof. “A garden
-takes patience. Sometimes what grows is not what you planted.”
+Before he left, Moss pressed dirt around Luna’s stick with one hoof. “Gardens
+take time. And sometimes you don’t get what you planted.”
 
 The next morning, tiny white mushrooms had appeared in a circle around the stick.
-Dew sparkled on their caps. Luna sniffed them but did not eat them; garden
-mushrooms were for looking unless a grown-up said otherwise.
+Dew sparkled on their caps. Luna sniffed them but didn’t eat them. Unknown
+mushrooms are for looking, not munching, unless a grown-up says they’re safe.
 
 Moss returned with a daisy in his antlers. “My stick garden grew decorations!”
 Luna said. “Very fancy,” Moss agreed.
@@ -67,5 +67,5 @@ Luna planted three more sticks, added water for visiting birds, and made a sign:
 
 **LUNA’S VERY IMPORTANT GARDEN — ELK WELCOME. PLEASE WIGGLE AT THE BACK.**
 
-Then she picked up a plain little stick and carried it away. Even a gardener
-needs something to fetch.
+Then she grabbed a plain little stick and trotted away. Even a gardener’s gotta
+play fetch.

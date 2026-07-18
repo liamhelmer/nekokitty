@@ -9,6 +9,11 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
+STORY_SOUND_TARGET_WORDS = 75
+STORY_SOUND_MAXIMUM = 10
+WORD_RE = re.compile(r"\b[\w’'-]+\b")
+
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = REPO_ROOT / "content/stories/library.json"
 QUERY_STOPWORDS = {
@@ -118,6 +123,65 @@ class StoryLibrary:
         text = "\n".join(lines).strip()
         text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)
         return re.sub(r"\*([^*]+)\*", r"\1", text)
+
+    @staticmethod
+    def sound_budget(text: str) -> int:
+        """Return total story sounds, including the post-story tail purr."""
+
+        words = len(WORD_RE.findall(text))
+        if words == 0:
+            return 0
+        rounded_target = (words + STORY_SOUND_TARGET_WORDS // 2) // STORY_SOUND_TARGET_WORDS
+        return max(1, min(STORY_SOUND_MAXIMUM, rounded_target))
+
+    @staticmethod
+    def with_audio_cues(text: str, *, rng: random.Random | None = None) -> str:
+        """Add evenly spaced, lightly varied meows; reserve the last sound for a purr."""
+
+        total_budget = StoryLibrary.sound_budget(text)
+        inline_budget = max(0, total_budget - 1)
+        if inline_budget == 0:
+            return text
+
+        boundaries: list[tuple[int, int]] = []
+        for index, char in enumerate(text):
+            if char not in ".!?":
+                continue
+            end = index + 1
+            while end < len(text) and text[end] in "\"'’”":
+                end += 1
+            if end < len(text) and not text[end].isspace():
+                continue
+            words_before = len(WORD_RE.findall(text[:end]))
+            boundaries.append((end, words_before))
+
+        total_words = len(WORD_RE.findall(text))
+        candidates = [
+            item for item in boundaries if 25 <= item[1] <= total_words - 25
+        ]
+        if not candidates:
+            return text
+
+        selected: list[int] = []
+        available = candidates.copy()
+        for number in range(1, inline_budget + 1):
+            if not available:
+                break
+            target = total_words * number / (inline_budget + 1)
+            best = min(available, key=lambda item: abs(item[1] - target))
+            selected.append(best[0])
+            available.remove(best)
+
+        chooser = rng or random.SystemRandom()
+        markers = ["[meow]"] * len(selected)
+        friendly_count = max(1, len(markers) // 3)
+        for index in chooser.sample(range(len(markers)), k=friendly_count):
+            markers[index] = "[meow:thanks]"
+        rendered = text
+        placements = zip(sorted(selected), markers, strict=True)
+        for end, marker in reversed(list(placements)):
+            rendered = f"{rendered[:end]} {marker}{rendered[end:]}"
+        return rendered
 
     @staticmethod
     def context_note(story: Story, *, interrupted: bool = False) -> str:

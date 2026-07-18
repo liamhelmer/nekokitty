@@ -13,7 +13,7 @@ Neko rolled forward with a cheerful purr. She was a round, orange-and-black
 kitty carrier with bright eyes, soft seats, fuzzy paws, and a tail that wiggled
 whenever she had a mischievous idea.
 
-“Hop aboard,” said Neko. “I know a shortcut. It is probably a shortcut.”
+“Hop aboard,” said Neko. “I know a shortcut. It’s probably a shortcut.”
 
 Magic Girl climbed in, and away they went.
 
@@ -30,7 +30,7 @@ mouse received one gummy worm and a napkin shaped like a star.
 Next they found the Snail Band. The snails were supposed to lead the parade, but
 their instruments had become tangled in ribbons.
 
-“Stand back,” said Neko. “I am excellent at knots. I can make almost any knot
+“Stand back,” said Neko. “I’m great at knots. I can make almost any knot
 larger.”
 
 Magic Girl giggled. She waved her wand carefully, and the ribbons untied
@@ -42,7 +42,7 @@ and its railings underneath.
 
 “That seems inconvenient,” said Magic Girl.
 
-“It is showing off,” Neko replied.
+“It’s showing off,” Neko replied.
 
 A tiny cloud dragon sat beside the bridge. She had sneezed during bridge-polishing
 practice and accidentally flipped it.
@@ -52,7 +52,7 @@ practice and accidentally flipped it.
 Magic Girl offered her a blue gummy worm. It tasted like blueberry pancakes.
 The dragon felt much better.
 
-Neko blinked her headlights in thought. “Perhaps the bridge needs a reason to
+Neko blinked her headlights in thought. “Maybe the bridge needs a reason to
 turn around.”
 
 Magic Girl held up a jar. “Free gummy worms on this side!”
@@ -70,8 +70,7 @@ this?” She took one bite. “Pickle birthday cake.”
 
 Magic Girl laughed. “Do you like it?”
 
-Neko’s tail wiggled. “I require another sample before forming a responsible
-opinion.”
+Neko’s tail wiggled. “Gotta try another one before I decide.”
 
 So they drove around Otherworld once more, purring, laughing, and looking for
 the long way home.

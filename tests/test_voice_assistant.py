@@ -443,6 +443,42 @@ class VoiceAssistantMixedAudioTests(unittest.TestCase):
         )
         self.assertIn("cat_sound_fallback", [kind for kind, _values in events])
 
+    def test_speak_can_accept_story_sized_marker_budget(self) -> None:
+        class FakeTts:
+            def synthesize(self, _text: str, **values: object) -> dict[str, object]:
+                callback = values.get("on_first_pcm")
+                assert callable(callback)
+                callback()
+                return {"cancelled": False}
+
+        class DisabledCatalog:
+            def select(self, *_args: object, **_values: object) -> object:
+                raise CatAudioDenied("disabled for parser test")
+
+        assistant = VoiceAssistant.__new__(VoiceAssistant)
+        assistant.args = SimpleNamespace(
+            no_speak=False,
+            min_silence_seconds=0.6,
+            cat_sound_output="speaker",
+        )
+        assistant.cancel_speech = threading.Event()
+        assistant.cancel_cat_sound = threading.Event()
+        assistant.speaking = threading.Event()
+        assistant.spoken_turn_active = threading.Event()
+        assistant.story_interrupt_armed = threading.Event()
+        assistant.self_wake_guard = threading.Event()
+        assistant.tts = FakeTts()
+        assistant.cat_sounds = DisabledCatalog()
+        assistant.cat_sound_player = None
+        assistant._event = lambda _kind, **_values: None
+
+        self.assertTrue(
+            assistant._speak(
+                "One. [meow] Two. [meow] Three. [meow] Four. [meow] Five.",
+                max_audio_markers=4,
+            )
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

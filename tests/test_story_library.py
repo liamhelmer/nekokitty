@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import random
+import re
 import unittest
 
 from neko.story_library import StoryLibrary
@@ -34,6 +36,28 @@ class StoryLibraryTests(unittest.TestCase):
         self.assertIn("Summary:", note)
         self.assertLess(len(note), 600)
         self.assertNotIn("One, two—banana", note)
+
+    def test_story_audio_density_is_bounded_and_reserves_tail_purr(self) -> None:
+        library = StoryLibrary()
+        for story in library.search("story", limit=5):
+            spoken = library.spoken_text(story)
+            words = len(re.findall(r"\b[\w’'-]+\b", spoken))
+            total_budget = library.sound_budget(spoken)
+            rendered = library.with_audio_cues(spoken, rng=random.Random(7))
+            inline = rendered.count("[meow]") + rendered.count("[meow:thanks]")
+            with self.subTest(story=story.story_id):
+                self.assertEqual(inline, total_budget - 1)
+                self.assertGreaterEqual(words / total_budget, 50)
+                self.assertLessEqual(words / total_budget, 100)
+                self.assertIn("[meow]", rendered)
+                self.assertIn("[meow:thanks]", rendered)
+                self.assertFalse(rendered.startswith("["))
+                self.assertFalse(rendered.endswith("]"))
+
+    def test_short_story_does_not_force_an_inline_sound(self) -> None:
+        text = "A tiny cat waved."
+        self.assertEqual(StoryLibrary.sound_budget(text), 1)
+        self.assertEqual(StoryLibrary.with_audio_cues(text), text)
 
 
 if __name__ == "__main__":

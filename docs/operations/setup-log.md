@@ -38,6 +38,19 @@ case schedules a long purr after speech. No private recording or transcript was
 committed. Targeted tests passed 37/37; final repository validation passed all
 144 tests, Python compilation, and `git diff --check`.
 
+Later the same day, all five approved story texts were edited into a more casual
+spoken register without changing their plots or manifest metadata. Their source
+lengths remain 500–616 Markdown words. The prior three-sound story ceiling was
+replaced by `StoryLibrary` presentation logic targeting one sound per 75 spoken
+words, with a ten-sound hard maximum and one sound reserved for the asynchronous
+ending purr. Current runtime counts are seven sounds for Elsa, Luna, Magic Girl,
+and Neko's parade, and eight for Heidi; measured densities are 70.6–79.6 spoken
+words per sound. Markers are inserted only into the ephemeral playback string.
+No model, package, stored media, systemd unit, or story metadata changed. Final
+validation passed all 147 tests, Python compilation, and `git diff --check`.
+The attended loop was restarted with its unchanged documented command and
+reported ready in 5.289 seconds, activating the new story presentation code.
+
 ## 2026-07-17 — What If offline schedule cache
 
 No Python package or model was installed. The implementation uses Python 3.12

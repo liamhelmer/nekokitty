@@ -621,8 +621,11 @@ class VoiceAssistant:
         return "meow_general"
 
     @staticmethod
-    def _audio_cue_count(text: str) -> int:
-        return sum(isinstance(part, CatSoundPart) for part in parse_audio_script(text))
+    def _audio_cue_count(text: str, *, max_markers: int = 3) -> int:
+        return sum(
+            isinstance(part, CatSoundPart)
+            for part in parse_audio_script(text, max_markers=max_markers)
+        )
 
     def _insert_response_cue(self, request_text: str, answer: str) -> str:
         """Place a semantic real-cat cue between sentences, never as a preamble."""
@@ -786,7 +789,13 @@ class VoiceAssistant:
             thread.join(timeout=1)
         self._thinking_sound_thread = None
 
-    def _speak(self, text: str, *, vad_finalized_s: float | None = None) -> bool:
+    def _speak(
+        self,
+        text: str,
+        *,
+        vad_finalized_s: float | None = None,
+        max_audio_markers: int = 3,
+    ) -> bool:
         if self.args.no_speak:
             self._event("reply", text=text)
             return True
@@ -818,7 +827,7 @@ class VoiceAssistant:
 
         completed = True
         try:
-            parts = parse_audio_script(text)
+            parts = parse_audio_script(text, max_markers=max_audio_markers)
             for index, part in enumerate(parts):
                 if self.cancel_speech.is_set():
                     completed = False
@@ -968,6 +977,11 @@ class VoiceAssistant:
                     rng=self._cue_rng,
                 )
                 answer = self.story_library.spoken_text(story)
+                story_sound_budget = self.story_library.sound_budget(answer)
+                answer = self.story_library.with_audio_cues(
+                    answer,
+                    rng=self._cue_rng,
+                )
                 self.last_story_id = story.story_id
                 self._event(
                     "story_selected",
@@ -981,13 +995,13 @@ class VoiceAssistant:
             if answer:
                 self._stop_thinking_cue_for_speech()
                 self._stop_tail_purr_for_neko_speech()
-                answer = self._insert_response_cue(request.text, answer)
                 self.story_interrupt_armed.clear()
                 self.story_playing.set()
                 try:
                     completed = self._speak(
                         answer,
                         vad_finalized_s=self.current_vad_finalized_s,
+                        max_audio_markers=max(0, story_sound_budget - 1),
                     )
                 finally:
                     self.story_playing.clear()
@@ -999,8 +1013,7 @@ class VoiceAssistant:
                 if completed:
                     self.history.append(request.text, context_note, request.language)
                     self.controller.extend_active_session(time.monotonic())
-                    if self._audio_cue_count(answer) < 3:
-                        self._start_tail_purr()
+                    self._start_tail_purr()
                 else:
                     self.history.append(request.text, context_note, request.language)
                 return completed

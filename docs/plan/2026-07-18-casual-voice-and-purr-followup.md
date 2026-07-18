@@ -21,8 +21,25 @@ wins even if the answer already contains three other cues. Child speech can
 continue the current session during the tail purr; the purr stops when Neko's
 next generated speech is ready, or on stop/sleep/shutdown, as before.
 
-This rule applies to model answers. The reviewed story path already starts its
-own tail purr after a completed story and retains its three-sound story policy.
+This rule applies to model answers. The reviewed story path starts its own tail
+purr after a completed story and uses the later story-density policy below.
+
+## Story-language and sound-density follow-up
+
+All five approved local stories were edited for spoken delivery without changing
+their plots, safety lessons, retrieval metadata, or 5–7 audience: contractions,
+shorter sentences, everyday words, looser dialogue, playful fragments, and less
+formal narration. They remain 500–616 Markdown words and under the five-minute
+target. The shared TTS contraction pass also applies to every story chunk as a
+backstop.
+
+The old three-sound story ceiling is superseded. `StoryLibrary` now calculates a
+total sound budget near one sound per 75 spoken words, bounded to at most ten,
+reserves one for the post-story long purr, and places the remaining varied meows
+near evenly spaced sentence boundaries. The five current stories receive seven
+or eight sounds total, or one per 70.6–79.6 spoken words. This density is local
+presentation logic; markers are not stored in story prose or conversation
+history. Ordinary replies retain their three-marker parser ceiling.
 
 ## Casual-language layers
 
@@ -70,10 +87,12 @@ The exact live response immediately before restart included `just thinking and
 purring a bit`; this is a representative regression case that now requests a
 post-speech tail purr. No private audio or transcript was added to Git.
 
-Targeted unit validation passed 37 tests covering persona request construction,
-TTS rewriting, purr variants, structural tail-marker de-duplication, and the
-explicit-purr override after three cues. The full repository suite passed all
-144 tests; Python compilation and `git diff --check` also passed.
+The earlier targeted unit validation passed 37 tests covering persona request
+construction, TTS rewriting, purr variants, structural tail-marker
+de-duplication, and the explicit-purr override after three cues. The story
+follow-up adds density, short-story, and expanded parser-budget regressions.
+The final repository suite passed all 147 tests; Python compilation and
+`git diff --check` also passed.
 
 ## Rollback
 

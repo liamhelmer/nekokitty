@@ -288,7 +288,7 @@ Read these before changing the system:
   gates.
 - [Casual voice and spoken-purr follow-up](docs/plan/2026-07-18-casual-voice-and-purr-followup.md)
   — post-speech purr trigger, conservative TTS contractions, prompt/cap tuning,
-  local comparison results, known small-model limits, and rollback.
+  informal story rewrite, density-based story sounds, known limits, and rollback.
 - [What If offline schedule](docs/research/2026-07-17-what-if-schedule.md) —
   Dust API contract, local/Pacific-time interpretation, atomic hourly cache,
   subset TF-IDF vector ranking, child filter, deployment, validation, and
@@ -1177,3 +1177,11 @@ For every future model or service, add:
   prior prompt and a discarded negative-instruction variant; the 1.2B model can
   still occasionally ignore sentence-count, greeting, or emoji constraints.
   Full evidence and rollback are in the linked casual-voice plan.
+- 2026-07-18: Rewrote all five approved local stories for informal spoken
+  delivery while preserving their plots, safety points, metadata, age lane, and
+  five-minute bound. The TTS contraction pass already applies to story chunks.
+  The owner superseded the three-sound story ceiling: runtime now budgets about
+  one sound per 75 words, reserves the last sound for the long ending purr,
+  places varied meows at sentence boundaries, and enforces a ten-sound maximum.
+  Current 500–616-word stories receive seven or eight sounds total, one per
+  70.6–79.6 spoken words. Ordinary responses retain their three-marker ceiling.

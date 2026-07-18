@@ -169,14 +169,12 @@ longer discarded solely for a speech-sequence change while that tail is active.
 
 ## Story sound treatment
 
-The live story route now selects exact owner-reviewed text from the local
-manifest-gated shelf. It receives the shared presentation rule: an otherwise
-unmarked multi-sentence story is guaranteed
-one inter-sentence meow, and a warm ending may receive the asynchronous tail
-purr. The normal result is two sounds; a model-authored cue is retained, and an
-explicit three-cue ceiling prevents the supervisor from adding a fourth. Prompt
-and parser both cap a story at three sounds. No scene receives a continuous
-background soundtrack or more than three cat sounds.
+The live story route selects exact owner-reviewed text from the local
+manifest-gated shelf. The original implementation guaranteed one inter-sentence
+meow and an asynchronous ending purr with a three-sound ceiling. On 2026-07-18,
+the owner superseded that ceiling with the density policy documented in
+`2026-07-18-casual-voice-and-purr-followup.md`: roughly one sound per 75 spoken
+words, at most ten, with the final long purr included in the budget.
 
 The persona now records Neko as an orange-and-black striped, tabby/tiger-ish
 kitty carrier with fuzzy paws, a long tail, and a deliberately occasional,

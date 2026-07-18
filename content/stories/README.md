@@ -4,15 +4,21 @@ This directory will contain owner-editable original stories and individually
 ingested Creative Commons works. The assistant must retrieve only approved
 manifest entries; it must not treat the directory as an unconstrained prompt.
 
-Keep narrated versions under five minutes and apply the current three-sound-per-
-story maximum. External works need exact source, licence, attribution, text-
+Keep narrated versions under five minutes. Author them for speech: casual
+contractions, short sentences, everyday words, playful rhythm, and dialogue that
+sounds natural to children aged 5–7. The TTS boundary also applies conservative
+contractions as a backstop, but it is not a substitute for editing the prose.
+External works need exact source, licence, attribution, text-
 extraction record, and owner child-tone review before their full text is stored.
 
 `library.json` is the runtime authority. `neko.story_library.StoryLibrary` uses
 small exact-token/tag retrieval, excludes metadata-only candidates, and avoids
 immediate repeats. This shelf does not need a vector database or another
 resident embedding model. The current owner-test path narrates selected approved
-text and applies the shared maximum-three-sounds treatment.
+text and adds evenly spaced sentence-boundary cat sounds at a target of one per
+75 spoken words. The final long purr counts toward that density; current stories
+receive seven or eight total sounds. A hard ten-sound ceiling protects later
+five-minute stories from becoming cluttered.
 
 During a story, ordinary VAD speech/noise does not stop narration. An utterance
 must begin with `Neko` (or `Neko Neko`) to arm interruption; the resulting
