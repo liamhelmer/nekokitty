@@ -45,6 +45,7 @@ from neko.cat_audio import (  # noqa: E402
     CatSoundCatalog,
     CatSoundPart,
     CatSoundPlayer,
+    CatSoundSelection,
     TextPart,
     parse_audio_script,
 )
@@ -54,7 +55,8 @@ from neko.gemma_client import (  # noqa: E402
     ConversationHistory,
     GemmaClient,
 )
-from neko.story_library import StoryLibrary  # noqa: E402
+from neko.story_library import RecordedStory, StoryLibrary  # noqa: E402
+from neko.story_recording_rebuild import enqueue_story_rebuild  # noqa: E402
 from neko.tts_protocol import NEKO_NAME_RE, TtsClient  # noqa: E402
 from neko.tts_chunking import chunk_text, is_sentence_boundary  # noqa: E402
 from scripts.neko_asr_transcribe import (  # noqa: E402
@@ -789,6 +791,117 @@ class VoiceAssistant:
             thread.join(timeout=1)
         self._thinking_sound_thread = None
 
+    def _play_recorded_story(
+        self,
+        recording: RecordedStory,
+        *,
+        vad_finalized_s: float | None = None,
+    ) -> bool:
+        """Play verified Mini narration sections and their fixed cue plan."""
+
+        if self.args.no_speak:
+            self._event("recorded_story", story_id=recording.story_id)
+            return True
+        self.cancel_speech.clear()
+        self.cancel_cat_sound.clear()
+        self.story_interrupt_armed.clear()
+        self.speaking.set()
+        self.spoken_turn_active.set()
+        first_output_started = False
+
+        def first_pcm() -> None:
+            nonlocal first_output_started
+            if first_output_started:
+                return
+            first_output_started = True
+            now = time.monotonic()
+            values: dict[str, object] = {"source": "prerecorded_mini"}
+            if vad_finalized_s is not None:
+                after_finalize = now - vad_finalized_s
+                values.update(
+                    {
+                        "from_vad_finalize_seconds": round(after_finalize, 3),
+                        "estimated_from_speech_end_seconds": round(
+                            after_finalize + self.args.min_silence_seconds,
+                            3,
+                        ),
+                        "vad_tail_seconds": self.args.min_silence_seconds,
+                    }
+                )
+            self._event("first_pcm_written", **values)
+
+        completed = True
+        try:
+            for index, section in enumerate(recording.sections):
+                if self.cancel_speech.is_set():
+                    completed = False
+                    break
+                narration = CatSoundSelection(
+                    action="story_narration",
+                    asset_id=f"{recording.story_id}.section-{index + 1}",
+                    path=section.path,
+                    output="speaker",
+                    gain_db=0.0,
+                    duration_seconds=section.duration_seconds,
+                    interruptible=True,
+                )
+                if section.contains_neko:
+                    self.self_wake_guard.set()
+                try:
+                    played = self.cat_sound_player.play(
+                        narration,
+                        cancel_event=self.cancel_speech,
+                        on_started=first_pcm,
+                    )
+                finally:
+                    self.self_wake_guard.clear()
+                if not played:
+                    completed = False
+                    break
+                self._event(
+                    "recorded_story_section_complete",
+                    story_id=recording.story_id,
+                    section=index + 1,
+                )
+                if section.cue_after is None:
+                    continue
+                try:
+                    selection = self.cat_sounds.select(
+                        section.cue_after,
+                        self.args.cat_sound_output,
+                        autonomous=True,
+                    )
+                except CatAudioDenied as error:
+                    self._event(
+                        "story_cat_sound_skipped",
+                        action=section.cue_after,
+                        reason=str(error),
+                    )
+                    continue
+                played = self.cat_sound_player.play(
+                    selection,
+                    cancel_event=self.cancel_cat_sound,
+                )
+                if not played:
+                    completed = False
+                    break
+                self.cat_sounds.mark_played(selection)
+                self._event(
+                    "cat_sound_complete",
+                    action=selection.action,
+                    asset_id=selection.asset_id,
+                    output=selection.output,
+                )
+        except Exception as error:
+            self._event("recorded_story_error", message=str(error))
+            completed = False
+        finally:
+            self.spoken_turn_active.clear()
+            self.speaking.clear()
+            self.story_interrupt_armed.clear()
+        self._event("playback_complete" if completed else "playback_cancelled")
+        return completed
+
     def _speak(
         self,
         text: str,
@@ -970,6 +1083,7 @@ class VoiceAssistant:
         self.pending_schedule_query = None
         self.pending_schedule_base_query = None
         if "story" in normalize_phrase(request.text):
+            recording: RecordedStory | None = None
             try:
                 story = self.story_library.choose(
                     request.text,
@@ -977,17 +1091,44 @@ class VoiceAssistant:
                     rng=self._cue_rng,
                 )
                 answer = self.story_library.spoken_text(story)
+                try:
+                    recording = self.story_library.recording_for(story)
+                except (KeyError, OSError, TypeError, ValueError) as error:
+                    queued = enqueue_story_rebuild(
+                        story.story_id,
+                        "stale_or_invalid_recording",
+                    )
+                    self._event(
+                        "story_recording_rebuild_queued",
+                        story_id=story.story_id,
+                        queued=queued,
+                        reason=type(error).__name__,
+                    )
+                    recording = None
+                if recording is None and story.story_id not in self.story_library.recordings:
+                    queued = enqueue_story_rebuild(
+                        story.story_id,
+                        "missing_recording",
+                    )
+                    self._event(
+                        "story_recording_rebuild_queued",
+                        story_id=story.story_id,
+                        queued=queued,
+                        reason="missing",
+                    )
                 story_sound_budget = self.story_library.sound_budget(answer)
-                answer = self.story_library.with_audio_cues(
-                    answer,
-                    rng=self._cue_rng,
-                )
+                if recording is None:
+                    answer = self.story_library.with_audio_cues(
+                        answer,
+                        rng=self._cue_rng,
+                    )
                 self.last_story_id = story.story_id
                 self._event(
                     "story_selected",
                     story_id=story.story_id,
                     title=story.title,
                     retrieval="local_manifest",
+                    playback="prerecorded_mini" if recording else "live_tts_fallback",
                 )
             except (LookupError, OSError, ValueError) as error:
                 self._event("story_library_error", message=str(error))
@@ -998,11 +1139,17 @@ class VoiceAssistant:
                 self.story_interrupt_armed.clear()
                 self.story_playing.set()
                 try:
-                    completed = self._speak(
-                        answer,
-                        vad_finalized_s=self.current_vad_finalized_s,
-                        max_audio_markers=max(0, story_sound_budget - 1),
-                    )
+                    if recording is not None:
+                        completed = self._play_recorded_story(
+                            recording,
+                            vad_finalized_s=self.current_vad_finalized_s,
+                        )
+                    else:
+                        completed = self._speak(
+                            answer,
+                            vad_finalized_s=self.current_vad_finalized_s,
+                            max_audio_markers=max(0, story_sound_budget - 1),
+                        )
                 finally:
                     self.story_playing.clear()
                     self.story_interrupt_armed.clear()
@@ -1013,7 +1160,8 @@ class VoiceAssistant:
                 if completed:
                     self.history.append(request.text, context_note, request.language)
                     self.controller.extend_active_session(time.monotonic())
-                    self._start_tail_purr()
+                    if recording is None or recording.ending_purr:
+                        self._start_tail_purr()
                 else:
                     self.history.append(request.text, context_note, request.language)
                 return completed

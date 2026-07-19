@@ -1,0 +1,634 @@
+{
+  "schema_version": 1,
+  "build": {
+    "builder": "scripts/build_story_recordings.py",
+    "profile": "mini",
+    "model_revision": "c02725660cea441db4c383af69f1f26f5cd00947",
+    "model_hashes": {
+      "config.json": "6b160bc9b19e24ecb21e84bc14f8a7da21fdf47ec72d42450bc5cf514b61804a",
+      "kitten_tts_mini_v0_8.onnx": "0f5bbae4fc4800c98dbc544a87ecfa79510de2fb8222db30d12e5bfe9177df91",
+      "voices.npz": "40ad2638952b77b7b2f30127e2608e169fc69dd256b53bd8aaa3409a33193c42"
+    },
+    "voice": "Kiki",
+    "speed": 1.2,
+    "sample_rate": 24000,
+    "sample_format": "FLAC/PCM_16",
+    "threads": 4,
+    "max_section_characters": 380,
+    "cue_rate": 0.35,
+    "cue_seed": "neko-story-audio-mini-kiki-v1",
+    "allowed_cues": [
+      "meow_general",
+      "meow_thank_you"
+    ],
+    "load_seconds": 1.673,
+    "render_seconds": 1062.35,
+    "peak_rss_mib": 905.6
+  },
+  "stories": [
+    {
+      "story_id": "fan.elsa-wacky-wand-concert",
+      "source_path": "content/stories/originals/elsa-wacky-wand-concert.md",
+      "source_sha256": "f2c37a49590e52794062be543d99d6803917a126c7bf2f9c08a8a7a73902e38a",
+      "spoken_text_sha256": "4f3bb3edbc1f9affd6ff5eacb0cdc358e687c44e976192ce699338c27fbe5fd8",
+      "sections": [
+        {
+          "index": 0,
+          "path": "content/stories/recordings/mini-kiki-v1/fan_elsa-wacky-wand-concert/section-01.flac",
+          "sha256": "fef93c84f484e9bb44e3425fa2d1e4a375553af542a3538bde2fd417fb2e4124",
+          "text_sha256": "df657466da5fb442527a476e458f0c60920f895a87c4e85ed79b270d77e10a0b",
+          "characters": 245,
+          "contains_neko": false,
+          "duration_seconds": 13.092,
+          "cue_after": "meow_general"
+        },
+        {
+          "index": 1,
+          "path": "content/stories/recordings/mini-kiki-v1/fan_elsa-wacky-wand-concert/section-02.flac",
+          "sha256": "26e237232a0f75c6430dbf0b04c8a12186cc4d84b380eccb9a6c5ca0f7186bd8",
+          "text_sha256": "94bfe7175a9c2b921363148b9596f7c1d78291657dc77bdfc1be1f7c7068f6e1",
+          "characters": 354,
+          "contains_neko": true,
+          "duration_seconds": 18.142,
+          "cue_after": null
+        },
+        {
+          "index": 2,
+          "path": "content/stories/recordings/mini-kiki-v1/fan_elsa-wacky-wand-concert/section-03.flac",
+          "sha256": "c71275a69c87af3cd08046861d6cdc5d2f6ec269967ab447f976ea78b5c8db7c",
+          "text_sha256": "308fe82ba6e7d44e9397d405a14e40b955c1582a68a56800fd7566498798d70c",
+          "characters": 333,
+          "contains_neko": false,
+          "duration_seconds": 17.967,
+          "cue_after": null
+        },
+        {
+          "index": 3,
+          "path": "content/stories/recordings/mini-kiki-v1/fan_elsa-wacky-wand-concert/section-04.flac",
+          "sha256": "522a4ace8897debc05ac263605d973c881efd317ff2cf2cea967b2da1d2f8b67",
+          "text_sha256": "aded17fe3293114ed97882f3c351f3e2eb4e1ff11681403c27d8cef951e42fe0",
+          "characters": 314,
+          "contains_neko": true,
+          "duration_seconds": 15.967,
+          "cue_after": null
+        },
+        {
+          "index": 4,
+          "path": "content/stories/recordings/mini-kiki-v1/fan_elsa-wacky-wand-concert/section-05.flac",
+          "sha256": "af81d2162af8843d39c7b7c20ecd7bc8e2cca6d4d9d9729c6675e104dca80c82",
+          "text_sha256": "d7f88a52b9958a269bbc51d972cbcd8d7e93483b25df1b95a285aa858ab930a9",
+          "characters": 367,
+          "contains_neko": false,
+          "duration_seconds": 18.817,
+          "cue_after": "meow_general"
+        },
+        {
+          "index": 5,
+          "path": "content/stories/recordings/mini-kiki-v1/fan_elsa-wacky-wand-concert/section-06.flac",
+          "sha256": "2985780f04021097a32282d2d9a05419a35428c345c2596376137bb5d65957c9",
+          "text_sha256": "8af45bde1b181e313731ae9e3cb781c08209d0c2bd6c64a120e6c1e66a132409",
+          "characters": 331,
+          "contains_neko": false,
+          "duration_seconds": 17.142,
+          "cue_after": null
+        },
+        {
+          "index": 6,
+          "path": "content/stories/recordings/mini-kiki-v1/fan_elsa-wacky-wand-concert/section-07.flac",
+          "sha256": "f4551ce74ee8a79075beefcff45e3a10a76c02d1ed6e03ff52575992c6fe84d7",
+          "text_sha256": "0eb39b911bcc62af64c7a24a8f2ec4f3dce0e9cbf1945698ea7c29df96020ae7",
+          "characters": 379,
+          "contains_neko": false,
+          "duration_seconds": 21.642,
+          "cue_after": null
+        },
+        {
+          "index": 7,
+          "path": "content/stories/recordings/mini-kiki-v1/fan_elsa-wacky-wand-concert/section-08.flac",
+          "sha256": "6ff3d0bfdf2816de178ad202a68427c9b0f8d62dafdc299d7c8f5c9f8b8e0e97",
+          "text_sha256": "726d332b05339462731af98490da932213a292d57b1148933376b497388adee5",
+          "characters": 340,
+          "contains_neko": true,
+          "duration_seconds": 18.042,
+          "cue_after": null
+        },
+        {
+          "index": 8,
+          "path": "content/stories/recordings/mini-kiki-v1/fan_elsa-wacky-wand-concert/section-09.flac",
+          "sha256": "a74847ff1f62480ef0a53ffbd4221f2b0c5b1ff2d750a69c14b037d5f0d7621b",
+          "text_sha256": "97f3e8102f39937f3e2c199168a47fe53be0ecc708ea849d4482c07359a2d8a2",
+          "characters": 340,
+          "contains_neko": true,
+          "duration_seconds": 16.142,
+          "cue_after": null
+        },
+        {
+          "index": 9,
+          "path": "content/stories/recordings/mini-kiki-v1/fan_elsa-wacky-wand-concert/section-10.flac",
+          "sha256": "bce475ac908da296bad8ce21efcd35971d6e26f8ee2e573b484b6671d9109f11",
+          "text_sha256": "b07b7dfa023cb1b3fcce6a5414653bd93c484399516e6d7403b80f5795446b29",
+          "characters": 284,
+          "contains_neko": true,
+          "duration_seconds": 15.517,
+          "cue_after": null
+        },
+        {
+          "index": 10,
+          "path": "content/stories/recordings/mini-kiki-v1/fan_elsa-wacky-wand-concert/section-11.flac",
+          "sha256": "f4f45b7b8e1d7f49e8c7322ecaabda64a093ea6bed67974c3227a02e266c3f36",
+          "text_sha256": "74de6d309bb4f0b4502bb373ccb694228f0167b761efb62a93405f66cad54771",
+          "characters": 105,
+          "contains_neko": false,
+          "duration_seconds": 5.217,
+          "cue_after": null
+        }
+      ],
+      "ending_purr": true
+    },
+    {
+      "story_id": "original.heidi-ravens-muddy-masterpiece",
+      "source_path": "content/stories/originals/heidi-ravens-muddy-masterpiece.md",
+      "source_sha256": "7e30a303452315c96cab57de458b27bf8d43db8a18c07294b3d7d075ec24c6c2",
+      "spoken_text_sha256": "6007fe8c4ec9eb21b5e70948b6f8592cd2afcca2ff29400fb0e04ea8b1e0fa4d",
+      "sections": [
+        {
+          "index": 0,
+          "path": "content/stories/recordings/mini-kiki-v1/original_heidi-ravens-muddy-masterpiece/section-01.flac",
+          "sha256": "61a118612664dd1b02f1a0e3dca23c41bd9c2437a2331cde5b0a8f4cc49d63c1",
+          "text_sha256": "5f3efb528af93fdd282e4f73203ce85199cd06c8e7260d488fcea2fdd51dd661",
+          "characters": 261,
+          "contains_neko": false,
+          "duration_seconds": 14.092,
+          "cue_after": null
+        },
+        {
+          "index": 1,
+          "path": "content/stories/recordings/mini-kiki-v1/original_heidi-ravens-muddy-masterpiece/section-02.flac",
+          "sha256": "61a273869614e81da293974b18aa25e62afee751eba78c6826346a268f8bdb26",
+          "text_sha256": "ed893ad02799a5fbab5c39f8539df3c89a67773e0c692e58368de240e82673ed",
+          "characters": 346,
+          "contains_neko": false,
+          "duration_seconds": 17.192,
+          "cue_after": null
+        },
+        {
+          "index": 2,
+          "path": "content/stories/recordings/mini-kiki-v1/original_heidi-ravens-muddy-masterpiece/section-03.flac",
+          "sha256": "2a6c1ecd22c0f30bdb9cfff51428c1401dd886369a019a395ae3e2d38026882a",
+          "text_sha256": "df1b049af60d992a005cd024e16a556efec6098a4a6d32822f1c21708d62ed01",
+          "characters": 317,
+          "contains_neko": false,
+          "duration_seconds": 16.042,
+          "cue_after": null
+        },
+        {
+          "index": 3,
+          "path": "content/stories/recordings/mini-kiki-v1/original_heidi-ravens-muddy-masterpiece/section-04.flac",
+          "sha256": "91c0818c08c856574702cde2c89744ceef8361040b6ed4f97921b47dea3177b3",
+          "text_sha256": "22ca147f058df8fd222cad3ed141f53f739ee57c5b0da3acd60f1d7deda6fd12",
+          "characters": 330,
+          "contains_neko": false,
+          "duration_seconds": 17.217,
+          "cue_after": null
+        },
+        {
+          "index": 4,
+          "path": "content/stories/recordings/mini-kiki-v1/original_heidi-ravens-muddy-masterpiece/section-05.flac",
+          "sha256": "8ab295e0bc0930c9d1c5a5a558b0435352cd89b050b028aa798a19a4fc9d288d",
+          "text_sha256": "8ba1c20efbacd8778434c7c3adf4deb88d51c26a34c65f42406edade7c7a62aa",
+          "characters": 287,
+          "contains_neko": false,
+          "duration_seconds": 14.692,
+          "cue_after": null
+        },
+        {
+          "index": 5,
+          "path": "content/stories/recordings/mini-kiki-v1/original_heidi-ravens-muddy-masterpiece/section-06.flac",
+          "sha256": "06b618d50c5d23e12877ae8534bb21e63aafeebe3b712dae6cd84326762cb78a",
+          "text_sha256": "576c3f14000c01dc4a4590fa625216dda3ddb96c8fdd0bc060045b94d1b8cf9e",
+          "characters": 260,
+          "contains_neko": false,
+          "duration_seconds": 13.467,
+          "cue_after": "meow_general"
+        },
+        {
+          "index": 6,
+          "path": "content/stories/recordings/mini-kiki-v1/original_heidi-ravens-muddy-masterpiece/section-07.flac",
+          "sha256": "136a8436131638a10fa6552711d74b53a7bcb8b772f3ee5852654d9d62344a85",
+          "text_sha256": "68253adfc10f108e2ec0c1cca620c6230907945125dfcfd2fa7fbe5a901d6a64",
+          "characters": 367,
+          "contains_neko": false,
+          "duration_seconds": 18.992,
+          "cue_after": null
+        },
+        {
+          "index": 7,
+          "path": "content/stories/recordings/mini-kiki-v1/original_heidi-ravens-muddy-masterpiece/section-08.flac",
+          "sha256": "c45d540aec52139efc38f9a5c49b4f990f81641cab2165d3a4477b9d310570c0",
+          "text_sha256": "8bcfdad53c6d519f913b667d81411c8e733627d980ef650271518ce6d6134a95",
+          "characters": 325,
+          "contains_neko": false,
+          "duration_seconds": 17.667,
+          "cue_after": null
+        },
+        {
+          "index": 8,
+          "path": "content/stories/recordings/mini-kiki-v1/original_heidi-ravens-muddy-masterpiece/section-09.flac",
+          "sha256": "06127e7869061d8324cd230166ab5a204fb61947cbea8cdcba77e9cbebb492ea",
+          "text_sha256": "fa350d106a666934af03ec92abfc14d8bca600b42933eb99f79feaa44b3c7c95",
+          "characters": 268,
+          "contains_neko": false,
+          "duration_seconds": 14.467,
+          "cue_after": null
+        },
+        {
+          "index": 9,
+          "path": "content/stories/recordings/mini-kiki-v1/original_heidi-ravens-muddy-masterpiece/section-10.flac",
+          "sha256": "77cb67ee6ba622f7f039ed585411ff5dd48b815c2d90bb9b391267dcb8ca53d6",
+          "text_sha256": "acf47457ae5957f635baa3fc20ce49fc3e129513b276161369b3e6958e792209",
+          "characters": 280,
+          "contains_neko": false,
+          "duration_seconds": 14.292,
+          "cue_after": "meow_thank_you"
+        },
+        {
+          "index": 10,
+          "path": "content/stories/recordings/mini-kiki-v1/original_heidi-ravens-muddy-masterpiece/section-11.flac",
+          "sha256": "90c5b6f86acbb138de190796942cd777f8f1a9f722239fd06f59f0ac5b24c1e8",
+          "text_sha256": "e39eec5939158cb6cb99a84a4bde23cdab563979c7cd3ec6b6a34f028d1ac649",
+          "characters": 123,
+          "contains_neko": false,
+          "duration_seconds": 6.142,
+          "cue_after": null
+        },
+        {
+          "index": 11,
+          "path": "content/stories/recordings/mini-kiki-v1/original_heidi-ravens-muddy-masterpiece/section-12.flac",
+          "sha256": "3a516c53f04f87aa5985c9d74784894a5c5df687d6f67e29531ccf7188445a89",
+          "text_sha256": "903308a50b94dc9353fab35ff504acee575326b97b2fd2f600de6b13072ae499",
+          "characters": 258,
+          "contains_neko": false,
+          "duration_seconds": 13.592,
+          "cue_after": null
+        }
+      ],
+      "ending_purr": true
+    },
+    {
+      "story_id": "original.luna-stick-garden",
+      "source_path": "content/stories/originals/luna-stick-garden.md",
+      "source_sha256": "b606be21faa4ba63cf64ddc04d9432599063da43a019b648903936edb3c9b87c",
+      "spoken_text_sha256": "e2f6ff1cfc2d60295dd38c933c19aa27b3b86450a737a3616896de1994d1d8a9",
+      "sections": [
+        {
+          "index": 0,
+          "path": "content/stories/recordings/mini-kiki-v1/original_luna-stick-garden/section-01.flac",
+          "sha256": "d8668aa33b1ced2a2eaff988fa17db8ff846da28201e9b5c46c2e54551d77bc6",
+          "text_sha256": "d35799b508c660c0c9671a1dcfe0ab5400e72dae59199d0780771325e659fda0",
+          "characters": 219,
+          "contains_neko": false,
+          "duration_seconds": 11.667,
+          "cue_after": null
+        },
+        {
+          "index": 1,
+          "path": "content/stories/recordings/mini-kiki-v1/original_luna-stick-garden/section-02.flac",
+          "sha256": "da3d804f6fcb13254658f0c6f5084e0220e5d64037b95c7d0267d42fa2b4f922",
+          "text_sha256": "308fba6320da6b6c08e53237dadbeef3b9ee1c87bd9d8c7e92646757ae19b226",
+          "characters": 366,
+          "contains_neko": false,
+          "duration_seconds": 18.392,
+          "cue_after": null
+        },
+        {
+          "index": 2,
+          "path": "content/stories/recordings/mini-kiki-v1/original_luna-stick-garden/section-03.flac",
+          "sha256": "bdb7741677bdbf9895e4e5b781f02c1f940024c11b0f68023f8806c9cb9a2595",
+          "text_sha256": "28ab63ce9b327b0b75f4bbba79c47c7489a25490a785248e968de1beb1ef8c48",
+          "characters": 229,
+          "contains_neko": false,
+          "duration_seconds": 10.767,
+          "cue_after": "meow_thank_you"
+        },
+        {
+          "index": 3,
+          "path": "content/stories/recordings/mini-kiki-v1/original_luna-stick-garden/section-04.flac",
+          "sha256": "f7962272796d8af4f90ddf2f42b0b9e383e66660fb17e83aeae74d154fbb49ff",
+          "text_sha256": "538528baf5ff1fb6b85131f694194c2ad4080014c48eb7fa3caf4164601e1bce",
+          "characters": 192,
+          "contains_neko": false,
+          "duration_seconds": 9.942,
+          "cue_after": null
+        },
+        {
+          "index": 4,
+          "path": "content/stories/recordings/mini-kiki-v1/original_luna-stick-garden/section-05.flac",
+          "sha256": "2dc00f4f7cbb221818e97180539f9f02ff186c01525bf7c1d3c0a2d6c5093799",
+          "text_sha256": "2069ffba2f588e7bbde0f6fe4e09da630d804db71663a1e3ce0343e1b916f37e",
+          "characters": 350,
+          "contains_neko": false,
+          "duration_seconds": 18.417,
+          "cue_after": null
+        },
+        {
+          "index": 5,
+          "path": "content/stories/recordings/mini-kiki-v1/original_luna-stick-garden/section-06.flac",
+          "sha256": "c3e0976a0d5ff4d736667e0427c82d4eb46ec1d2ca9ab9b1a30a4aa75ad59d7a",
+          "text_sha256": "aee7f3e8b51f5c00d95ef6b80d431d592193a8328d62d3db000252587355362e",
+          "characters": 365,
+          "contains_neko": false,
+          "duration_seconds": 18.867,
+          "cue_after": null
+        },
+        {
+          "index": 6,
+          "path": "content/stories/recordings/mini-kiki-v1/original_luna-stick-garden/section-07.flac",
+          "sha256": "8b56e1190b6b1ad78c2826284dbcbf772a3fbf84a40fe602b84dee3fee3831f2",
+          "text_sha256": "2ba1d802a1944a806e67f4d4475caa98c47f90daef551a5a9e73cd46e7361c91",
+          "characters": 213,
+          "contains_neko": false,
+          "duration_seconds": 10.542,
+          "cue_after": "meow_general"
+        },
+        {
+          "index": 7,
+          "path": "content/stories/recordings/mini-kiki-v1/original_luna-stick-garden/section-08.flac",
+          "sha256": "b59edb5123a891b08d816bc4c1e5ec3416e99f879971c2806f3d7cad0d9f6a1d",
+          "text_sha256": "914d4608632dd8563cf3e9b42b26f1509b61cd176fcc6e8b1dd69eda888da267",
+          "characters": 302,
+          "contains_neko": false,
+          "duration_seconds": 16.117,
+          "cue_after": null
+        },
+        {
+          "index": 8,
+          "path": "content/stories/recordings/mini-kiki-v1/original_luna-stick-garden/section-09.flac",
+          "sha256": "dc2e20857ec379aad1e7b02a55f9a34e85ef50f615b521f8f80e296f60e47f30",
+          "text_sha256": "a597c308fef32deb3e0494c67ebf8f61035fd69b14b98d6d5f5daaa2344aa1e6",
+          "characters": 370,
+          "contains_neko": false,
+          "duration_seconds": 18.292,
+          "cue_after": "meow_general"
+        },
+        {
+          "index": 9,
+          "path": "content/stories/recordings/mini-kiki-v1/original_luna-stick-garden/section-10.flac",
+          "sha256": "172bb96504116bdc054bf48f345728ec668a66adb83fa254b2f573b0340847ea",
+          "text_sha256": "975e88e8c39a72e42029e19d223d9ad16735e0755e1ffdeea1209494e63f7148",
+          "characters": 360,
+          "contains_neko": false,
+          "duration_seconds": 18.942,
+          "cue_after": null
+        }
+      ],
+      "ending_purr": false
+    },
+    {
+      "story_id": "original.magic-girl-gummy-worm-moon",
+      "source_path": "content/stories/originals/mina-neko-gummy-worm-moon.md",
+      "source_sha256": "24ac1bfbbe2a70010827139f7e163577aed913df2a9b8abc0fee515321a8ad0e",
+      "spoken_text_sha256": "965c365f9141ae9dc71a705791b5ba5d672f9947875d724d19da016f47b68356",
+      "sections": [
+        {
+          "index": 0,
+          "path": "content/stories/recordings/mini-kiki-v1/original_magic-girl-gummy-worm-moon/section-01.flac",
+          "sha256": "85f85484a68e3bcf884405525159ccfae0f8efec9488fa6817b611aa5486137e",
+          "text_sha256": "2b2635dbd60f93b76ed07a3bc4ec1d747c832d14b3d4119d1fe943cfa73d9c44",
+          "characters": 256,
+          "contains_neko": false,
+          "duration_seconds": 14.742,
+          "cue_after": null
+        },
+        {
+          "index": 1,
+          "path": "content/stories/recordings/mini-kiki-v1/original_magic-girl-gummy-worm-moon/section-02.flac",
+          "sha256": "09823f861436586c353ac83992cd8e7cfe076cd00d0f3f8b21cef6d983950062",
+          "text_sha256": "c30253fb34e5e4cbe48c00fc2c8f4d62f66ffbfd10b0d2603f492e7d19931a00",
+          "characters": 237,
+          "contains_neko": true,
+          "duration_seconds": 13.867,
+          "cue_after": "meow_general"
+        },
+        {
+          "index": 2,
+          "path": "content/stories/recordings/mini-kiki-v1/original_magic-girl-gummy-worm-moon/section-03.flac",
+          "sha256": "1026e30aa5235ddd7e51f168d6b52725d07f094caa7dc9f75d8c1f2505b34367",
+          "text_sha256": "c2f6c8458b169bad945a9e42c736db60cef0be9a11fdb9207576ea0c8e4531cd",
+          "characters": 178,
+          "contains_neko": false,
+          "duration_seconds": 9.392,
+          "cue_after": null
+        },
+        {
+          "index": 3,
+          "path": "content/stories/recordings/mini-kiki-v1/original_magic-girl-gummy-worm-moon/section-04.flac",
+          "sha256": "fec8735b978c49aa3769a632658957933fe56ed6126260b665834db090b15d1c",
+          "text_sha256": "57e40adf78c6945bb1fd64adbfa595d9e914d352491912dcb54281885bc814db",
+          "characters": 232,
+          "contains_neko": true,
+          "duration_seconds": 12.917,
+          "cue_after": null
+        },
+        {
+          "index": 4,
+          "path": "content/stories/recordings/mini-kiki-v1/original_magic-girl-gummy-worm-moon/section-05.flac",
+          "sha256": "5188e7c9547c678858818136bdf138f74d100aa76d33f1259a0ac339ce0daf3f",
+          "text_sha256": "0d959de13a13677fa082fd2bc4bd9cdac021621fcac4fd3d30bdce1c9f431282",
+          "characters": 263,
+          "contains_neko": true,
+          "duration_seconds": 14.617,
+          "cue_after": "meow_general"
+        },
+        {
+          "index": 5,
+          "path": "content/stories/recordings/mini-kiki-v1/original_magic-girl-gummy-worm-moon/section-06.flac",
+          "sha256": "19a8873152674cae0f6435a453ddbd8a2626024b35cda24f17a31c3b862ebd44",
+          "text_sha256": "10bce7cafe5912758dd21998c050ed7fefa57fc7452ba6f10c616da60e10eff6",
+          "characters": 233,
+          "contains_neko": true,
+          "duration_seconds": 13.417,
+          "cue_after": null
+        },
+        {
+          "index": 6,
+          "path": "content/stories/recordings/mini-kiki-v1/original_magic-girl-gummy-worm-moon/section-07.flac",
+          "sha256": "ccde1445df64ceac00dcaf98ef29b363b476597cb18de0bfd3ed74a7e74a5071",
+          "text_sha256": "22e028e7cf28fbcac084a4e5641da8e61a446c8e9471f4a3ef76da2f9c26348f",
+          "characters": 309,
+          "contains_neko": true,
+          "duration_seconds": 16.342,
+          "cue_after": null
+        },
+        {
+          "index": 7,
+          "path": "content/stories/recordings/mini-kiki-v1/original_magic-girl-gummy-worm-moon/section-08.flac",
+          "sha256": "f172ca51c443a8704c65b9e6e9469f3b081c5c29db73f095bd7fe173f8639b90",
+          "text_sha256": "fe927b5f1a73e77950b0a22c002ef48720613ac0eb11c1ec60364e523128f946",
+          "characters": 324,
+          "contains_neko": true,
+          "duration_seconds": 15.742,
+          "cue_after": "meow_general"
+        },
+        {
+          "index": 8,
+          "path": "content/stories/recordings/mini-kiki-v1/original_magic-girl-gummy-worm-moon/section-09.flac",
+          "sha256": "4bfc5d6da9c9121e612a2a2a4103389f12efc9f4317e16eb9d80a264b1854c9c",
+          "text_sha256": "724add53efd815ba6716a4d876965bc74e2734133621c49277ce117ff6b4f0d8",
+          "characters": 338,
+          "contains_neko": false,
+          "duration_seconds": 18.117,
+          "cue_after": null
+        },
+        {
+          "index": 9,
+          "path": "content/stories/recordings/mini-kiki-v1/original_magic-girl-gummy-worm-moon/section-10.flac",
+          "sha256": "6f1a7316fad2e69e8867ebc0979bfb7085ef9eb536ca342d8bec74c964c26331",
+          "text_sha256": "a13ee4bd27f83937ec37aefd693fbce7f1aac9df2398cc6f267aed63a5c925cc",
+          "characters": 348,
+          "contains_neko": false,
+          "duration_seconds": 17.292,
+          "cue_after": null
+        },
+        {
+          "index": 10,
+          "path": "content/stories/recordings/mini-kiki-v1/original_magic-girl-gummy-worm-moon/section-11.flac",
+          "sha256": "8e7737251148c70284492b4a34d572c30e4975b067432a48a0e1a2c5ee55208e",
+          "text_sha256": "0b10d4a9abe2dfde8352949d1a4a725b807c1d12c6ccac0c459720c2a135b280",
+          "characters": 363,
+          "contains_neko": true,
+          "duration_seconds": 19.367,
+          "cue_after": null
+        }
+      ],
+      "ending_purr": true
+    },
+    {
+      "story_id": "original.neko-great-gummy-worm-parade",
+      "source_path": "content/stories/originals/neko-great-gummy-worm-parade.md",
+      "source_sha256": "a83d9b97f587e34a4b1edae7e48365e580af115c4861664880d996582975da1e",
+      "spoken_text_sha256": "e634ceb40d7d47d1d5040fe43e599b5666198dfcb35e0f87fd2fd058db3cf3ab",
+      "sections": [
+        {
+          "index": 0,
+          "path": "content/stories/recordings/mini-kiki-v1/original_neko-great-gummy-worm-parade/section-01.flac",
+          "sha256": "14624b212048f9fe2ca0fd4b7dbf96789477b245d2b8368b07491fdfe2a261a0",
+          "text_sha256": "254b32002ab9b3c682565e219b358f10bcbf418577e19c850b12633d00497346",
+          "characters": 331,
+          "contains_neko": false,
+          "duration_seconds": 18.642,
+          "cue_after": null
+        },
+        {
+          "index": 1,
+          "path": "content/stories/recordings/mini-kiki-v1/original_neko-great-gummy-worm-parade/section-02.flac",
+          "sha256": "686926d19027ff1c7546ef5d6c47ca794304935d1e2e90696c5ffa7abd4914e6",
+          "text_sha256": "e6664d3604ba5ed1fbb6e2693b8bc0f0068da7c27af13d6906337d226c0fa8b0",
+          "characters": 370,
+          "contains_neko": true,
+          "duration_seconds": 21.167,
+          "cue_after": null
+        },
+        {
+          "index": 2,
+          "path": "content/stories/recordings/mini-kiki-v1/original_neko-great-gummy-worm-parade/section-03.flac",
+          "sha256": "58b33839cc4521984319d185be0bccc445c9bf2244638223efe5427bfe12150b",
+          "text_sha256": "52b75b0fb80f773812c893d9bf7fddb1b580da4ed9c6f80e4583ebbbb64e4fc2",
+          "characters": 272,
+          "contains_neko": true,
+          "duration_seconds": 13.917,
+          "cue_after": "meow_general"
+        },
+        {
+          "index": 3,
+          "path": "content/stories/recordings/mini-kiki-v1/original_neko-great-gummy-worm-parade/section-04.flac",
+          "sha256": "93f7e822ce8b200860fdaedd3811a74ef71ac3ea2e271108ad2611a71dc09a4b",
+          "text_sha256": "520669e14b942c6d76deedfde9b0f6cbc7d62be44192293d9b28021ef4ea700c",
+          "characters": 354,
+          "contains_neko": true,
+          "duration_seconds": 18.367,
+          "cue_after": null
+        },
+        {
+          "index": 4,
+          "path": "content/stories/recordings/mini-kiki-v1/original_neko-great-gummy-worm-parade/section-05.flac",
+          "sha256": "dcccbb329177c3bfa4168b3cc7dc259aa4e7d4d55ea2a2efcb6a9903d5679c59",
+          "text_sha256": "e005d7880e3eb1cd4a3f6cfa3d2721cbffacf6ef75f0169afd92918f54eee4a6",
+          "characters": 358,
+          "contains_neko": true,
+          "duration_seconds": 18.017,
+          "cue_after": "meow_general"
+        },
+        {
+          "index": 5,
+          "path": "content/stories/recordings/mini-kiki-v1/original_neko-great-gummy-worm-parade/section-06.flac",
+          "sha256": "8d423594e29d5aef21b95b161896e14260a2d07ebe0d8a62aa99f8b772cb2e6e",
+          "text_sha256": "dc223427dbfca7cc57a50ce03eede25a3db23d32f4a175f08b56d6e51f5bbff5",
+          "characters": 372,
+          "contains_neko": true,
+          "duration_seconds": 20.367,
+          "cue_after": null
+        },
+        {
+          "index": 6,
+          "path": "content/stories/recordings/mini-kiki-v1/original_neko-great-gummy-worm-parade/section-07.flac",
+          "sha256": "e90b06ff2f173c1de467f5602a1ff1a07680730c9b5ad11b69c482b9e3e0f13b",
+          "text_sha256": "5dbef2cc64df048cebcc1ad02a19cc3c91ad92acf8c537b3623dcc7c361711f5",
+          "characters": 263,
+          "contains_neko": true,
+          "duration_seconds": 14.017,
+          "cue_after": "meow_general"
+        },
+        {
+          "index": 7,
+          "path": "content/stories/recordings/mini-kiki-v1/original_neko-great-gummy-worm-parade/section-08.flac",
+          "sha256": "e972f6b32ba35e4c66ab7cc2a26ed7cadd703a646d8d51b12460a56fe3adfd8c",
+          "text_sha256": "c8c2422bf3d3ebcedc6dff025711323cf89fd07545de4960723280eaeb8f9725",
+          "characters": 269,
+          "contains_neko": true,
+          "duration_seconds": 13.767,
+          "cue_after": null
+        },
+        {
+          "index": 8,
+          "path": "content/stories/recordings/mini-kiki-v1/original_neko-great-gummy-worm-parade/section-09.flac",
+          "sha256": "0487c6a582f7f34b59494f03ffcbb968d04f26dd8ec81a9d36621d478fc2e98d",
+          "text_sha256": "4a25c416734edd956e4abf417c6f06ff5dc79a07c7245fb15793401c2af779a1",
+          "characters": 323,
+          "contains_neko": true,
+          "duration_seconds": 17.417,
+          "cue_after": null
+        }
+      ],
+      "ending_purr": true
+    }
+  ],
+  "last_refresh": {
+    "builder": "scripts/build_story_recordings.py",
+    "profile": "mini",
+    "model_revision": "c02725660cea441db4c383af69f1f26f5cd00947",
+    "model_hashes": {
+      "config.json": "6b160bc9b19e24ecb21e84bc14f8a7da21fdf47ec72d42450bc5cf514b61804a",
+      "kitten_tts_mini_v0_8.onnx": "0f5bbae4fc4800c98dbc544a87ecfa79510de2fb8222db30d12e5bfe9177df91",
+      "voices.npz": "40ad2638952b77b7b2f30127e2608e169fc69dd256b53bd8aaa3409a33193c42"
+    },
+    "voice": "Kiki",
+    "speed": 1.2,
+    "sample_rate": 24000,
+    "sample_format": "FLAC/PCM_16",
+    "threads": 1,
+    "max_section_characters": 380,
+    "cue_rate": 0.35,
+    "cue_seed": "neko-story-audio-mini-kiki-v1",
+    "allowed_cues": [
+      "meow_general",
+      "meow_thank_you"
+    ],
+    "incremental": true,
+    "scope": [
+      "original.luna-stick-garden"
+    ],
+    "load_seconds": 1.607,
+    "render_seconds": 0.018,
+    "peak_rss_mib": 205.0
+  }
+}

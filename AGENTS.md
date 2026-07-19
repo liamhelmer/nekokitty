@@ -26,7 +26,7 @@ The perception evaluation must include ZipDepth: <https://zipdepth.github.io/>.
 
 ## Current phase and change policy
 
-Status on 2026-07-18: the host/model foundation is deployed, the owner reports
+Status on 2026-07-19: the host/model foundation is deployed, the owner reports
 that the production hardware has been ordered, and pre-arrival integration work
 is active. The machine permanently targets headless
 `multi-user.target`; GDM, X, GNOME Shell, and Firefox are absent. CUDA 13.2
@@ -116,6 +116,15 @@ false/missed-wake, production AEC, combined-load, unplug/failure, and soak gates
 One private-fixture replay reached first PCM write an estimated 1.309 seconds
 after speech ended. This meets the software latency target once, but acoustic
 onset and warm P50/P95/P99 remain unmeasured.
+
+The five approved local stories now use 53 hash-verified, pre-rendered
+KittenTTS Mini/Kiki sections as their normal narration path. Whole adjacent
+paragraphs are grouped up to 380 characters for better cadence; fixed seeded
+meows occur only at paragraph boundaries, and ending purrs are explicit per
+story. Stale or corrupt audio degrades to live TTS while a deduplicated
+one-thread Mini repair runs at nice 19/idle I/O, regenerating only affected
+sections and atomically publishing a hot-reloaded manifest. Human listening
+acceptance of the complete recordings remains required.
 
 The owner accepts 16K as the hard context minimum. The enabled LFM server is
 explicitly `--ctx-size 16384` with quantized K/V cache; unlike the failed LiteRT
@@ -289,6 +298,9 @@ Read these before changing the system:
 - [Casual voice and spoken-purr follow-up](docs/plan/2026-07-18-casual-voice-and-purr-followup.md)
   — post-speech purr trigger, conservative TTS contractions, prompt/cap tuning,
   informal story rewrite, density-based story sounds, known limits, and rollback.
+- [Pre-recorded Mini/Kiki story audio](docs/plan/2026-07-19-prerecorded-story-audio.md)
+  — large-section Mini rendering, fixed meow/purr plans, artifact checks,
+  interruptible playback, low-priority incremental stale repair, and rollback.
 - [What If offline schedule](docs/research/2026-07-17-what-if-schedule.md) —
   Dust API contract, local/Pacific-time interpretation, atomic hourly cache,
   subset TF-IDF vector ranking, child filter, deployment, validation, and
@@ -1185,3 +1197,14 @@ For every future model or service, add:
   places varied meows at sentence boundaries, and enforces a ten-sound maximum.
   Current 500–616-word stories receive seven or eight sounds total, one per
   70.6–79.6 spoken words. Ordinary responses retain their three-marker ceiling.
+- 2026-07-19: Pre-rendered all five approved stories with the pinned 78 MB
+  KittenTTS Mini/Kiki 1.2x profile. Fifty-three 200–380-character sections total
+  828.958 seconds in 19.75 MB of lossless 24 kHz mono FLAC. The manifest pins
+  source/spoken/audio hashes, the one-time seeded paragraph-boundary meow plan,
+  and explicit ending-purr choices; normal story playback no longer invokes
+  live TTS. Missing/stale/corrupt sections fall back live and atomically queue a
+  deduplicated one-thread repair worker at nice 19 and idle I/O priority. It
+  compares text/audio hashes, regenerates only affected sections, replaces the
+  manifest atomically, and is hot-reloaded by the running library. No GPU or hard
+  realtime scheduling is used. Exact build metrics, validation, and rollback are
+  in the linked plan.

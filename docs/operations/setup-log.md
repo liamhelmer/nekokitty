@@ -3,6 +3,30 @@
 All dates are America/Vancouver unless marked UTC. Never add credentials or
 private recordings to this file.
 
+## 2026-07-19 — pre-recorded Mini/Kiki story shelf
+
+No package, model, systemd unit, or boot setting changed. Used the already pinned
+KittenTTS Mini revision and Kiki 1.2x voice to pre-render all five approved local
+stories in 53 large paragraph-aware sections. Exact model/config/voice hashes,
+the build command, section/cue/purr inventory, 1,062.35-second render time,
+905.6 MiB peak RSS, 828.958 seconds of finite non-clipping audio, 19,750,176-byte
+artifact size, runtime design, and rollback are in
+`docs/plan/2026-07-19-prerecorded-story-audio.md`.
+
+Added source/spoken/audio hash verification and normal prerecorded playback with
+addressed interruption. The prior live Mini-unaware TTS route remains the
+automatic degraded fallback. Added a self-healing queue under
+`/var/tmp/neko-story-recording-rebuild`: stale discovery deduplicates by story,
+launches one worker via `nice -n 19` and idle-class `ionice -c 3`, and uses one
+CPU inference thread with no GPU. An actual queued Luna integration run logged
+nice 19, reused all ten unchanged sections, preserved the five-story manifest,
+reported `ionice` class `idle`, and completed in about three seconds including model load. The manifest is
+atomic and hot-reloaded in a running assistant. No private media or transcript
+is stored in these assets or queue records. Final validation passed all 152
+tests, Python compilation, and `git diff --check`. Restarted the attended loop;
+it reported ready in 5.470 seconds with the expected local endpoints. Human
+listening acceptance of the five complete recordings remains.
+
 ## 2026-07-18 — casual speech and spoken-purr follow-up
 
 No package, model, media asset, systemd unit, or boot setting changed. Updated

@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from pathlib import Path
 from types import SimpleNamespace
 import random
 import threading
 import unittest
 
-from neko.cat_audio import CatAudioDenied
+from neko.cat_audio import CatAudioDenied, CatSoundSelection
 from neko.event_schedule import ScheduleReply
 from neko.events import DialogueRequest
+from neko.story_library import RecordedStory, RecordedStorySection
 from scripts.neko_voice_assistant import ContinuousSpeechInput
 from scripts.neko_voice_assistant import VoiceAssistant
 from scripts.neko_voice_assistant import canonicalize_wake_transcript
@@ -478,6 +480,75 @@ class VoiceAssistantMixedAudioTests(unittest.TestCase):
                 max_audio_markers=4,
             )
         )
+
+    def test_prerecorded_story_plays_sections_and_fixed_cues_in_order(self) -> None:
+        class FakePlayer:
+            def __init__(self) -> None:
+                self.actions: list[str] = []
+
+            def play(self, selection: object, **values: object) -> bool:
+                self.actions.append(selection.action)
+                callback = values.get("on_started")
+                if callable(callback):
+                    callback()
+                return True
+
+        class FakeCatalog:
+            def __init__(self) -> None:
+                self.marked: list[str] = []
+
+            def select(self, action: str, output: str, **_values: object) -> object:
+                return CatSoundSelection(
+                    action,
+                    f"{action}.v1",
+                    Path("/tmp/cue.flac"),
+                    output,
+                    -6.0,
+                    1.0,
+                    True,
+                )
+
+            def mark_played(self, selection: object) -> None:
+                self.marked.append(selection.action)
+
+        recording = RecordedStory(
+            "story.test",
+            (
+                RecordedStorySection(
+                    Path("/tmp/one.flac"), "a" * 64, 2.0, True, "meow_general"
+                ),
+                RecordedStorySection(
+                    Path("/tmp/two.flac"), "b" * 64, 3.0, False, None
+                ),
+            ),
+            ending_purr=True,
+        )
+        assistant = VoiceAssistant.__new__(VoiceAssistant)
+        assistant.args = SimpleNamespace(
+            no_speak=False,
+            min_silence_seconds=0.6,
+            cat_sound_output="speaker",
+        )
+        assistant.cancel_speech = threading.Event()
+        assistant.cancel_cat_sound = threading.Event()
+        assistant.speaking = threading.Event()
+        assistant.spoken_turn_active = threading.Event()
+        assistant.story_interrupt_armed = threading.Event()
+        assistant.self_wake_guard = threading.Event()
+        assistant.cat_sound_player = FakePlayer()
+        assistant.cat_sounds = FakeCatalog()
+        events: list[tuple[str, dict[str, object]]] = []
+        assistant._event = lambda kind, **values: events.append((kind, values))
+
+        self.assertTrue(assistant._play_recorded_story(recording, vad_finalized_s=1.0))
+        self.assertEqual(
+            assistant.cat_sound_player.actions,
+            ["story_narration", "meow_general", "story_narration"],
+        )
+        self.assertEqual(assistant.cat_sounds.marked, ["meow_general"])
+        first_pcm = next(values for kind, values in events if kind == "first_pcm_written")
+        self.assertEqual(first_pcm["source"], "prerecorded_mini")
+        self.assertFalse(assistant.spoken_turn_active.is_set())
 
 
 if __name__ == "__main__":

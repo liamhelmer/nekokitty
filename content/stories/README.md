@@ -18,7 +18,16 @@ resident embedding model. The current owner-test path narrates selected approved
 text and adds evenly spaced sentence-boundary cat sounds at a target of one per
 75 spoken words. The final long purr counts toward that density; current stories
 receive seven or eight total sounds. A hard ten-sound ceiling protects later
-five-minute stories from becoming cluttered.
+five-minute stories from becoming cluttered. That live-TTS treatment is now the
+degraded fallback. The normal path uses the versioned Mini/Kiki recordings and
+fixed cue/purr plan under `recordings/mini-kiki-v1`; see the 2026-07-19 plan.
+
+Pre-recorded sections group whole adjacent paragraphs up to 380 characters so
+Mini sees substantially more punctuation and narrative context than the live
+120-character worker. Do not edit an approved story and manually suppress its
+stale-audio error: Neko falls back live and queues a low-priority incremental
+rebuild of changed sections. The recording manifest, not filenames alone, is the
+integrity and playback authority.
 
 During a story, ordinary VAD speech/noise does not stop narration. An utterance
 must begin with `Neko` (or `Neko Neko`) to arm interruption; the resulting

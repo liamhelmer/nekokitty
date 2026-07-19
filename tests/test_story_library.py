@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import json
+import os
+from pathlib import Path
 import random
 import re
+import tempfile
 import unittest
 
-from neko.story_library import StoryLibrary
+from neko.story_library import DEFAULT_RECORDING_MANIFEST, StoryLibrary
 
 
 class StoryLibraryTests(unittest.TestCase):
@@ -58,6 +62,56 @@ class StoryLibraryTests(unittest.TestCase):
         text = "A tiny cat waved."
         self.assertEqual(StoryLibrary.sound_budget(text), 1)
         self.assertEqual(StoryLibrary.with_audio_cues(text), text)
+
+    def test_every_approved_story_has_hash_verified_mini_recordings(self) -> None:
+        library = StoryLibrary()
+        section_count = 0
+        for story in library.search("story", limit=100):
+            recording = library.recording_for(story)
+            with self.subTest(story=story.story_id):
+                self.assertIsNotNone(recording)
+                assert recording is not None
+                self.assertTrue(recording.sections)
+                self.assertTrue(all(item.path.suffix == ".flac" for item in recording.sections))
+                self.assertTrue(
+                    all(
+                        item.cue_after in (None, "meow_general", "meow_thank_you")
+                        for item in recording.sections
+                    )
+                )
+                section_count += len(recording.sections)
+        self.assertEqual(section_count, 53)
+
+    def test_stale_source_hash_rejects_recording(self) -> None:
+        library = StoryLibrary()
+        story = library.choose("Luna stick garden")
+        entry = library.recordings[story.story_id]
+        original = entry["source_sha256"]
+        entry["source_sha256"] = "0" * 64
+        try:
+            with self.assertRaisesRegex(ValueError, "source is stale"):
+                library.recording_for(story)
+        finally:
+            entry["source_sha256"] = original
+
+    def test_recording_manifest_hot_reloads_after_background_rebuild(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            manifest = Path(directory) / "manifest.json"
+            data = json.loads(DEFAULT_RECORDING_MANIFEST.read_text(encoding="utf-8"))
+            manifest.write_text(json.dumps(data), encoding="utf-8")
+            library = StoryLibrary(recording_manifest_path=manifest)
+            story = library.choose("Luna stick garden")
+            self.assertIsNotNone(library.recording_for(story))
+
+            data["stories"] = [
+                item for item in data["stories"] if item["story_id"] != story.story_id
+            ]
+            replacement = manifest.with_suffix(".tmp")
+            replacement.write_text(json.dumps(data), encoding="utf-8")
+            replacement.replace(manifest)
+            current = manifest.stat().st_mtime_ns
+            os.utime(manifest, ns=(current + 1_000_000, current + 1_000_000))
+            self.assertIsNone(library.recording_for(story))
 
 
 if __name__ == "__main__":

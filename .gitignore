@@ -59,6 +59,13 @@ transcripts/
 !assets/cat-sounds/originals/*.mp3
 !assets/cat-sounds/derived/*.wav
 
+# Reviewed, deterministic story narration is generated media, but this exact
+# versioned shelf is intentionally committed for offline playback.
+!content/stories/recordings/
+!content/stories/recordings/**/
+!content/stories/recordings/**/*.json
+!content/stories/recordings/**/*.flac
+
 # Runtime state and diagnostics
 *.log
 *.pid
