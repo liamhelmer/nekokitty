@@ -126,6 +126,24 @@ one-thread Mini repair runs at nice 19/idle I/O, regenerating only affected
 sections and atomically publishing a hot-reloaded manifest. Human listening
 acceptance of the complete recordings remains required.
 
+The attended voice loop now has two explicitly online-only text commands.
+`search the web`/`web search` launches an ephemeral Luna/low Codex one-shot with
+live search, a Plan-mode instruction, and a read-only sandbox. `compose [a new]
+story` launches a Terra/low one-shot with the owner-requested YOLO access,
+constrained to one new original story plus its manifest entry, then queues the
+existing nice-19/idle-I/O Mini renderer. An immediate and then two-minute
+`ping -c 2 -W 2 8.8.8.8` probe changes online/offline mode on every result with
+no grace period. Offline refusal applies only to those two intents. While one
+serialized job runs, a primary purr loops; an addressed `Neko` reports the
+current request and resumes purring, completion stops the purr before speaking
+the result, and `Neko stop` cancels the child process. No audio or image leaves
+the cart, and online prompts/results do not enter local LLM history. Live spoken
+acceptance and boot deployment remain pending.
+The new code is active in the current attended manual process; its startup
+immediately reported online mode and readiness after 5.365 seconds.
+After the stdin privacy and cancellation-race tightening, the final active
+restart reported ready in 5.330 seconds.
+
 The owner accepts 16K as the hard context minimum. The enabled LFM server is
 explicitly `--ctx-size 16384` with quantized K/V cache; unlike the failed LiteRT
 64K request, it does not silently substitute 32K. With LFM, ASR/KWS/VAD, Kiki,
@@ -174,7 +192,7 @@ Inventory was collected locally on 2026-07-12 in America/Vancouver.
 | Network | NetworkManager reports full connectivity; Realtek RTL8822CE Wi-Fi and RTL8111/8168 Ethernet |
 | Container tools | Docker client 29.1.3, containerd, NVIDIA Container Toolkit 1.19.1 and NVIDIA runtime config present; `neko` lacks Docker-socket access |
 | Python/tools | Python 3.12.3 without `pip`; uv 0.11.28 and LiteRT-LM 0.14.0 under `/home/neko/.local/bin`; NVIDIA FFmpeg package 7:8.0.1-nvidia installed at `/usr/bin/ffmpeg`/`ffprobe` |
-| Node/Codex | Node 24.18.0; Codex CLI 0.144.2 |
+| Node/Codex | Node 24.18.0; Codex CLI 0.144.4 |
 | Claude Code | 2.1.207 at `/home/neko/.local/bin/claude`; installed but that directory was absent from the non-interactive shell `PATH` |
 
 ### Connected devices seen during discovery
@@ -301,6 +319,9 @@ Read these before changing the system:
 - [Pre-recorded Mini/Kiki story audio](docs/plan/2026-07-19-prerecorded-story-audio.md)
   — large-section Mini rendering, fixed meow/purr plans, artifact checks,
   interruptible playback, low-priority incremental stale repair, and rollback.
+- [Online-only Codex commands](docs/plan/2026-07-19-online-codex-commands.md)
+  — immediate ICMP mode, Luna search, Terra story composition, continuous work
+  purr/status semantics, privacy boundary, validation, and rollback.
 - [What If offline schedule](docs/research/2026-07-17-what-if-schedule.md) —
   Dust API contract, local/Pacific-time interpretation, atomic hourly cache,
   subset TF-IDF vector ranking, child filter, deployment, validation, and
@@ -710,9 +731,12 @@ linked notes. Important conclusions:
   still make ingress, condensation, UV, full-sun thermal soak, and non-panel
   structural mounts hard gates. The Jetson developer kit is rated only 0–35 C;
   the owner approves orderly worker shedding and shutdown at 35 C.
-- Optional online enhancement is limited to an authenticated-adult, text-only
-  session through separately billed API access. It does not authorize raw media,
-  consumer-subscription credentials, or unattended child-cloud interaction;
+- The owner added a narrow exception for explicit `search the web` and `compose
+  [a new] story` spoken commands: their finalized transcript text may use the
+  existing Codex subscription without an adult-session gate. No raw media may
+  leave. Other optional online enhancement remains limited to an authenticated-
+  adult, text-only session through separately billed API access. It does not
+  authorize other consumer-subscription credentials or unattended child-cloud interaction;
   use a keyed or locked-compartment local control; remote activation needs an
   authenticated expiring admin channel, visible cart-side state and local revoke.
   Provider allowlisting, redaction and spend limits remain gates.
@@ -1208,3 +1232,11 @@ For every future model or service, add:
   manifest atomically, and is hot-reloaded by the running library. No GPU or hard
   realtime scheduling is used. Exact build metrics, validation, and rollback are
   in the linked plan.
+- 2026-07-19: Added the first two online-only voice commands. An immediate and
+  two-minute two-packet 8.8.8.8 monitor changes mode without grace. Luna/low
+  performs read-only Plan-instructed web one-shots; Terra/low performs the
+  explicitly authorized, tightly scoped YOLO story write and queues the existing
+  low-priority renderer. A continuous work purr, addressed status response,
+  completion speech, stop cancellation, exact offline reply, transient private
+  output handling, tests, live Luna search smoke, and isolated Terra invocation
+  smoke are recorded in the linked plan and setup log.

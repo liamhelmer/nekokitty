@@ -304,7 +304,9 @@ def main() -> int:
             "source_sha256": sha256(source_path),
             "spoken_text_sha256": sha256_bytes(spoken.encode("utf-8")),
             "sections": rendered_sections,
-            "ending_purr": ENDING_PURR_BY_STORY[story.story_id],
+            # Newly composed owner-approved stories default to a warm ending.
+            # Existing shelf decisions remain explicit above.
+            "ending_purr": ENDING_PURR_BY_STORY.get(story.story_id, True),
         }
 
     entries = [

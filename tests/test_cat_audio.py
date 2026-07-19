@@ -163,6 +163,17 @@ class CatSoundCatalogTests(unittest.TestCase):
         second = self.catalog.select("meow_general", "speaker", now=13)
         self.assertNotEqual(first.asset_id, second.asset_id)
 
+    def test_supervisor_can_start_an_explicit_continuous_state_during_cooldown(self) -> None:
+        first = self.catalog.select("meow_general", "speaker", now=10)
+        self.catalog.mark_played(first, now=10)
+        selection = self.catalog.select(
+            "meow_general",
+            "speaker",
+            now=11,
+            enforce_cooldown=False,
+        )
+        self.assertIn(selection.asset_id, {"one.speaker.v1", "two.speaker.v1"})
+
     def test_unknown_raw_global_and_action_disable_fail_closed(self) -> None:
         with self.assertRaisesRegex(CatAudioDenied, "unknown"):
             self.catalog.select("assets/one.wav", "speaker", now=10)

@@ -194,6 +194,7 @@ class CatSoundCatalog:
         *,
         now: float | None = None,
         autonomous: bool = True,
+        enforce_cooldown: bool = True,
     ) -> CatSoundSelection:
         policy = self.allowlist.get("actions", {}).get(action)
         if not self.runtime_enabled:
@@ -210,7 +211,7 @@ class CatSoundCatalog:
         moment = time.monotonic() if now is None else now
         key = (action, output)
         cooldown = float(policy["cooldown_seconds"])
-        if moment - self.last_played.get(key, -math.inf) < cooldown:
+        if enforce_cooldown and moment - self.last_played.get(key, -math.inf) < cooldown:
             raise CatAudioDenied(f"cat-sound action is cooling down: {action}")
 
         candidates: list[tuple[dict, dict]] = []

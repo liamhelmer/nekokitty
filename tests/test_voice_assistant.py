@@ -14,6 +14,7 @@ from scripts.neko_voice_assistant import ContinuousSpeechInput
 from scripts.neko_voice_assistant import VoiceAssistant
 from scripts.neko_voice_assistant import canonicalize_wake_transcript
 from scripts.neko_voice_assistant import wake_is_in_prefix_window
+from neko.online_jobs import OFFLINE_REPLY, OnlineCommand
 
 
 class FakeVad:
@@ -164,6 +165,20 @@ class VoiceAssistantInputTests(unittest.TestCase):
 
 
 class VoiceAssistantMixedAudioTests(unittest.TestCase):
+    def test_online_only_command_has_exact_offline_reply(self) -> None:
+        spoken: list[str] = []
+        assistant = VoiceAssistant.__new__(VoiceAssistant)
+        assistant.online_monitor = SimpleNamespace(online=False)
+        assistant.current_vad_finalized_s = 1.0
+        assistant._stop_thinking_cue_for_speech = lambda: None
+        assistant._stop_tail_purr_for_neko_speech = lambda: None
+        assistant._speak = lambda text, **_values: spoken.append(text) is None or True
+
+        self.assertTrue(
+            assistant._start_online_job(OnlineCommand("web_search", "cat noses"))
+        )
+        self.assertEqual(spoken, [OFFLINE_REPLY])
+
     def test_empty_schedule_refinement_lists_original_window(self) -> None:
         class FakeSchedule:
             def __init__(self) -> None:

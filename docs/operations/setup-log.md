@@ -3209,3 +3209,58 @@ disable, accepted-selection, integrity, cooldown, non-repeat, fixed-gain/target,
 and integrated TTS-fallback coverage. Python compilation and `git diff --check`
 passed. Activation and rollback are documented in
 `docs/plan/2026-07-16-cat-audio-insertion.md`.
+
+## 2026-07-19 — online-only Codex commands
+
+No package, model, service, token, or credential was installed or changed.
+`codex --version` reported `codex-cli 0.144.4` at
+`/home/neko/.nvm/versions/node/v24.18.0/bin/codex`; the already present
+`~/.codex/auth.json` remained mode 0600 and its contents were not read or logged.
+
+The attended voice assistant gained an immediate plus 120-second connectivity
+monitor using `/usr/bin/ping -c 2 -W 2 8.8.8.8`, with an eight-second outer
+timeout and no transition grace. The live setup probe returned two of two
+packets. Only `search the web`/`web search` and `compose [a new] story` consult
+that mode; offline local behavior is unchanged.
+
+`neko/online_jobs.py` invokes Luna with low reasoning, top-level `--search`, an
+explicit Plan-mode/read-only research prompt, and `-s read-only`. It invokes
+Terra with low reasoning and `--dangerously-bypass-approvals-and-sandbox`, as
+the owner explicitly requested, using a prompt that limits writes to one
+original story and one manifest entry. Both use `--ephemeral`; response scratch
+files live briefly beneath mode-0700 `/var/tmp/neko-online-jobs`, inherit umask
+0077, and are unlinked after reading. Jobs have a 1,800-second ceiling and only
+one may run. Search/results never enter the local LLM history. The story path
+validates that exactly one approved ID was added before calling the existing
+nice-19/idle-I/O rebuild queue.
+Final prompts are written through `codex exec -` stdin rather than argv so a
+child's transcribed request is not exposed in the local process list. The
+worker holds its state lock across child launch, so `Neko stop` cannot race with
+a not-yet-published process handle; assistant-owned job state also remains
+active until the queued completion is consumed.
+
+Two initial real Luna smokes failed before model execution because Codex 0.144.4
+does not accept `-a` under `codex exec` and requires `--search` before `exec`.
+The wrapper was corrected to the version-verified syntax. The repeated
+Luna/low/read-only live-web smoke passed and returned a concise current-source
+Vancouver time-zone answer. An isolated Terra command was then run in
+`/var/tmp/neko-terra-smoke` with `--skip-git-repo-check`; Codex reported model
+`gpt-5.6-terra`, approval `never`, sandbox `danger-full-access`, reasoning
+effort `low`, and the exact final text `Terra story worker ready.` No repository
+file was edited by either smoke.
+
+Python compileall passed. The online and voice-assistant subsets passed 28
+tests. A dependency-correct split run passed 159 tests in the ASR environment
+(10 TensorRT/NumPy tests skipped there by design) plus all three RF-DETR tests
+in the pinned `rfdetr-export` environment: 162 passing test cases total.
+`git diff --check` passed. The prior attended process was stopped and restarted
+with the unchanged manual PipeWire/English/attended-cat-sound command. It emitted
+`online_mode_changed` with `online: true`, then ready with 5.365 seconds ASR load
+and `online: true`; PID 697018 was live immediately after startup. Full spoken
+interaction and dynamic story-generation acceptance remain pending. After the
+stdin privacy change, the final attended restart again transitioned immediately
+online and reported ready in 5.230 seconds; PID 697838 was active. A final
+restart after closing the launch/completion race reported ready in 5.330
+seconds and online. Detailed
+behavior, security boundary, exact command shape, known ICMP limitation, and rollback are in
+`docs/plan/2026-07-19-online-codex-commands.md`.

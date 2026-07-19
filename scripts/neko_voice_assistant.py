@@ -55,6 +55,14 @@ from neko.gemma_client import (  # noqa: E402
     ConversationHistory,
     GemmaClient,
 )
+from neko.online_jobs import (  # noqa: E402
+    ConnectivityMonitor,
+    CodexOnlineJobRunner,
+    OFFLINE_REPLY,
+    OnlineCommand,
+    OnlineJobResult,
+    parse_online_command,
+)
 from neko.story_library import RecordedStory, StoryLibrary  # noqa: E402
 from neko.story_recording_rebuild import enqueue_story_rebuild  # noqa: E402
 from neko.tts_protocol import NEKO_NAME_RE, TtsClient  # noqa: E402
@@ -473,6 +481,7 @@ class VoiceAssistant:
         self.cancel_speech = threading.Event()
         self.cancel_cat_sound = threading.Event()
         self.cancel_tail_purr = threading.Event()
+        self.cancel_work_purr = threading.Event()
         self.speaking = threading.Event()
         self.spoken_turn_active = threading.Event()
         self.story_playing = threading.Event()
@@ -484,12 +493,23 @@ class VoiceAssistant:
         self.tail_purr_playing = threading.Event()
         self._thinking_sound_thread: threading.Thread | None = None
         self._tail_purr_thread: threading.Thread | None = None
+        self._work_purr_thread: threading.Thread | None = None
         self._cue_rng = random.SystemRandom()
         self.story_library = StoryLibrary()
         self.event_schedule = EventSchedule()
         self.pending_schedule_query: str | None = None
         self.pending_schedule_base_query: str | None = None
         self.last_story_id: str | None = None
+        self.online_results: queue.Queue[OnlineJobResult] = queue.Queue()
+        self.active_online_command: OnlineCommand | None = None
+        self.online_monitor = ConnectivityMonitor(
+            interval_s=args.connectivity_interval,
+            on_change=self._on_online_mode_change,
+        )
+        self.online_jobs = CodexOnlineJobRunner(
+            self.online_results.put,
+            timeout_s=args.online_job_timeout,
+        )
         self.controller = BehaviorController()
         self.history = ConversationHistory(
             max_turns=args.history_turns,
@@ -561,6 +581,9 @@ class VoiceAssistant:
     def _event(self, kind: str, **values: object) -> None:
         print(json.dumps({"event": kind, **values}, ensure_ascii=False), flush=True)
 
+    def _on_online_mode_change(self, online: bool) -> None:
+        self._event("online_mode_changed", online=online, probe="ping_8.8.8.8_c2")
+
     def _on_speech_start(self) -> None:
         if self.spoken_turn_active.is_set():
             sequence = self.audio.speech_sequence
@@ -591,6 +614,9 @@ class VoiceAssistant:
         self.cancel_speech.set()
         self.cancel_cat_sound.set()
         self.cancel_tail_purr.set()
+        self.cancel_work_purr.set()
+        self.online_jobs.cancel()
+        self.active_online_command = None
         self._event("stop_keyword_detected")
 
     def _thinking_cue_action(self, text: str) -> str | None:
@@ -727,6 +753,126 @@ class VoiceAssistant:
         if thread is not None:
             thread.join(timeout=1)
         self._tail_purr_thread = None
+
+    def _start_work_purr(self) -> None:
+        """Loop a local purr for the full lifetime of a long online job."""
+
+        thread = self._work_purr_thread
+        if thread is not None and thread.is_alive():
+            return
+        try:
+            selection = self.cat_sounds.select(
+                "purr_primary",
+                self.args.cat_sound_output,
+                autonomous=True,
+                # A deliberate work-state loop must start even if an ordinary
+                # happy tail purr finished moments before the online command.
+                enforce_cooldown=False,
+            )
+        except CatAudioDenied as error:
+            self._event("cat_sound_fallback", action="purr_primary", reason=str(error))
+            return
+        self.cancel_work_purr.clear()
+
+        def play_loop() -> None:
+            self.cat_sound_playing.set()
+            self.speaking.set()
+            self._event("online_job_purr_started", asset_id=selection.asset_id)
+            try:
+                while not self.cancel_work_purr.is_set():
+                    played = self.cat_sound_player.play(
+                        selection,
+                        cancel_event=self.cancel_work_purr,
+                    )
+                    if not played:
+                        break
+                    self.cat_sounds.mark_played(selection)
+            except Exception as error:
+                self._event("cat_sound_error", action="purr_primary", message=str(error))
+            finally:
+                self.cat_sound_playing.clear()
+                self.speaking.clear()
+                self._event("online_job_purr_stopped", asset_id=selection.asset_id)
+
+        self._work_purr_thread = threading.Thread(
+            target=play_loop,
+            name="neko-online-job-purr",
+            daemon=True,
+        )
+        self._work_purr_thread.start()
+
+    def _stop_work_purr(self) -> None:
+        self.cancel_work_purr.set()
+        thread = self._work_purr_thread
+        if thread is not None:
+            thread.join(timeout=1)
+        self._work_purr_thread = None
+
+    def _speak_online_job_status(self) -> bool:
+        command = self.active_online_command
+        if command is None:
+            return False
+        self._stop_work_purr()
+        completed = self._speak(
+            f"I'm working on your request to {command.status_description}."
+        )
+        if self.active_online_command == command:
+            self._start_work_purr()
+        return completed
+
+    def _start_online_job(self, command: OnlineCommand) -> bool:
+        if not self.online_monitor.online:
+            self._stop_thinking_cue_for_speech()
+            self._stop_tail_purr_for_neko_speech()
+            return self._speak(OFFLINE_REPLY, vad_finalized_s=self.current_vad_finalized_s)
+        if self.active_online_command is not None:
+            return self._speak_online_job_status()
+        if not self.online_jobs.start(command):
+            return self._speak_online_job_status()
+        self.active_online_command = command
+        self._stop_thinking_cue_for_speech()
+        self._stop_tail_purr_for_neko_speech()
+        self._event(
+            "online_job_started",
+            kind=command.kind,
+            description=command.status_description,
+        )
+        self._start_work_purr()
+        # The request stays deliberately outside local LLM history. Codex owns
+        # its own bounded one-shot context and the completion is read directly.
+        self.controller.extend_active_session(time.monotonic())
+        return True
+
+    def _finish_online_job(self, result: OnlineJobResult) -> None:
+        self._stop_work_purr()
+        if self.active_online_command != result.command:
+            self._event("online_job_stale_result_ignored", kind=result.command.kind)
+            return
+        self.active_online_command = None
+        if result.succeeded and result.added_story_ids:
+            try:
+                # The recording manifest will hot-reload later when the low-
+                # priority renderer atomically publishes the new sections.
+                self.story_library = StoryLibrary()
+            except (OSError, TypeError, ValueError) as error:
+                self._event("story_library_reload_error", message=str(error))
+        self._event(
+            "online_job_complete",
+            kind=result.command.kind,
+            succeeded=result.succeeded,
+            added_story_ids=list(result.added_story_ids),
+        )
+        self._stop_tail_purr_for_neko_speech()
+        self._speak(result.spoken_text)
+        self.controller.extend_active_session(time.monotonic())
+
+    def _drain_online_results(self) -> None:
+        while True:
+            try:
+                result = self.online_results.get_nowait()
+            except queue.Empty:
+                return
+            self._finish_online_job(result)
 
     def _start_thinking_cue(self, text: str) -> None:
         """Play a real acknowledgement while the model thinks, when approved.
@@ -1026,6 +1172,13 @@ class VoiceAssistant:
 
     def _dialogue(self, request: DialogueRequest) -> bool:
         started = time.monotonic()
+        online_command = parse_online_command(request.text)
+        if online_command is not None:
+            return self._start_online_job(online_command)
+        if (
+            getattr(self, "active_online_command", None) is not None
+        ):
+            return self._speak_online_job_status()
         self._start_thinking_cue(request.text)
         schedule_followup = (
             self.pending_schedule_query is not None
@@ -1239,6 +1392,16 @@ class VoiceAssistant:
         if not text and not segment.wake_detected and not segment.sleep_detected and not segment.stop_detected:
             self._event("empty_transcript")
             return False
+        if (
+            getattr(self, "active_online_command", None) is not None
+            and not segment.wake_detected
+            and not segment.sleep_detected
+            and not segment.stop_detected
+        ):
+            # A long job's purr keeps the ordinary session open, but only an
+            # addressed Neko utterance may request a spoken progress update.
+            self._event("online_job_nonwake_speech_ignored", sequence=segment.sequence)
+            return False
         language = self.args.language if self.args.language != "auto" else "unknown"
         if text:
             self._event(
@@ -1294,7 +1457,12 @@ class VoiceAssistant:
             if isinstance(action, Acknowledge):
                 self._event("wake_acknowledged")
                 if not any(isinstance(item, DialogueRequest) for item in actions):
-                    self._speak("[meow]")
+                    if (
+                        getattr(self, "active_online_command", None) is not None
+                    ):
+                        self._speak_online_job_status()
+                    else:
+                        self._speak("[meow]")
             elif isinstance(action, DialogueRequest):
                 dialogue_seen = True
                 self._dialogue(action)
@@ -1302,6 +1470,9 @@ class VoiceAssistant:
                 self.cancel_speech.set()
                 self.cancel_cat_sound.set()
                 self.cancel_tail_purr.set()
+                self.cancel_work_purr.set()
+                self.online_jobs.cancel()
+                self.active_online_command = None
                 self.history.clear()
                 self.pending_schedule_query = None
                 self.pending_schedule_base_query = None
@@ -1315,6 +1486,7 @@ class VoiceAssistant:
     def run(self) -> int:
         if not self.gemma.ready():
             raise RuntimeError("local LLM is not ready")
+        self.online_monitor.start()
         self.audio.start()
         self._event(
             "ready",
@@ -1326,10 +1498,12 @@ class VoiceAssistant:
             llm_model=self.args.model,
             llm_route=self.args.llm_route,
             tts_socket=str(self.args.tts_socket),
+            online=self.online_monitor.online,
         )
         handled_dialogues = 0
         try:
             while not self.shutdown.is_set():
+                self._drain_online_results()
                 if self.audio.error is not None:
                     raise RuntimeError(f"audio capture failed: {self.audio.error}")
                 try:
@@ -1346,6 +1520,10 @@ class VoiceAssistant:
             self.cancel_speech.set()
             self.cancel_cat_sound.set()
             self.cancel_tail_purr.set()
+            self.cancel_work_purr.set()
+            self.online_jobs.cancel()
+            self._stop_work_purr()
+            self.online_monitor.close()
             self.audio.close()
         return 0
 
@@ -1388,6 +1566,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="complete keeps natural multi-sentence replies; first-sentence is a latency lab mode",
     )
     parser.add_argument("--gemma-timeout", type=float, default=60.0)
+    parser.add_argument(
+        "--connectivity-interval",
+        type=float,
+        default=120.0,
+        help="seconds between immediate two-packet online probes",
+    )
+    parser.add_argument(
+        "--online-job-timeout",
+        type=float,
+        default=1800.0,
+        help="long Codex one-shot ceiling; deliberately exceeds dialogue timeout",
+    )
     parser.add_argument("--tts-socket", type=Path, default=DEFAULT_TTS_SOCKET)
     parser.add_argument(
         "--cat-sound-output",
@@ -1441,6 +1631,8 @@ def main() -> int:
         raise ValueError("thinking cue rate must be between zero and one")
     if not 0 <= args.response_cue_rate <= 1:
         raise ValueError("response cue rate must be between zero and one")
+    if args.connectivity_interval <= 0 or args.online_job_timeout <= 120:
+        raise ValueError("online intervals must be positive and jobs must allow over two minutes")
     if args.attended_cat_sounds and args.cat_sound_output != "speaker":
         raise ValueError("attended cat-sound testing supports speaker output only")
     assistant = VoiceAssistant(args)
@@ -1449,6 +1641,8 @@ def main() -> int:
         assistant.shutdown.set()
         assistant.cancel_speech.set()
         assistant.cancel_cat_sound.set()
+        assistant.cancel_work_purr.set()
+        assistant.online_jobs.cancel()
 
     signal.signal(signal.SIGINT, stop)
     signal.signal(signal.SIGTERM, stop)
