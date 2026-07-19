@@ -182,11 +182,12 @@ Small SFX was installed and measured as a stopped research profile, but both
 owner auditions failed quality: distress and choppiness remained after guided
 prompting. Raw generation is closed for revision one.
 
-The project is now the top-level Git repository with `main` as its default/base
-branch and public MIT-licensed remote
-`https://github.com/liamhelmer/nekokitty.git`. Work is on
-`agent/interruptible-voice`; draft PR 6 carries the buffered voice, story,
-schedule, and interaction refinements. PR 2 previously merged the local conversation/
+The project is now the top-level Git repository with `main` as its active and
+default branch and public MIT-licensed remote
+`https://github.com/liamhelmer/nekokitty.git`. PR 6 merged the buffered voice,
+story, schedule, online-command, and interaction refinements into `main` at
+`cebe54d7f5649b6fa652f736f45b2190fe59d736`; its remote feature branch was
+deleted. The owner now requires direct `main` work. PR 2 previously merged the local conversation/
 proximity bench at commit `ae63d3b6cee10b0f82467d5cecdaaa55f3e300a6`.
 An accidental empty nested clone
 was preserved outside the worktree at
@@ -345,6 +346,9 @@ Read these before changing the system:
 - [Online-only Codex commands](docs/plan/2026-07-19-online-codex-commands.md)
   — immediate ICMP mode, Luna search, Terra story composition, continuous work
   purr/status semantics, privacy boundary, validation, and rollback.
+- [Main auto-sync and assistant reload](docs/plan/2026-07-19-main-auto-sync.md)
+  — direct-main decision, shared writer lock, five-minute commit/fetch/rebase/
+  push timer, secret-path gate, supervised assistant reload, and rollback.
 - [What If offline schedule](docs/research/2026-07-17-what-if-schedule.md) —
   Dust API contract, local/Pacific-time interpretation, atomic hourly cache,
   subset TF-IDF vector ranking, child filter, deployment, validation, and
@@ -1279,3 +1283,9 @@ For every future model or service, add:
   clears pending tool state, speaks the owner-approved generic failure line, and
   continues listening without exposing internal exception messages. Fatal
   startup/capture faults remain outside this boundary.
+- 2026-07-19: Merged PR 6 into `main` at `cebe54d`, deleted its remote feature
+  branch, and adopted direct-to-main development. Added a shared story/render/Git
+  writer lock, guarded automatic local commits, fetch/rebase/push synchronization,
+  a five-minute user timer, and a supervised voice unit that reloads only when
+  the remembered remote revision changes. Secret-like paths and conflicted Git
+  operations fail closed without destructive cleanup.

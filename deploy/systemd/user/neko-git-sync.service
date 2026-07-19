@@ -1,0 +1,12 @@
+[Unit]
+Description=Synchronize Neko main branch and reload changed code
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/repos/nekokitty
+ExecStart=/usr/bin/python3 %h/repos/nekokitty/scripts/neko_git_sync.py
+Nice=15
+IOSchedulingClass=idle
+TimeoutStartSec=4min

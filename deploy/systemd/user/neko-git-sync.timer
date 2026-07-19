@@ -1,0 +1,12 @@
+[Unit]
+Description=Poll and synchronize Neko Git every five minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+AccuracySec=10s
+Persistent=true
+Unit=neko-git-sync.service
+
+[Install]
+WantedBy=timers.target

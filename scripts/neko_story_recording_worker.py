@@ -12,6 +12,10 @@ import subprocess
 import sys
 import time
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from neko.repository_lock import repository_write_lock  # noqa: E402
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 BUILDER = REPO_ROOT / "scripts/build_story_recordings.py"
@@ -68,24 +72,25 @@ def main() -> int:
                 story_id = request["story_id"]
                 if not isinstance(story_id, str) or not story_id:
                     raise ValueError("invalid rebuild story ID")
-                completed = subprocess.run(
-                    [
-                        str(PYTHON),
-                        str(BUILDER),
-                        "--story-id",
-                        story_id,
-                        "--incremental",
-                        "--threads",
-                        "1",
-                    ],
-                    cwd=REPO_ROOT,
-                    stdin=subprocess.DEVNULL,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    text=True,
-                    timeout=3600,
-                    check=False,
-                )
+                with repository_write_lock():
+                    completed = subprocess.run(
+                        [
+                            str(PYTHON),
+                            str(BUILDER),
+                            "--story-id",
+                            story_id,
+                            "--incremental",
+                            "--threads",
+                            "1",
+                        ],
+                        cwd=REPO_ROOT,
+                        stdin=subprocess.DEVNULL,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
+                        text=True,
+                        timeout=3600,
+                        check=False,
+                    )
                 if completed.returncode != 0:
                     log(
                         args.queue_root,

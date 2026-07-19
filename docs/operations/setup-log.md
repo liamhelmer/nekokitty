@@ -3318,3 +3318,40 @@ complete partial-work cleanup, exact fallback speech, non-disclosure of the
 exception message, and the existing online acceptance/purr ordering regression.
 The attended assistant was restarted with the catch-all and reported online
 immediately and ready after 5.330 seconds.
+
+## 2026-07-19 — direct-main five-minute Git sync
+
+The owner directed the project to merge PR 6, work directly from `main`, commit
+and push local runtime changes, poll/pull GitHub every five minutes, and reload
+the assistant after remote changes. `gh pr ready 6` followed by
+`gh pr merge 6 --merge --delete-branch` produced merge commit
+`cebe54d7f5649b6fa652f736f45b2190fe59d736` at 2026-07-19 18:41:28 UTC. A
+pruned fetch confirmed the remote feature branch deleted. The checkout switched
+to `main`, fast-forwarded to that merge, and was clean/equal to `origin/main`.
+
+Added `neko/repository_lock.py` with a mode-0600 advisory writer lock under the
+mode-0700 user state directory. Terra composition now holds it for its complete
+write/validate/enqueue transaction; the nice-19 story worker holds it around the
+incremental renderer; Git sync requests it nonblocking and reports `busy` rather
+than snapshotting partial content.
+
+Added `scripts/neko_git_sync.py`. It requires `main`, rejects in-progress Git
+operations, stages all Git-visible changes, refuses secret-like paths, creates a
+timestamped automated commit, fetches/prunes `origin main`, fast-forwards or
+rebases without destructive reset, aborts a conflicting rebase while preserving
+the local commit, pushes `HEAD:main`, and atomically records the last successful
+remote revision. A changed remembered remote revision runs user daemon-reload
+and restarts the supervised assistant. Git subprocesses are bounded to two
+minutes; the oneshot unit has a four-minute ceiling.
+
+Added source units under `deploy/systemd/user`: the prior attended PipeWire voice
+command as `neko-voice-assistant.service`, a nice-15/idle-I/O Git oneshot, and a
+persistent timer with two-minute boot delay and five-minute active interval.
+All sources passed `systemd-analyze --user verify`. Four temporary local/bare-
+remote tests passed for local commit/push, remote pull/restart, secret refusal,
+and busy-writer skip. The dependency-correct suite passed 166 ASR-environment
+tests (10 designed dependency skips) plus all three RF-DETR tests, 169 passing
+cases total. Python compileall and `git diff --check` passed. Installation and
+live timer/service results follow after this source milestone is committed to
+`main`; architecture and rollback are in
+`docs/plan/2026-07-19-main-auto-sync.md`.

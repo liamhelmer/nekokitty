@@ -1,0 +1,17 @@
+[Unit]
+Description=Neko attended voice assistant
+After=pipewire.service network.target
+Wants=pipewire.service
+
+[Service]
+Type=simple
+WorkingDirectory=%h/repos/nekokitty
+Environment=PYTHONUNBUFFERED=1
+ExecStart=%h/.local/share/neko/venvs/asr/bin/python %h/repos/nekokitty/scripts/neko_voice_assistant.py --device pipewire --language en --attended-cat-sounds --verbose-transcripts
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=15
+KillMode=mixed
+
+[Install]
+WantedBy=default.target

@@ -15,6 +15,7 @@ from typing import Callable, Literal
 
 from .story_library import StoryLibrary
 from .story_recording_rebuild import enqueue_story_rebuild
+from .repository_lock import repository_write_lock
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -279,7 +280,13 @@ class CodexOnlineJobRunner:
         result: OnlineJobResult
         output_path: Path | None = None
         before_ids: set[str] = set()
+        write_lock = None
+        write_lock_entered = False
         try:
+            if command.kind == "compose_story":
+                write_lock = repository_write_lock()
+                write_lock.__enter__()
+                write_lock_entered = True
             if not self.codex_path.is_file():
                 raise FileNotFoundError(f"Codex CLI not found: {self.codex_path}")
             self.job_root.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -349,5 +356,7 @@ class CodexOnlineJobRunner:
                 self._process = None
                 self._command = None
                 cancelled = self._cancelled
+            if write_lock_entered and write_lock is not None:
+                write_lock.__exit__(None, None, None)
         if not cancelled:
             self.callback(result)
