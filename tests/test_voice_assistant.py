@@ -165,6 +165,43 @@ class VoiceAssistantInputTests(unittest.TestCase):
 
 
 class VoiceAssistantMixedAudioTests(unittest.TestCase):
+    def test_online_story_acknowledges_before_starting_work_purr(self) -> None:
+        order: list[str] = []
+
+        class FakeJobs:
+            def start(self, _command: OnlineCommand) -> bool:
+                order.append("job")
+                return True
+
+        assistant = VoiceAssistant.__new__(VoiceAssistant)
+        assistant.online_monitor = SimpleNamespace(online=True)
+        assistant.online_jobs = FakeJobs()
+        assistant.active_online_command = None
+        assistant.current_vad_finalized_s = 1.0
+        assistant._stop_thinking_cue_for_speech = lambda: None
+        assistant._stop_tail_purr_for_neko_speech = lambda: None
+        assistant._event = lambda event, **values: order.append(
+            f"event:{event}:{values.get('job_kind')}"
+        )
+        assistant._speak = lambda text, **_values: order.append(f"speak:{text}") or True
+        assistant._start_work_purr = lambda: order.append("purr")
+        assistant.controller = SimpleNamespace(extend_active_session=lambda _now: None)
+
+        self.assertTrue(
+            assistant._start_online_job(
+                OnlineCommand("compose_story", "a rolling ball")
+            )
+        )
+        self.assertEqual(
+            order,
+            [
+                "job",
+                "event:online_job_started:compose_story",
+                "speak:Sounds like fun, let me work on that!",
+                "purr",
+            ],
+        )
+
     def test_online_only_command_has_exact_offline_reply(self) -> None:
         spoken: list[str] = []
         assistant = VoiceAssistant.__new__(VoiceAssistant)

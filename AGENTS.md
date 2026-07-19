@@ -151,6 +151,13 @@ motherly/playful/mischievous character, contractions, and a bounded optional
 real-cat cue; factual evidence and uncertainty remain controlling.
 The persona-aware code is active in the attended process; its restart reported
 online immediately and ready after 5.246 seconds.
+The first live compose request then exposed and stopped on a media-free event
+field collision before feedback or purring. Cleanup cancelled the child and no
+story or queue artifact remained. Online telemetry now uses `job_kind`, and
+accepted composition/search commands give a short spoken acknowledgement before
+the continuous work purr begins.
+The fixed attended process is active, online, and reported ready after 5.262
+seconds.
 
 The owner accepts 16K as the hard context minimum. The enabled LFM server is
 explicitly `--ctx-size 16384` with quantized K/V cache; unlike the failed LiteRT
@@ -1254,3 +1261,8 @@ For every future model or service, add:
   short completion announcement receive the same personality, while story files
   leave sound placement to the renderer. A live kneading search kept its factual
   and veterinary caveat but was noticeably less dry and ended in a tail purr.
+- 2026-07-19: Fixed the first live composition crash: the telemetry keyword
+  `kind` collided with `_event`'s positional parameter immediately after job
+  launch. Renamed online telemetry to `job_kind`, confirmed cleanup left no
+  child/story/queue artifact, and added immediate acceptance speech before the
+  work purr plus an ordering regression.

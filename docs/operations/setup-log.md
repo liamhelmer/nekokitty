@@ -3281,3 +3281,21 @@ a small ownership joke, an appropriate veterinarian caveat, and one allowed
 `[purr:tail]` marker. It did not edit the repository or generate a story.
 The attended assistant was restarted with the unchanged manual command and
 reported the immediate online transition followed by ready in 5.246 seconds.
+
+### 2026-07-19 first live composition failure and fix
+
+The owner-spoken composition phrase was recognized by KWS/ASR and reached the
+online route, but `online_job_started` passed `kind=compose_story` to `_event`,
+whose positional event-name parameter was already named `kind`. The resulting
+`TypeError: VoiceAssistant._event() got multiple values for argument 'kind'`
+occurred before acknowledgement/purr playback. Normal shutdown cleanup cancelled
+the just-started child. Inspection found no one-shot Codex child, renderer,
+queued request, generated story, or worktree change.
+
+All online job events now use `job_kind`. Successful story requests speak
+`Sounds like fun, let me work on that!` before starting the loop purr; searches
+say `Ooh, let me sniff around the web!`. The 29 online/voice tests pass, including
+an exact ordering regression for job launch, collision-free event, acceptance
+speech, and purr start.
+The attended loop was restarted with the unchanged manual command; it reported
+online immediately and ready after 5.262 seconds.

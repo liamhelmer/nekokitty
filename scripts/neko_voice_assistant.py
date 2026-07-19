@@ -834,9 +834,15 @@ class VoiceAssistant:
         self._stop_tail_purr_for_neko_speech()
         self._event(
             "online_job_started",
-            kind=command.kind,
+            job_kind=command.kind,
             description=command.status_description,
         )
+        acceptance = (
+            "Sounds like fun, let me work on that!"
+            if command.kind == "compose_story"
+            else "Ooh, let me sniff around the web!"
+        )
+        self._speak(acceptance, vad_finalized_s=self.current_vad_finalized_s)
         self._start_work_purr()
         # The request stays deliberately outside local LLM history. Codex owns
         # its own bounded one-shot context and the completion is read directly.
@@ -846,7 +852,10 @@ class VoiceAssistant:
     def _finish_online_job(self, result: OnlineJobResult) -> None:
         self._stop_work_purr()
         if self.active_online_command != result.command:
-            self._event("online_job_stale_result_ignored", kind=result.command.kind)
+            self._event(
+                "online_job_stale_result_ignored",
+                job_kind=result.command.kind,
+            )
             return
         self.active_online_command = None
         if result.succeeded and result.added_story_ids:
@@ -858,7 +867,7 @@ class VoiceAssistant:
                 self._event("story_library_reload_error", message=str(error))
         self._event(
             "online_job_complete",
-            kind=result.command.kind,
+            job_kind=result.command.kind,
             succeeded=result.succeeded,
             added_story_ids=list(result.added_story_ids),
         )

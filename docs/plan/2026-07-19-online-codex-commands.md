@@ -58,6 +58,10 @@ a command-line argument, so it does not appear in the local process list.
 While a job is active, the approved primary loop asset repeats until completion.
 This explicit supervisor state may begin inside the ordinary purr cooldown; all
 model-selected and conversational sounds retain their normal cooldown policy.
+On successful acceptance, story composition first says `Sounds like fun, let me
+work on that!`; web search first says `Ooh, let me sniff around the web!`. The
+work purr starts only after that acknowledgement finishes, so a child gets an
+unambiguous response before the longer background phase.
 Unaddressed speech is ignored. Saying `Neko` stops the purr mid-clip, speaks
 `I'm working on your request to ...`, and resumes the purr if the job is still
 active. Job completion stops the purr mid-clip before the one-shot's short plain
@@ -131,6 +135,16 @@ This was materially less dry while preserving the factual/safety boundary. No
 story was generated during this prompt-only smoke.
 The attended assistant was then restarted; the persona-aware process reported
 online immediately and ready after 5.246 seconds.
+
+The first owner-spoken composition attempt exposed a logger collision after the
+job launch: `_event()` already names its first parameter `kind`, while the new
+call also supplied `kind=compose_story`. Python raised `TypeError` before the
+purr could begin and the voice loop's cleanup cancelled the child. No Codex
+one-shot, renderer, queued request, or story worktree change remained. Online
+events now use `job_kind`; a regression verifies launch, event, spoken
+acknowledgement, then purr in that order.
+The fixed attended process reported online immediately and ready after 5.262
+seconds.
 
 ## Rollback
 
