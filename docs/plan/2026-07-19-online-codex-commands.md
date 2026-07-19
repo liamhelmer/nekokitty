@@ -67,7 +67,13 @@ completion.
 
 The search prompt treats the spoken topic as untrusted data, disallows local
 file access/mutation, requests current sources, and asks for two to five short
-plain spoken sentences without Markdown, URLs, or citation syntax. Codex CLI
+plain spoken sentences without Markdown, URLs, or citation syntax. Both Codex
+prompts carry Neko's full presentation persona: cute, motherly, playful and a
+little mischievous; an orange-and-black striped cat-car with fuzzy hands, a long
+tail, and a magical gummy-worm rear drawer; informal contractions, short words,
+warmth, and silliness. This explicitly cannot override evidence or uncertainty.
+Final responses may contain at most one approved real-sound marker, while story
+files never contain markers because the renderer owns paragraph sounds. Codex CLI
 0.144.4 does not expose the interactive collaboration-mode selector through
 `codex exec`; the one-shot therefore receives an explicit Plan-mode instruction
 and is independently constrained by `-s read-only`. Live web search must be a
@@ -77,7 +83,8 @@ The story prompt similarly treats the theme as untrusted data and limits edits
 to `content/stories/originals` plus `content/stories/library.json`. It requires
 one unique `original.*` entry, 500–650 words to preserve the five-minute bound,
 ages 5–7, non-scary informal language, paragraphs no longer than 350 characters,
-summary/tags/essentials, JSON validation, and no render/commit/push. After a
+summary/tags/essentials, Neko's warm mischievous narration voice, JSON validation,
+and no render/commit/push. After a
 successful one-entry delta, `enqueue_story_rebuild()` launches the existing
 nice-19, idle-I/O, one-thread incremental renderer. New stories default to a
 warm ending purr. The runtime reloads the source library immediately and the
@@ -116,6 +123,14 @@ still a manual test process rather than a boot unit. Production acceptance still
 needs an end-to-end spoken search, spoken status
 check, completion announcement, stop/cancellation test, offline probe failure,
 and a real composed-story render/listening test.
+
+A real Luna/low web smoke after the persona change answered why cats knead soft
+blankets with contractions, cozy kitten/nest language, a playful claim-the-
+fluffy-spot joke, an appropriate veterinary caveat, and one `[purr:tail]` cue.
+This was materially less dry while preserving the factual/safety boundary. No
+story was generated during this prompt-only smoke.
+The attended assistant was then restarted; the persona-aware process reported
+online immediately and ready after 5.246 seconds.
 
 ## Rollback
 

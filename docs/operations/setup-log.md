@@ -3264,3 +3264,20 @@ restart after closing the launch/completion race reported ready in 5.330
 seconds and online. Detailed
 behavior, security boundary, exact command shape, known ICMP limitation, and rollback are in
 `docs/plan/2026-07-19-online-codex-commands.md`.
+
+### 2026-07-19 persona follow-up
+
+The owner required external Codex answers to retain Neko's personality rather
+than returning dry generic prose. A shared prompt fragment now describes her as
+a cute, motherly, playful, slightly mischievous orange-and-black striped cat-car
+with fuzzy hands, a long tail, a magical gummy-worm rear drawer, affection for
+children/cats/stories, contractions, short words, warmth, and silliness. It says
+explicitly that voice cannot alter facts, evidence, or uncertainty. Short final
+answers may contain at most one allowlisted cat-sound marker; generated story
+files may not contain markers because the fixed renderer owns those sounds.
+The eight online-job tests passed after the change. A real Luna/low/read-only
+web smoke about cat kneading returned warm kitten/nest language, contractions,
+a small ownership joke, an appropriate veterinarian caveat, and one allowed
+`[purr:tail]` marker. It did not edit the repository or generate a story.
+The attended assistant was restarted with the unchanged manual command and
+reported the immediate online transition followed by ready in 5.246 seconds.

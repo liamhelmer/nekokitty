@@ -143,6 +143,14 @@ The new code is active in the current attended manual process; its startup
 immediately reported online mode and readiness after 5.365 seconds.
 After the stdin privacy and cancellation-race tightening, the final active
 restart reported ready in 5.330 seconds.
+Every external Codex request now carries Neko's presentation persona so search
+answers and story-completion announcements remain warm, informal, silly, and
+cat-like rather than becoming dry generic reports. The prompt includes her
+orange/black cat-car body, fuzzy hands, tail, magical gummy-worm rear drawer,
+motherly/playful/mischievous character, contractions, and a bounded optional
+real-cat cue; factual evidence and uncertainty remain controlling.
+The persona-aware code is active in the attended process; its restart reported
+online immediately and ready after 5.246 seconds.
 
 The owner accepts 16K as the hard context minimum. The enabled LFM server is
 explicitly `--ctx-size 16384` with quantized K/V cache; unlike the failed LiteRT
@@ -1240,3 +1248,9 @@ For every future model or service, add:
   completion speech, stop cancellation, exact offline reply, transient private
   output handling, tests, live Luna search smoke, and isolated Terra invocation
   smoke are recorded in the linked plan and setup log.
+- 2026-07-19: Added Neko's full presentation persona to both external Codex
+  prompts. Search facts now return in her contraction-heavy, warm, playful voice
+  with at most one approved real-cat cue; Terra-written story narration and its
+  short completion announcement receive the same personality, while story files
+  leave sound placement to the renderer. A live kneading search kept its factual
+  and veterinary caveat but was noticeably less dry and ended in a tail purr.
