@@ -3388,3 +3388,23 @@ was temporarily stopped but left enabled while this deployment record was
 written. After pushing this record, a controlled sync will test remote-change
 detection, daemon reload, assistant restart, state advancement, and the next
 five-minute schedule.
+
+### Live remote-change reload acceptance
+
+Pushed documentation commit `d75b081fc2b534d039f5823b5d19ee3030545a20`
+while the remembered successful revision was still `21f44f3`. A controlled
+`systemctl --user start neko-git-sync.service` completed successfully from
+11:48:59 to 11:49:01 PDT and logged:
+
+```json
+{"assistant_restarted":true,"event":"git_sync","head":"d75b081fc2b534d039f5823b5d19ee3030545a20","local_commit_created":false,"remote_changed":true,"status":"synchronized"}
+```
+
+The sync daemon-reloaded user units, cleanly stopped assistant PID 704897, and
+started PID 706458. The replacement emitted online mode and ready after 5.372
+seconds, remained active/running with `NRestarts=0`, and used about 1.31 GiB at
+inspection. The state file, local HEAD, and `origin/main` all matched `d75b081`;
+the worktree was clean. Both units remained enabled, `Linger=yes`, and the
+re-enabled timer's next activation was 11:53:59 PDT, five minutes after the
+11:48:59 baseline. This passes the requested pull/change/reload path without a
+reboot; a real cold boot remains a separate acceptance test.

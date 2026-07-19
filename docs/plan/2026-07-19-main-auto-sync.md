@@ -95,6 +95,15 @@ and `loginctl` reports `Linger=yes`. The timer was briefly stopped—not disable
 while recording deployment to avoid committing a half-written log. The final
 documentation push is used below as the live remote-change/restart test.
 
+That live test passed. After pushing documentation commit `d75b081`, the stored
+revision still named `21f44f3`; an explicit sync detected the change, ran daemon-
+reload, stopped assistant PID 704897, started PID 706458, and reported
+`remote_changed=true`, `assistant_restarted=true`, no local auto-commit, and
+success. The replacement assistant reported online and ready after 5.372 seconds
+with zero service restarts. HEAD, `origin/main`, and the state file all matched
+`d75b081`. The re-enabled timer showed its next trigger at 11:53:59 PDT, five
+minutes after the prior 11:48:59 activation baseline.
+
 ## Rollback
 
 Disable the timer and supervised assistant before reverting:

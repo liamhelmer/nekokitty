@@ -195,6 +195,15 @@ was preserved outside the worktree at
 `/home/neko/repos/nekokitty-empty-clone-backup-20260713`. `CLAUDE.md` points
 Claude Code back to this file so assistants share one durable source of truth.
 
+Direct-main synchronization is deployed as a lingering user timer. Every five
+minutes it serializes against Terra and story rendering, commits Git-visible
+local changes, fetches/rebases/pushes `main`, and restarts the supervised
+assistant when its remembered remote revision changes. The first live change
+test advanced `21f44f3` to `d75b081`, restarted PID 704897 as 706458, and the
+replacement reported online/ready in 5.372 seconds. Local HEAD, `origin/main`,
+and the mode-0600 sync state matched afterward. Secret-like paths, non-main
+branches, in-progress Git operations, and rebase conflicts fail closed.
+
 ## Verified host inventory
 
 Inventory was collected locally on 2026-07-12 in America/Vancouver.
