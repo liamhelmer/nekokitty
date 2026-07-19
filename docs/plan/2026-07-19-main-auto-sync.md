@@ -84,9 +84,16 @@ busy story writer causing a clean skipped cycle. Existing online/story/voice
 tests verify the shared writer integrations. All three user unit sources pass
 `systemd-analyze --user verify`.
 
-Deployment validation and exact installed symlinks, timer timestamps, first
-manual sync, linger state, assistant PID/readiness, and Git state are recorded in
-`docs/operations/setup-log.md` after installation.
+The three sources are installed as absolute symlinks under
+`%h/.config/systemd/user` and enabled. The terminal-owned process was stopped;
+the user service reached active and later logged online/ready after 5.433 seconds.
+Two harmless initial syncs (an explicit start and the timer's already-due boot
+trigger) both completed at revision `21f44f3` with no commit, remote change, or
+restart. The next trigger was scheduled exactly five minutes after the last run.
+The state and lock files are mode 0600, the tree remained clean/equal to remote,
+and `loginctl` reports `Linger=yes`. The timer was briefly stopped—not disabled—
+while recording deployment to avoid committing a half-written log. The final
+documentation push is used below as the live remote-change/restart test.
 
 ## Rollback
 

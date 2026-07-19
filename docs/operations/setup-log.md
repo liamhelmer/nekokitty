@@ -3355,3 +3355,36 @@ cases total. Python compileall and `git diff --check` passed. Installation and
 live timer/service results follow after this source milestone is committed to
 `main`; architecture and rollback are in
 `docs/plan/2026-07-19-main-auto-sync.md`.
+
+### User-service installation and first sync
+
+Source commit `21f44f3542d32abb65c190767cfded91db0dac7f` was pushed directly
+to `origin/main`; local and remote matched with a clean tree before deployment.
+Created absolute symlinks (no copied unit drift) from:
+
+- `%h/.config/systemd/user/neko-voice-assistant.service`
+- `%h/.config/systemd/user/neko-git-sync.service`
+- `%h/.config/systemd/user/neko-git-sync.timer`
+
+to their respective sources under `deploy/systemd/user`. Ran
+`systemctl --user daemon-reload`, enabled the assistant and timer, stopped the
+terminal-owned assistant, then started the user service. It was active as PID
+704897 and logged immediate online mode plus ready after 5.433 seconds. PipeWire
+remained the existing active user service.
+
+An explicit sync start and the timer's already-due persistent boot activation
+overlapped harmlessly at the unit level (systemd serialized the same oneshot).
+Both successful journal records reported revision `21f44f3`, no local commit,
+no remote change, and no assistant restart. The next activation was scheduled
+for 11:51:59 PDT, exactly five minutes after 11:46:59. The working tree remained
+clean and equal to `origin/main`. Both
+`%h/.local/state/neko/git-sync-last-remote` and `repository-write.lock` were
+mode 0600; the remembered revision matched HEAD.
+
+`loginctl enable-linger neko` succeeded without privilege escalation;
+`loginctl show-user neko` reports `Linger=yes`, allowing the user manager,
+assistant, PipeWire, and timer to exist without an interactive login. The timer
+was temporarily stopped but left enabled while this deployment record was
+written. After pushing this record, a controlled sync will test remote-change
+detection, daemon reload, assistant restart, state advancement, and the next
+five-minute schedule.

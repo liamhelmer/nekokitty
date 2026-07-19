@@ -111,8 +111,10 @@ and deterministically closes the session and clears both general and pending
 schedule context when its segment finalizes. A six-turn/2,400-character in-memory history is implemented. Negative,
 wake, interruption, replacement-response, and sleep replay tests pass; the
 owner recordings stay mode-restricted outside Git and are not identified or
-hashed in public notes. This loop is deliberately not boot-enabled pending
-false/missed-wake, production AEC, combined-load, unplug/failure, and soak gates.
+hashed in public notes. The owner has now enabled this attended/headphone profile
+as a lingering user service so Git pulls can reload it and headless boots can
+start it. This operational decision does not satisfy the outstanding false/
+missed-wake, production AEC, combined-load, unplug/failure, and soak gates.
 One private-fixture replay reached first PCM write an estimated 1.309 seconds
 after speech ended. This meets the software latency target once, but acoustic
 onset and warm P50/P95/P99 remain unmeasured.
@@ -138,8 +140,7 @@ serialized job runs, a primary purr loops; an addressed `Neko` reports the
 current request and resumes purring, completion stops the purr before speaking
 the result, and `Neko stop` cancels the child process. No audio or image leaves
 the cart, and online prompts/results do not enter local LLM history. Live spoken
-acceptance and boot deployment remain pending.
-The new code is active in the current attended manual process; its startup
+acceptance remains pending. The code first ran in an attended manual process; its startup
 immediately reported online mode and readiness after 5.365 seconds.
 After the stdin privacy and cancellation-race tightening, the final active
 restart reported ready in 5.330 seconds.
@@ -450,8 +451,10 @@ the smaller, proven LiteRT CPU resident.
   and memory-only ALSA/PipeWire live ASR tool are in the repository with unit
   coverage. The PipeWire path handles the observed PipeWire 1.0.5 `pw-record`
   exit-1-on-bounded-SIGINT contract only when PCM is present and stderr is empty.
-  No integrated assistant/orchestration service is boot-enabled; Gemma and the
-  separate English TTS worker are boot dependencies.
+  The attended assistant is now enabled as the lingering user unit
+  `neko-voice-assistant.service`; the LFM and separate English TTS workers are
+  system boot dependencies. This is supervision/reload plumbing, not production
+  audio acceptance.
 - What If schedule/music/art/camp data is cached under
   `/var/lib/neko/what-if` in raw JSON plus SQLite form. The hardened
   `neko-what-if-refresh.timer` is enabled hourly; failed refreshes retain the
