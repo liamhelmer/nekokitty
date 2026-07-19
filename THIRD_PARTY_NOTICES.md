@@ -11,10 +11,19 @@ Current notable boundaries:
   Apache-2.0; its own `LICENSE` controls that directory.
 - Gemma 4, Nemotron/Audex, ZipDepth and their dependencies retain the terms and
   notices recorded in `AGENTS.md` and the linked research/operations ledger.
+- LiquidAI LFM2.5-1.2B-Instruct GGUF weights are installed externally under the
+  LFM Open 1.0 terms. They are not distributed by this repository or relicensed
+  under MIT. The normal server uses an external digest-pinned NVIDIA llama.cpp
+  container; its own notices remain controlling.
 - The sherpa-onnx runtime is Apache-2.0. The separately downloaded Nemotron 3.5
   streaming ASR export is derived from NVIDIA model weights under OpenMDW-1.1;
   it is an external runtime artifact and is not covered by this repository's MIT
   licence.
+- The external Silero VAD ONNX artifact is from the MIT-licensed Silero VAD
+  project. The sherpa-onnx 3M bilingual open-vocabulary keyword archive is also
+  installed only as an external evaluation artifact; it is not distributed by
+  this repository. Confirm its model-specific redistribution terms before ever
+  packaging it. Exact sources and hashes are in the setup log.
 - Supertonic's Python code is MIT, while the separately downloaded Supertonic 3
   weights are BigScience OpenRAIL-M. Built-in voice-style data and generated
   audio remain subject to the upstream model terms and applicable voice rights.
@@ -31,6 +40,10 @@ Current notable boundaries:
   Nano INT8 0.8 ONNX/voice artifacts are identified as Apache-2.0 upstream. They
   remain external; Neko's local minimal-offline patch does not relicense them.
   Exact wheel/model revisions and hashes are in the setup log.
+- Piper 1.4.2 is GPL-3.0-or-later and is executed as a separate local service.
+  The external Lessac medium voice files retain the terms recorded in their
+  upstream model card and training-data notices. Neither Piper nor the voice
+  model is covered by Neko's MIT licence, and neither is distributed here.
 - CatMeows 1.0.2 is an external University of Milan dataset. Zenodo identifies
   CC BY 4.0 and the authors additionally state scientific-research/
   non-commercial use and acknowledgement terms. It is not distributed in this

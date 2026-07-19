@@ -140,10 +140,13 @@ the Neko runtime or distribute its weights with this repository.
    owner-spoken Bluetooth sample is still an acceptance item, not an install gate.
 3. **Complete for the bench:** install Supertonic 3 in a separate pinned environment; benchmark English,
    French, and Spanish to a non-recording sink, then Ora playback.
-4. **Part complete:** the deterministic session/wake core, Gemma adapter, manual
-   text trigger, transcript-gated `Neko Neko`, and opt-in TTS playback exist.
-   A unified live audio turn loop, interruption-capable playback queue, VAD, and
-   trained wake model remain. Pipecat is still optional rather than installed.
+4. **Complete for the attended bench:** the continuous in-memory 16 kHz loop,
+   Silero VAD, dedicated sherpa open-vocabulary `Neko Neko`/sleep-word spotter,
+   Nemotron hint, inline buffered-audio Gemma request, bounded dialogue history,
+   and cancellation-safe TTS barge-in pass private-fixture replay. The integrated
+   assistant remains deliberately uninstalled as a service. Production
+   false/missed-wake tuning, reSpeaker AEC/reference testing, audio arbitration,
+   combined soak, and cold boot remain. Pipecat is still optional and uninstalled.
 5. **Complete:** pin RF-DETR Nano source/weights, export ONNX off the normal
    service path, build TensorRT on this Jetson, and implement the C922 adapter.
 6. **Part complete:** ephemeral tracking and tested social state are present.

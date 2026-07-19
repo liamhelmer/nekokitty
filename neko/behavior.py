@@ -33,6 +33,18 @@ def normalize_phrase(text: str) -> str:
 @dataclass(frozen=True, slots=True)
 class BehaviorConfig:
     wake_phrase: str = "neko neko"
+    wake_phrase_aliases: tuple[str, ...] = (
+        "eko neko",
+        "echo neko",
+        "echo necho",
+        "eko necho",
+        "neko",
+        "nico",
+        "niko",
+        "nikko",
+        "nekko",
+        "neco",
+    )
     session_timeout_s: float = 30.0
     person_confidence_min: float = 0.60
     person_stable_observations_min: int = 3
@@ -76,6 +88,21 @@ class BehaviorController:
     def session_active(self) -> bool:
         return self.session_deadline_s is not None
 
+    def extend_active_session(self, monotonic_s: float) -> None:
+        """Renew an existing conversation without treating output as a wake word.
+
+        This is used only while Neko has deliberately left a long tail purr
+        playing. It never opens a new session and therefore cannot make ordinary
+        ambient speech conversationally active.
+        """
+
+        if self.muted or self.session_deadline_s is None:
+            return
+        self.session_deadline_s = max(
+            self.session_deadline_s,
+            monotonic_s + self.config.session_timeout_s,
+        )
+
     def handle(self, event: InputEvent) -> tuple[OutputAction, ...]:
         if isinstance(event, TranscriptEvent):
             return self._handle_transcript(event)
@@ -93,31 +120,55 @@ class BehaviorController:
         normalized = normalize_phrase(event.text)
         if not normalized:
             return ()
-        if normalized in {"stop", "cancel", "stop talking", "be quiet"}:
+        # Sleep words remain a global, deterministic escape hatch. The audio
+        # transport rejects unaddressed speech that begins while Neko is
+        # speaking; here, an active session accepts ordinary follow-up turns.
+        if normalized in {"bye bye", "goodbye", "good bye"}:
+            self.session_deadline_s = None
+            return (CancelAudio(reason="sleep-word"),)
+
+        wake_phrases = sorted(
+            (
+                normalize_phrase(item)
+                for item in (self.config.wake_phrase, *self.config.wake_phrase_aliases)
+            ),
+            key=len,
+            reverse=True,
+        )
+        wake = next(
+            (
+                item
+                for item in wake_phrases
+                if normalized == item or normalized.startswith(f"{item} ")
+            ),
+            None,
+        )
+        addressed = wake is not None
+        if not addressed and not self.session_active:
+            return ()
+        remainder = normalized[len(wake) :].strip() if wake is not None else normalized
+        if remainder in {"unmute", "unmute microphone"}:
+            if not addressed:
+                return ()
+            self.muted = False
+            self.session_deadline_s = event.monotonic_s + self.config.session_timeout_s
+            return (SetMuted(muted=False), SpeakText("I'm listening again.", event.language))
+        if remainder in {"stop", "cancel", "stop talking", "be quiet"}:
             self.session_deadline_s = None
             return (CancelAudio(reason="voice-command"),)
-        if normalized in {"mute", "mute microphone", "privacy mode"}:
+        if self.muted:
+            return ()
+        if remainder in {"mute", "mute microphone", "privacy mode"}:
             self.muted = True
             self.session_deadline_s = None
             return (CancelAudio(reason="mute"), SetMuted(muted=True))
-        if normalized in {"unmute", "unmute microphone"}:
-            self.muted = False
-            return (SetMuted(muted=False), SpeakText("I'm listening again.", event.language))
-        if self.muted:
-            return ()
-
-        wake = normalize_phrase(self.config.wake_phrase)
-        if not self.session_active:
-            if wake not in normalized:
-                return ()
-            self.session_deadline_s = event.monotonic_s + self.config.session_timeout_s
-            remainder = normalized.replace(wake, "", 1).strip()
-            if not remainder:
-                return (Acknowledge(),)
-            return (Acknowledge(), DialogueRequest(remainder, event.language))
-
         self.session_deadline_s = event.monotonic_s + self.config.session_timeout_s
-        return (DialogueRequest(event.text.strip(), event.language),)
+        if not remainder:
+            return (Acknowledge(),)
+        dialogue = DialogueRequest(remainder, event.language)
+        if addressed:
+            return (Acknowledge(), dialogue)
+        return (dialogue,)
 
     def _handle_person(self, event: PersonObservation) -> tuple[OutputAction, ...]:
         self._expire_session(event.monotonic_s)

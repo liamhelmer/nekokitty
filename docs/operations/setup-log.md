@@ -3,6 +3,168 @@
 All dates are America/Vancouver unless marked UTC. Never add credentials or
 private recordings to this file.
 
+## 2026-07-19 — pre-recorded Mini/Kiki story shelf
+
+No package, model, systemd unit, or boot setting changed. Used the already pinned
+KittenTTS Mini revision and Kiki 1.2x voice to pre-render all five approved local
+stories in 53 large paragraph-aware sections. Exact model/config/voice hashes,
+the build command, section/cue/purr inventory, 1,062.35-second render time,
+905.6 MiB peak RSS, 828.958 seconds of finite non-clipping audio, 19,750,176-byte
+artifact size, runtime design, and rollback are in
+`docs/plan/2026-07-19-prerecorded-story-audio.md`.
+
+Added source/spoken/audio hash verification and normal prerecorded playback with
+addressed interruption. The prior live Mini-unaware TTS route remains the
+automatic degraded fallback. Added a self-healing queue under
+`/var/tmp/neko-story-recording-rebuild`: stale discovery deduplicates by story,
+launches one worker via `nice -n 19` and idle-class `ionice -c 3`, and uses one
+CPU inference thread with no GPU. An actual queued Luna integration run logged
+nice 19, reused all ten unchanged sections, preserved the five-story manifest,
+reported `ionice` class `idle`, and completed in about three seconds including model load. The manifest is
+atomic and hot-reloaded in a running assistant. No private media or transcript
+is stored in these assets or queue records. Final validation passed all 152
+tests, Python compilation, and `git diff --check`. Restarted the attended loop;
+it reported ready in 5.470 seconds with the expected local endpoints. Human
+listening acceptance of the five complete recordings remains.
+
+## 2026-07-18 — casual speech and spoken-purr follow-up
+
+No package, model, media asset, systemd unit, or boot setting changed. Updated
+the LFM persona/per-turn instruction, reduced ordinary response generation to
+80 tokens, added a bounded TTS-only contraction pass, and made purr language in
+a completed model answer request the existing asynchronous post-speech tail
+purr. Temperature remains 0.45. Reviewed stories retain their separate local
+path and existing sound behavior.
+
+An eight-prompt warm local comparison showed the chosen short positive-example
+prompt producing more casual language (`I'm gonna`, `let's`, `yep`, and `sure
+thing`) than the prior prompt. A tested intermediate prompt with a long list of
+negative examples was discarded because LFM repeated prohibited formal phrases
+and rambled. The chosen prompt still cannot make the 1.2B model perfectly obey
+sentence-count, greeting, or emoji rules, so common safe contractions are also
+rewritten only at the TTS boundary. Logs and model history retain the original
+answer. Full observations and rollback are in
+`docs/plan/2026-07-18-casual-voice-and-purr-followup.md`.
+
+The attended assistant previously running from the old imports was stopped and
+restarted with the same command and flags:
+
+```bash
+/home/neko/.local/share/neko/venvs/asr/bin/python \
+  scripts/neko_voice_assistant.py --device pipewire --language en \
+  --attended-cat-sounds --verbose-transcripts
+```
+
+It reported ready after 5.414 seconds with the expected LFM model, streaming-
+text route, and `/run/neko/tts.sock`. The exact pre-restart live answer included
+the phrase `thinking and purring a bit`; under the new policy that representative
+case schedules a long purr after speech. No private recording or transcript was
+committed. Targeted tests passed 37/37; final repository validation passed all
+144 tests, Python compilation, and `git diff --check`.
+
+Later the same day, all five approved story texts were edited into a more casual
+spoken register without changing their plots or manifest metadata. Their source
+lengths remain 500–616 Markdown words. The prior three-sound story ceiling was
+replaced by `StoryLibrary` presentation logic targeting one sound per 75 spoken
+words, with a ten-sound hard maximum and one sound reserved for the asynchronous
+ending purr. Current runtime counts are seven sounds for Elsa, Luna, Magic Girl,
+and Neko's parade, and eight for Heidi; measured densities are 70.6–79.6 spoken
+words per sound. Markers are inserted only into the ephemeral playback string.
+No model, package, stored media, systemd unit, or story metadata changed. Final
+validation passed all 147 tests, Python compilation, and `git diff --check`.
+The attended loop was restarted with its unchanged documented command and
+reported ready in 5.289 seconds, activating the new story presentation code.
+
+## 2026-07-17 — What If offline schedule cache
+
+No Python package or model was installed. The implementation uses Python 3.12
+stdlib `urllib`, `sqlite3`, `zoneinfo`, and an in-process sparse TF-IDF/cosine
+ranker. Upstream retrieval used the public Dust API documented at
+<https://dust.events/docs/Integrations/api/> and the four `what-if` JSON feeds.
+
+Installed and started the repository unit/timer with:
+
+```bash
+sudo install -o root -g root -m 0644 \
+  deploy/systemd/neko-what-if-refresh.service \
+  /etc/systemd/system/neko-what-if-refresh.service
+sudo install -o root -g root -m 0644 \
+  deploy/systemd/neko-what-if-refresh.timer \
+  /etc/systemd/system/neko-what-if-refresh.timer
+sudo systemctl daemon-reload
+sudo systemctl enable --now neko-what-if-refresh.timer
+sudo systemctl start neko-what-if-refresh.service
+```
+
+The first oneshot completed successfully at 10:40:49 PM PDT. The enabled timer
+scheduled the next run for 11:40:48 PM PDT. Runtime files are owner `neko`, mode
+0644 inside `/var/lib/neko/what-if` (directory 0755): schedule 316 KiB, music
+75 KiB, art 39 KiB, camps 40 KiB, and SQLite approximately 1.2 MiB. Database
+metadata recorded 333/152/70/67 source items, `America/Vancouver`, schema 1, and
+normalized feed SHA-256 values:
+
+- schedule: `3e7805ca4da649e5ae9dcf138e92d09dd019f3593cfc43bb187c66965d79775b`
+- music: `145ec9579ccf2e488faae361a2eacc66d979954021b7ced482b75844e94e9cba`
+- art: `b4c168e46ad175268023b2f89bb9cd293c35b3a81fa26ec88be56b84e5b7f940`
+- camps: `8bc15ac116ecaa1bd7b0b6b00f116c07f613fa99c8ba55ba0cf42040c5d172b2`
+
+At 10:44 PM PDT, `timedatectl` confirmed the host was already configured for
+`America/Vancouver (PDT, -0700)`, the system clock was synchronized, NTP was
+active, and the RTC remained correctly stored in UTC (`RTC in local TZ: no`).
+No clock or timezone setting needed to be changed.
+
+`systemd-analyze verify` passed the new source units; it printed only existing
+obsolete-syslog warnings from unrelated NVIDIA units. The first deployed suite passed 133
+tests. Exact architecture, safety filtering, checks, failure behavior, known
+limitations, and rollback are in
+`docs/research/2026-07-17-what-if-schedule.md`.
+
+The first live query exposed an ASR/parser boundary: a missing `at` or spoken
+`eight p.m.` could turn an 8 PM query into a full-Saturday query and rank a short
+noon opening-hours record. The parser now accepts those forms and bare `at 8`
+as the owner-approved event-evening default. Real data has seven kid-visible
+matches around Saturday 8 PM, so the tool now asks for category; five music
+matches ask for style/performer/camp. Tool questions/results never enter LFM
+history; only an unresolved refinement is retained separately. Music search text
+is enriched with matching camp descriptions. A dedicated `Neko stop` keyword
+and control flag immediately cancel all output and finalize as the existing
+deterministic stop command. The corrected full suite passed 136 tests.
+
+An attended retry with owner-authorized verbose transcript logging supplied the
+previously missing evidence: Nemotron emitted `Nico, what's going on Sat day at
+eight PM`. The policy now removes Nico/Niko/Nikko/Nekko as observed Neko address
+aliases after KWS, while schedule parsing canonicalizes `Sat day` to Saturday.
+That exact regression input returns the seven-match refinement prompt. The suite
+then passed 137 tests.
+
+The next verbose retry showed the remaining boundary precisely: behavior
+normalization turns `what's` into `what s`. Sparse search treated the orphan `s`
+as required and retained only two long-span records. `s` is now a query stopword,
+and the regression passes the normalized `what s going on Saturday at eight pm`
+text through the real schedule tool. It returns seven candidates and the
+category refinement prompt.
+
+A third attended rendering was `Neco Neko, what's going on Saturday at eight
+P`. Wake repair now uses the independent KWS decision to strip up to two leading
+name-like ASR tokens and inject exactly one canonical `Neko`, avoiding an open-
+ended list of full phrases. Time parsing accepts truncated standalone `P`/`A` as
+PM/AM. The complete exact pipeline regression returns seven candidates and the
+refinement prompt; the full suite passed 138 tests.
+
+The first successful refinement turn exposed filler leakage: `How about music`
+treated `how` as a required vector term. Common conversational scaffolding is
+now removed from schedule-specific terms. The real cached query returns five
+music choices and asks for style/performer/camp; adding `I'd like downtempo`
+returns Leonardo Ojeda at Bass n Nova.
+
+The owner also identified the repeated spoken letters `M R R P`: wake-only
+acknowledgement passed the invented spelling `Mrrp?` to Kiki. It now invokes the
+real curated `[meow]` action. Refinement accepts natural filler, no-preference,
+anything, and explicit list-all forms. If a category/style produces zero matches,
+the assistant reports that and reads every result from the separately retained
+original time window. Weekday abbreviations and joined `at8 PM` are supported.
+The full suite passed 139 tests.
+
 ## 2026-07-12 — initial state
 
 - Repository directory existed but was empty and was not a Git repository.
@@ -2637,3 +2799,522 @@ rm -rf /home/neko/models/kittentts
 Then revert the TTS service/client/config/chunker/tests, wheel patch, conversation
 route, persona contract, and documentation. Supertonic, Gemma, cat sounds, ASR,
 and perception are independent and remain usable.
+
+## 2026-07-16 — Continuous buffered voice, keyword wake, and barge-in bench
+
+This milestone built an attended integration bench, not a production or boot
+service. It joins the existing Nemotron ASR, loopback Gemma service, and private
+KittenTTS socket with continuous memory-only capture, speech segmentation,
+dedicated keyword spotting, bounded context, and interruptible playback. The
+complete behavior and test record is in
+`docs/plan/2026-07-16-interruptible-voice.md`.
+
+### External VAD and keyword artifacts
+
+The existing sherpa-onnx 1.13.4 ASR environment was reused; no second runtime was
+installed. Two official k2-fsa/sherpa-onnx release artifacts were downloaded to
+NVMe:
+
+| Artifact | Official URL | Local artifact | Bytes / SHA-256 |
+| --- | --- | --- | --- |
+| Silero VAD ONNX | `https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx` | `/home/neko/models/sherpa-onnx-vad/silero_vad.onnx` | 643,854 / `9e2449e1087496d8d4caba907f23e0bd3f78d91fa552479bb9c23ac09cbb1fd6` |
+| sherpa bilingual 3M open-vocabulary KWS, 2025-12-20 | `https://github.com/k2-fsa/sherpa-onnx/releases/download/kws-models/sherpa-onnx-kws-zipformer-zh-en-3M-2025-12-20.tar.bz2` | `/home/neko/models/sherpa-onnx-kws/sherpa-onnx-kws-zipformer-zh-en-3M-2025-12-20.tar.bz2` | 32,885,699 / `68447f4fbc67e70eee3a93961f36e81e98f47aef73ce7e7ca00885c6cd3616a6` |
+
+The VAD directory occupies 636 KiB. The KWS archive plus extracted model occupy
+71 MiB; the extracted model alone is about 39 MiB. The files actually selected
+by Neko are:
+
+| KWS file | SHA-256 |
+| --- | --- |
+| `encoder-epoch-13-avg-2-chunk-16-left-64.int8.onnx` | `408bbd740838c42d5bf6d1c5b80b3c88b616c7860b92d980328b5b068c76ae48` |
+| `decoder-epoch-13-avg-2-chunk-16-left-64.onnx` | `63a22dd60f40fff082ac3e09afa507f6787da36df76ded2fbe145fa233e22c21` |
+| `joiner-epoch-13-avg-2-chunk-16-left-64.int8.onnx` | `190d4067b4cc20b72a42a1916e69d92052000fb7051a427ebb1bc72a69207dc1` |
+| `tokens.txt` | `2d3f32311f9b692b964da3c90e830258d3e78e013cb0c992dbfb15cd5a1a71b0` |
+| `en.phone` | `f7000ec3a90544c0c7c16090d8951779c2b322e14dad5006290f498567d439ea` |
+
+Equivalent reproducible provisioning commands are:
+
+```bash
+install -d /home/neko/models/sherpa-onnx-vad /home/neko/models/sherpa-onnx-kws
+curl --fail --location --output \
+  /home/neko/models/sherpa-onnx-vad/silero_vad.onnx \
+  https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx
+curl --fail --location --output \
+  /home/neko/models/sherpa-onnx-kws/sherpa-onnx-kws-zipformer-zh-en-3M-2025-12-20.tar.bz2 \
+  https://github.com/k2-fsa/sherpa-onnx/releases/download/kws-models/sherpa-onnx-kws-zipformer-zh-en-3M-2025-12-20.tar.bz2
+tar -xjf \
+  /home/neko/models/sherpa-onnx-kws/sherpa-onnx-kws-zipformer-zh-en-3M-2025-12-20.tar.bz2 \
+  -C /home/neko/models/sherpa-onnx-kws
+sha256sum /home/neko/models/sherpa-onnx-vad/silero_vad.onnx \
+  /home/neko/models/sherpa-onnx-kws/sherpa-onnx-kws-zipformer-zh-en-3M-2025-12-20.tar.bz2
+```
+
+Silero VAD upstream is MIT. sherpa-onnx code/runtime is Apache-2.0. The KWS
+archive remains an external, non-distributed evaluation artifact; verify its
+model-specific redistribution terms before packaging it.
+
+### Runtime and policy changes
+
+`scripts/neko_voice_assistant.py` captures C922 audio by default from stable ALSA
+name `plughw:CARD=Webcam,DEV=0` as 16 kHz mono signed-16-bit PCM. It never writes
+live microphone audio. Silero runs on CPU with a 512-sample window, threshold
+0.25, 0.6-second end silence, 0.2-second minimum speech, 20-second maximum speech,
+and a 30-second in-memory buffer. KWS runs on CPU with one thread, four active
+paths, score 1.5, threshold 0.1, and one trailing blank. The checked-in
+`config/asr/neko-keywords.txt` includes three full `Neko Neko` pronunciations,
+three single-`Neko` fallbacks, `bye bye`, and `goodbye`.
+
+Nemotron text is now a best-effort hint, not the activation authority. On real
+owner speech it rendered the activation inconsistently as variants including
+`Eko Neko`, a single `Neko`, `Echo Necho`, `Echo necko`, `Go`, or nothing. The
+dedicated KWS event opens the deterministic session. At VAD end, the exact same
+bounded samples are serialized to an in-memory mono 16 kHz WAV and sent to local
+Gemma using OpenAI-compatible `input_audio`. No media leaves the loopback host.
+
+`neko/gemma_client.py` adds the in-memory WAV encoder and a six-turn,
+2,400-character default conversation history. The client request field was
+corrected from the ignored `max_tokens` spelling to `max_completion_tokens=96`.
+`neko/tts_protocol.py` adds caller-owned cancellation: it terminates the active
+`pw-cat`, shuts the TTS socket to unblock a read, and reports cancellation even
+when the resulting player exit code is nonzero. `neko/behavior.py` adds observed
+wake aliases and deterministic `bye bye`/`goodbye`/`good bye` sleep handling.
+
+Capture and VAD continue during Neko's speech. New speech cancels audible output;
+if it begins while Gemma is working, that stale reply is discarded before it can
+play. Sleep closes the session and clears history without a Gemma request. Normal
+execution does not print transcripts or replies; `--verbose-transcripts` is an
+attended diagnostic opt-in.
+
+No assistant systemd unit was created, installed, or enabled. The resident
+`neko-gemma.service` and `neko-tts.service` remain independent. The live bench
+command is:
+
+```bash
+/home/neko/.local/share/neko/venvs/asr/bin/python \
+  scripts/neko_voice_assistant.py --verbose-transcripts --max-dialogues 2
+```
+
+### Private replay fixtures and validation
+
+The owner authorized six spoken fixtures covering wake/request, interruption,
+follow-up, negative/no-wake control, stop, and sleep. They remain in an
+owner-readable directory outside the repository: parent mode 0700, files 0600.
+Their names, path, hashes, audio metadata, and contents are intentionally absent
+from the public repository because a voice recording is biometric media. Longer
+raw capture files were deleted after Silero trimming. The replay code paces each
+file in real time through the real VAD/KWS/ASR path; later inputs wait for the TTS
+`speaking` event, then begin 350 ms later to make barge-in deterministic.
+
+Observed accepted cases:
+
+- Wake: models loaded in 5.228 seconds; dedicated keyword detection opened the
+  session despite ASR `Echo, necko, tell me something silly`; buffered-audio
+  Gemma response took 11.804 seconds.
+- Negative control: no keyword event, session, Gemma call, or playback occurred.
+- Full barge-in: first response took 11.733 seconds; timed owner speech emitted
+  `barge_in_detected`, playback returned `cancelled`, the new request transcribed
+  correctly, and a replacement response took 12.378 seconds and played fully.
+- Sleep: the first response took 11.752 seconds and was cancelled; ASR was empty,
+  but KWS emitted keyword-only sleep, policy emitted `audio_cancelled` with
+  `sleep-word`, and no second Gemma request occurred.
+- A deterministic non-microphone cancellation timer set at 1.500 seconds returned
+  `cancelled` at 1.755 seconds. Production speech-onset-to-audible-silence remains
+  unmeasured.
+- Fixture ASR took approximately 0.79-1.59 seconds for about 2.1-4.0 seconds of
+  VAD-selected audio. Repeated buffered-audio Gemma requests took 11.73-12.38
+  seconds. A separate 2.942-second synthetic inline-audio request took 16.057
+  seconds and answered correctly. Earlier text requests took 10.29-11.82 seconds.
+
+Bluetooth headphones isolate playback from the webcam microphone and therefore
+do not validate production acoustic echo cancellation. Remaining gates are
+multi-speaker/angle/noise false- and missed-wake tests, production reSpeaker AEC
+reference testing, routing/latency choice, simultaneous resident-memory and
+power/thermal measurements, unplug/crash/network behavior, two-hour soak, cold
+boot, and a resource-bounded user-session unit with PipeWire readiness.
+
+### 64K context experiment
+
+Gemma 4 E2B advertises a 128K architecture, but the enabled LiteRT service remains
+bounded to 2,048 total tokens. A stopped, isolated experiment requested
+`--max-num-tokens 65536` with a 5.5 GiB memory cgroup instead of changing the
+normal service. The transient worker initialized in about 1.278 seconds and used
+about 512 MiB before inference. LiteRT warned that 65,536 exceeded its internal
+target/magic number 32,003 and substituted 32,000. Its first tiny request reached
+5,617,280 KiB anonymous RSS and the isolated cgroup OOM-killed it. The normal 2K
+Gemma service was immediately restored and passed its loopback health request.
+
+This result must not be described as 64K support. Even the silent 32K substitute
+cannot coexist safely with Neko's stack on 8 GB. The next honest 64K experiment
+is the already pinned QAT Q4_0 GGUF through llama.cpp with quantized KV cache,
+probably under sequential model residency.
+
+### Rollback
+
+Ensure no attended voice process or `arecord` child remains, then revert
+`scripts/neko_voice_assistant.py`, `config/asr/neko-keywords.txt`, the behavior,
+Gemma-client and TTS-protocol changes, their tests, and this documentation. The
+external detector artifacts can be removed independently:
+
+```bash
+rm -rf /home/neko/models/sherpa-onnx-vad
+rm -rf /home/neko/models/sherpa-onnx-kws
+```
+
+Do not delete private owner fixtures without explicit owner direction. Gemma,
+KittenTTS, Nemotron ASR, Supertonic, cat sounds, and perception are otherwise
+independent of this attended integration bench.
+
+Final milestone verification compiled `neko`, `scripts`, and `tests`, ran all 95
+repository tests successfully, and passed `git diff --check`. Both enabled
+dependencies were active/running with zero restarts; no attended voice assistant
+or `arecord` process remained.
+
+## 2026-07-16 — 16K low-latency conversation profile
+
+The owner set two seconds from end of speech to playback as the requirement and
+later relaxed the desired 64K context to a hard 16K minimum. No private replay
+fixture name, path, hash, metadata, recording, or transcript is included here.
+The already-authorized local Hugging Face token was read only by the download
+client; it was never printed, copied into Git, or installed in a unit.
+
+### Baseline and model decision
+
+LiteRT-LM's existing SSE endpoint was measured before changing the selected
+worker. Two realistic warm requests produced first content at 9.398 and 10.883
+seconds and a first complete sentence at 9.559 and 11.067 seconds. Text
+streaming therefore could not repair the CPU model's time to first token.
+
+The existing official Gemma 4 E2B QAT Q4_0 GGUF and the selected LFM artifact
+were tested with the NVIDIA Jetson benchmark skill's required wrapper. The
+equivalent benchmark shape was 128 prompt tokens, 32 generated tokens, four CPU
+threads and all layers offloaded. The board remained in its intended 15 W mode;
+the wrapper warned that MAXN would be better for cross-device comparison.
+
+| Model | TTFT/prompt proxy | token interval | generation |
+| --- | ---: | ---: | ---: |
+| Gemma 4 E2B Q4_0 | 219.45 ms | 53.39 ms | 18.73 tok/s |
+| LFM2.5-1.2B Q5_K_M | 105.58 ms | 29.82 ms | 33.54 tok/s |
+
+A real Gemma 4 16K server using Q4_0 K/V cache reached first text in
+0.139–0.443 seconds and first complete sentence in 0.533–0.860 seconds. It
+failed the more important combined-residency gate: Gemma llama.cpp plus
+ASR/KWS/VAD and Kiki left about 199,464 KiB available on the no-swap host.
+That transient server was stopped.
+
+Official primary-source research selected LiquidAI LFM2.5-1.2B-Instruct as the
+first smaller candidate because the publisher supplies a llama.cpp GGUF,
+documents 1.17B parameters and 32,768-token context, and includes English,
+French and Spanish among its supported languages. Alternatives were recorded in
+the low-latency plan but were not downloaded after LFM passed. LFM Open 1.0
+terms remain controlling; the model is an external personal-use artifact.
+
+The pinned artifact is:
+
+- repository: `LiquidAI/LFM2.5-1.2B-Instruct-GGUF`;
+- revision: `047e06635fbe71469926b35ea414537245218200`;
+- file: `LFM2.5-1.2B-Instruct-Q5_K_M.gguf`;
+- destination:
+  `/home/neko/models/LFM2.5-1.2B-Instruct-GGUF/047e06635fbe71469926b35ea414537245218200`;
+- bytes: 843,354,944;
+- SHA-256:
+  `fa03f3ac4da941a53a0cd4450aacf6a80804c6a1ff885d2fdcbe9406c03215c4`.
+
+The download was performed with `huggingface-cli download` using an environment
+variable populated from the existing mode-restricted token file, an exact
+revision, and the single GGUF filename. No credential was passed on a command
+line that is recorded in this repository.
+
+### LFM service
+
+The server uses the already-built local NVIDIA llama.cpp image by immutable
+digest:
+
+`neko/llama_cpp@sha256:5e2963c6e0a59a866f0d9ec79d9690bc8b40eb35be6ba50b936951e827e2b96a`
+
+The effective llama-server settings are:
+
+```text
+--host 127.0.0.1 --port 9380 --ctx-size 16384
+--cache-type-k q4_0 --cache-type-v q4_0
+--n-gpu-layers 99 --threads 4 --parallel 1
+--flash-attn on --no-mmap --cache-ram 256
+```
+
+The live server reported 54 MiB K/V cache, 0.16 MiB recurrent state, 136 MiB
+CUDA compute, 40 MiB host compute, 802 MiB CUDA model and 105 MiB CPU model
+buffers. Its Docker cgroup used about 1,004–1,018 MiB after warmup. With the
+ASR, KWS, VAD, Kiki and Piper workers loaded, a live memory audit still reported
+about 2,967,384 KiB available. With only normal boot workers idle after
+deployment, about 3,996,396 KiB was available.
+
+`deploy/systemd/neko-llm.service` was installed verbatim to
+`/etc/systemd/system/neko-llm.service`, followed by daemon reload and
+`systemctl enable --now neko-llm.service`. It uses loopback-only host networking,
+a read-only container root and model mount, no added privileges, all
+capabilities dropped, no-new-privileges, a 64-PID limit, and a 2.5 GB Docker
+memory/swap limit. `ExecStartPost` waits for `/health`. The health and model
+endpoints passed. The old `neko-gemma.service` was disabled and stopped, not
+removed. It remains a bounded 2K rollback/lab profile.
+
+### Fast TTS service
+
+KittenTTS Micro/Kiki remains the owner's preferred quality voice, but resident
+first PCM measurements were about 0.675 seconds for `Hi!`, 1.163 seconds for a
+short greeting, 1.539 seconds for a normal seven-word question, and up to 1.874
+seconds for the longer test. Nano INT8 did not improve the latency-critical
+short line. Its ONNX graph emits a whole sentence waveform and has no supported
+model-native incremental PCM interface.
+
+Pocket TTS 2.1 was identified from its official repository as the best next
+quality/latency experiment, with upstream claims of CPU streaming and about
+200 ms to first chunk. Its weights require separate Hugging Face contact-sharing
+acceptance. That gate was not accepted or downloaded without owner authority.
+
+Piper was installed as the immediate low-latency profile:
+
+```bash
+/home/neko/.local/bin/uv venv /home/neko/.local/share/neko/venvs/piper
+/home/neko/.local/bin/uv pip install \
+  --python /home/neko/.local/share/neko/venvs/piper/bin/python \
+  piper-tts==1.4.2
+```
+
+The generated complete environment lock is
+`deploy/requirements/neko-piper.lock`; the direct input is
+`deploy/requirements/neko-piper.in`. Piper code is GPL-3.0-or-later and runs as
+a separate service, not MIT library code. The Arm64 wheel hash from PyPI is
+`6736329f1ef58c39272215849dffdacae601201480b08a0c892938fa4d7c8c67`.
+
+The external Lessac medium voice is pinned from `rhasspy/piper-voices` at
+revision `82999b670b06c78cabeb830d535b63a31cd0ca22` under
+`/home/neko/models/piper-voices/82999b670b06c78cabeb830d535b63a31cd0ca22/en_US-lessac-medium`.
+The ONNX is 63,201,294 bytes with SHA-256
+`5efe09e69902187827af646e1a6e9d269dee769f9877d17b16b1b46eeaaf019f`;
+the config hash is
+`efe19c417bed055f2d69908248c6ba650fa135bc868b0e6abb3da181dab690a0`;
+the model-card hash is
+`ce49eb457742208166d399a40cdec2c7fa9db77960930031564ab56f12882645`.
+The voice's own model-card and dataset terms remain controlling.
+
+`scripts/serve_piper_tts.py` verifies the configured model and config hashes,
+preloads and warms the voice, sends systemd readiness, and exposes the existing
+bounded JSON/PCM protocol through `/run/neko/tts-fast.sock`.
+`deploy/systemd/neko-tts-fast.service` was installed verbatim under `/etc/systemd/system`,
+then enabled and started. It uses private networking/devices, an owner-only Unix
+socket and explicit resource/restart bounds. Warm resident first PCM was
+0.099–0.122 seconds for a very short line, 0.149–0.166 seconds for a short
+sentence, and 0.198–0.218 seconds for the longer cat sentence. The worker uses
+about 120 MiB after warmup. The owner heard a primed Lessac sample, but quality
+acceptance is still pending. `neko-tts.service` remains enabled for Kiki A/B and
+rollback.
+
+### Pipeline changes and end-to-end result
+
+`ContinuousSpeechInput` now starts a Nemotron stream at detected speech onset,
+feeds 512 ms of in-memory pre-roll, decodes ready frames while capture continues,
+and finalizes only outstanding work at VAD end. The LLM client consumes
+OpenAI-compatible SSE and closes generation after the first complete sentence.
+The normal prompt asks for a direct two-to-four-word first sentence; story mode
+must use a separate queued-narration policy. The TTS protocol now honors the
+worker-announced 8–48 kHz sample rate and exposes a first-PCM callback. Barge-in
+and sleep remain owned by the deterministic controller.
+
+One private owner wake/request fixture passed without logging its identity or
+transcript:
+
+| Event | Result |
+| --- | ---: |
+| ASR/KWS/VAD load | 5.251 s, startup only |
+| streaming ASR finalize after VAD | less than 0.001 s rounded |
+| first complete LFM sentence | 0.515 s |
+| VAD finalize to first PCM write | 0.709 s |
+| estimated speech end to first PCM write | 1.309 s |
+
+The estimate adds the configured 600 ms VAD trailing silence to the measured
+VAD-finalize-to-PCM interval. Playback completed through the Bluetooth output.
+This is not yet a direct electrical or acoustic onset measurement, nor a P95.
+The integrated always-listening assistant remains attended and not boot-enabled
+pending multi-turn latency distribution, production AEC/false-wake, production
+output, cold reboot, perception contention and soak tests.
+
+Final repository validation compiled `neko`, `scripts`, and `tests`, passed all
+99 unit tests, and passed `git diff --check`. Both installed new unit files
+matched their repository sources byte-for-byte and passed `systemd-analyze
+verify`; unrelated NVIDIA units emitted only their pre-existing obsolete-syslog
+warnings. A simultaneous warm restart completed in 3.6 seconds, both services
+returned active/running with zero restarts, `/health` and `/v1/models` passed,
+and a 16-token LFM smoke generated at 33.44 tok/s. A post-restart Piper smoke
+returned the expected mono PCM s16le at 22,050 Hz: 1.695 seconds of audio, first
+frame/total synthesis at 0.244 seconds after restart. The old Gemma unit remained
+disabled/inactive, and no attended assistant or `arecord` process remained.
+
+### Rollback and removal
+
+Select the old Gemma/Kiki profile without deleting artifacts:
+
+```bash
+sudo systemctl disable --now neko-llm.service neko-tts-fast.service
+sudo systemctl enable --now neko-gemma.service neko-tts.service
+```
+
+Then run the attended assistant with explicit old endpoint, model, audio route
+and Kiki socket as shown in the low-latency plan. To remove only the new profile,
+disable its services, remove `/etc/systemd/system/neko-llm.service` and
+`neko-tts-fast.service`, reload systemd, and remove the external Piper venv,
+Piper voice root, and LFM artifact root. Do not remove Gemma, Kiki, Supertonic,
+ASR/VAD/KWS, private fixtures or cat sounds as part of this rollback.
+
+## 2026-07-16 — fail-closed meow/purr insertion layer
+
+No package, model, service or external asset was installed for this milestone,
+and no real cat sound was played. Existing checked-in 48 kHz/24-bit masters,
+their immutable manifest and the disabled runtime allowlist are the only media
+inputs. `neko/cat_audio.py` retains the earlier ReplayGain/peak helpers and now
+adds a semantic catalog/player.
+
+The LLM may emit exact expressive `[meow]` or `[purr]` markers at the start of a
+short response. The deterministic parser maps only those markers to
+`meow_general` or `purr_short`; ordinary prose, unknown brackets and paths do
+not become actions, and a response is limited to two recognized cues. The
+catalog requires all of the following before returning an asset:
+
+- global runtime status `enabled` and default policy `deny`;
+- a known enabled semantic action approved for autonomy;
+- an allowed logical output (`speaker` or `body_transducer`);
+- a candidate within its maximum duration with a positive configured weight;
+- accepted derived-content, hardware and release fields in the checked manifest;
+- a path contained within the repository and a fresh matching SHA-256;
+- elapsed per-action/output cooldown.
+
+The choice uses `SystemRandom` in normal execution and supports an injected
+seeded generator in tests. It excludes the immediately previous asset when at
+least one other approved candidate is available. The model cannot choose path,
+gain or output. The action's new fixed `default_gain_db` must lie inside its
+existing min/max range: initial meow policy is 0 dB relative to the -23 LUFS
+masters, while purr policy is -6 dB. `/usr/bin/pw-play` receives the resulting
+linear volume plus an optional operator-fixed PipeWire target. The same
+barge-in cancellation event terminates it.
+
+`scripts/neko_voice_assistant.py` renders text and cat-sound parts in order under
+one speaking/cancellation scope. A denied marker falls back to TTS speaking
+`meow` or `purr`, so disabled media cannot break conversation. The first-output
+latency event is emitted once across the mixed response. The current checked
+policy has a disabled global status, every action is disabled and non-autonomous,
+and all derived/hardware/release approvals remain pending. A direct production-
+catalog smoke returned the expected `cat-sound runtime is disabled` denial.
+
+The repository suite passed 106 tests, including the four pre-existing cat-audio
+normalization tests plus strict-marker, cue-count, raw/unknown deny, global/action
+disable, accepted-selection, integrity, cooldown, non-repeat, fixed-gain/target,
+and integrated TTS-fallback coverage. Python compilation and `git diff --check`
+passed. Activation and rollback are documented in
+`docs/plan/2026-07-16-cat-audio-insertion.md`.
+
+## 2026-07-19 — online-only Codex commands
+
+No package, model, service, token, or credential was installed or changed.
+`codex --version` reported `codex-cli 0.144.4` at
+`/home/neko/.nvm/versions/node/v24.18.0/bin/codex`; the already present
+`~/.codex/auth.json` remained mode 0600 and its contents were not read or logged.
+
+The attended voice assistant gained an immediate plus 120-second connectivity
+monitor using `/usr/bin/ping -c 2 -W 2 8.8.8.8`, with an eight-second outer
+timeout and no transition grace. The live setup probe returned two of two
+packets. Only `search the web`/`web search` and `compose [a new] story` consult
+that mode; offline local behavior is unchanged.
+
+`neko/online_jobs.py` invokes Luna with low reasoning, top-level `--search`, an
+explicit Plan-mode/read-only research prompt, and `-s read-only`. It invokes
+Terra with low reasoning and `--dangerously-bypass-approvals-and-sandbox`, as
+the owner explicitly requested, using a prompt that limits writes to one
+original story and one manifest entry. Both use `--ephemeral`; response scratch
+files live briefly beneath mode-0700 `/var/tmp/neko-online-jobs`, inherit umask
+0077, and are unlinked after reading. Jobs have a 1,800-second ceiling and only
+one may run. Search/results never enter the local LLM history. The story path
+validates that exactly one approved ID was added before calling the existing
+nice-19/idle-I/O rebuild queue.
+Final prompts are written through `codex exec -` stdin rather than argv so a
+child's transcribed request is not exposed in the local process list. The
+worker holds its state lock across child launch, so `Neko stop` cannot race with
+a not-yet-published process handle; assistant-owned job state also remains
+active until the queued completion is consumed.
+
+Two initial real Luna smokes failed before model execution because Codex 0.144.4
+does not accept `-a` under `codex exec` and requires `--search` before `exec`.
+The wrapper was corrected to the version-verified syntax. The repeated
+Luna/low/read-only live-web smoke passed and returned a concise current-source
+Vancouver time-zone answer. An isolated Terra command was then run in
+`/var/tmp/neko-terra-smoke` with `--skip-git-repo-check`; Codex reported model
+`gpt-5.6-terra`, approval `never`, sandbox `danger-full-access`, reasoning
+effort `low`, and the exact final text `Terra story worker ready.` No repository
+file was edited by either smoke.
+
+Python compileall passed. The online and voice-assistant subsets passed 28
+tests. A dependency-correct split run passed 159 tests in the ASR environment
+(10 TensorRT/NumPy tests skipped there by design) plus all three RF-DETR tests
+in the pinned `rfdetr-export` environment: 162 passing test cases total.
+`git diff --check` passed. The prior attended process was stopped and restarted
+with the unchanged manual PipeWire/English/attended-cat-sound command. It emitted
+`online_mode_changed` with `online: true`, then ready with 5.365 seconds ASR load
+and `online: true`; PID 697018 was live immediately after startup. Full spoken
+interaction and dynamic story-generation acceptance remain pending. After the
+stdin privacy change, the final attended restart again transitioned immediately
+online and reported ready in 5.230 seconds; PID 697838 was active. A final
+restart after closing the launch/completion race reported ready in 5.330
+seconds and online. Detailed
+behavior, security boundary, exact command shape, known ICMP limitation, and rollback are in
+`docs/plan/2026-07-19-online-codex-commands.md`.
+
+### 2026-07-19 persona follow-up
+
+The owner required external Codex answers to retain Neko's personality rather
+than returning dry generic prose. A shared prompt fragment now describes her as
+a cute, motherly, playful, slightly mischievous orange-and-black striped cat-car
+with fuzzy hands, a long tail, a magical gummy-worm rear drawer, affection for
+children/cats/stories, contractions, short words, warmth, and silliness. It says
+explicitly that voice cannot alter facts, evidence, or uncertainty. Short final
+answers may contain at most one allowlisted cat-sound marker; generated story
+files may not contain markers because the fixed renderer owns those sounds.
+The eight online-job tests passed after the change. A real Luna/low/read-only
+web smoke about cat kneading returned warm kitten/nest language, contractions,
+a small ownership joke, an appropriate veterinarian caveat, and one allowed
+`[purr:tail]` marker. It did not edit the repository or generate a story.
+The attended assistant was restarted with the unchanged manual command and
+reported the immediate online transition followed by ready in 5.246 seconds.
+
+### 2026-07-19 first live composition failure and fix
+
+The owner-spoken composition phrase was recognized by KWS/ASR and reached the
+online route, but `online_job_started` passed `kind=compose_story` to `_event`,
+whose positional event-name parameter was already named `kind`. The resulting
+`TypeError: VoiceAssistant._event() got multiple values for argument 'kind'`
+occurred before acknowledgement/purr playback. Normal shutdown cleanup cancelled
+the just-started child. Inspection found no one-shot Codex child, renderer,
+queued request, generated story, or worktree change.
+
+All online job events now use `job_kind`. Successful story requests speak
+`Sounds like fun, let me work on that!` before starting the loop purr; searches
+say `Ooh, let me sniff around the web!`. The 29 online/voice tests pass, including
+an exact ordering regression for job launch, collision-free event, acceptance
+speech, and purr start.
+The attended loop was restarted with the unchanged manual command; it reported
+online immediately and ready after 5.262 seconds.
+
+### 2026-07-19 request-level catch-all
+
+The owner required audible feedback whenever any individual request crashes.
+`_handle_segment_safely()` now catches unexpected `Exception` failures from a
+finalized request, while `_drain_online_results()` applies the same recovery to
+asynchronous completion. Recovery logs only phase and exception class, cancels
+partial speech, thinking/tail/work cat audio, and the Codex process group,
+clears active online plus pending schedule state, preserves the listening loop,
+and speaks: `Oops! I'm not sure what happened, but I wasn't able to do that.
+Maybe next time.` A failure in that fallback is contained without recursion.
+Startup and microphone-capture failures remain fatal so the future service
+supervisor can restart genuinely broken infrastructure.
+
+The targeted voice suite passes 23 tests, including unexpected-request capture,
+complete partial-work cleanup, exact fallback speech, non-disclosure of the
+exception message, and the existing online acceptance/purr ordering regression.
+The attended assistant was restarted with the catch-all and reported online
+immediately and ready after 5.330 seconds.

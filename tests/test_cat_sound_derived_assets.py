@@ -172,6 +172,8 @@ class DerivedCatSoundAssetTests(unittest.TestCase):
             self.assertGreater(action["max_duration_seconds"], 0)
             self.assertLessEqual(action["min_gain_db"], action["max_gain_db"])
             self.assertLessEqual(action["max_gain_db"], 0)
+            self.assertGreaterEqual(action["default_gain_db"], action["min_gain_db"])
+            self.assertLessEqual(action["default_gain_db"], action["max_gain_db"])
             for candidate in action["candidates"]:
                 asset_id = candidate["asset_id"]
                 entry = manifest_by_id[asset_id]

@@ -36,28 +36,101 @@ class ConversationTests(unittest.TestCase):
         self.assertEqual(actions[0], Acknowledge())
         self.assertEqual(actions[1], DialogueRequest("tell me a cat joke", "en"))
 
-    def test_followup_inside_session_does_not_require_wake(self) -> None:
+    def test_observed_asr_wake_alias_opens_dialogue(self) -> None:
+        actions = self.controller.handle(self.transcript("Eko Neko tell me something silly"))
+        self.assertEqual(actions[0], Acknowledge())
+        self.assertEqual(actions[1], DialogueRequest("tell me something silly", "en"))
+
+    def test_second_observed_asr_wake_alias_opens_dialogue(self) -> None:
+        actions = self.controller.handle(
+            self.transcript("Echo Necho, tell me something silly")
+        )
+        self.assertEqual(actions[0], Acknowledge())
+        self.assertEqual(actions[1], DialogueRequest("tell me something silly", "en"))
+
+    def test_nico_asr_alias_is_removed_from_request(self) -> None:
+        actions = self.controller.handle(
+            self.transcript("Nico, what's going on Sat day at eight PM")
+        )
+        self.assertEqual(
+            actions[1],
+            DialogueRequest("what s going on sat day at eight pm", "en"),
+        )
+
+    def test_repetition_collapsed_asr_alias_only_matches_at_start(self) -> None:
+        actions = self.controller.handle(self.transcript("Neko tell me something silly"))
+        self.assertEqual(actions[1], DialogueRequest("tell me something silly", "en"))
+        controller = BehaviorController()
+        self.assertEqual(controller.handle(self.transcript("I saw Neko over there")), ())
+
+    def test_followup_inside_session_does_not_require_address_prefix(self) -> None:
         self.controller.handle(self.transcript("Neko Neko", 1.0))
         self.assertEqual(
             self.controller.handle(self.transcript("another one", 2.0)),
             (DialogueRequest("another one", "en"),),
+        )
+        self.assertEqual(
+            self.controller.handle(self.transcript("Neko, another one", 3.0)),
+            (Acknowledge(), DialogueRequest("another one", "en")),
         )
 
     def test_expired_session_requires_wake_again(self) -> None:
         self.controller.handle(self.transcript("Neko Neko", 1.0))
         self.assertEqual(self.controller.handle(self.transcript("hello", 40.0)), ())
 
-    def test_stop_bypasses_wake_and_model(self) -> None:
+    def test_tail_purr_extension_renews_only_an_existing_session(self) -> None:
+        self.controller.handle(self.transcript("Neko Neko", 1.0))
+        self.controller.extend_active_session(25.0)
         self.assertEqual(
-            self.controller.handle(self.transcript("stop")),
+            self.controller.handle(self.transcript("another story", 40.0)),
+            (DialogueRequest("another story", "en"),),
+        )
+        self.assertEqual(
+            self.controller.handle(self.transcript("Neko another story", 41.0)),
+            (Acknowledge(), DialogueRequest("another story", "en")),
+        )
+        inactive = BehaviorController()
+        inactive.extend_active_session(25.0)
+        self.assertEqual(inactive.handle(self.transcript("another story", 26.0)), ())
+
+    def test_stop_requires_an_active_session_or_address_and_bypasses_model(self) -> None:
+        self.assertEqual(self.controller.handle(self.transcript("stop")), ())
+        self.controller.handle(self.transcript("Neko Neko", 11.0))
+        self.assertEqual(
+            self.controller.handle(self.transcript("stop", 12.0)),
+            (CancelAudio(reason="voice-command"),),
+        )
+        self.assertFalse(self.controller.session_active)
+        self.assertEqual(
+            self.controller.handle(self.transcript("Neko stop")),
             (CancelAudio(reason="voice-command"),),
         )
 
+    def test_sleep_words_close_session_without_model(self) -> None:
+        for words in ("bye bye", "goodbye", "good bye"):
+            with self.subTest(words=words):
+                controller = BehaviorController()
+                controller.handle(self.transcript("Neko Neko", 1.0))
+                self.assertEqual(
+                    controller.handle(self.transcript(words, 2.0)),
+                    (CancelAudio(reason="sleep-word"),),
+                )
+                self.assertFalse(controller.session_active)
+
     def test_mute_fails_closed_until_unmute(self) -> None:
-        actions = self.controller.handle(self.transcript("mute"))
+        self.assertEqual(self.controller.handle(self.transcript("mute")), ())
+        actions = self.controller.handle(self.transcript("Neko mute"))
         self.assertEqual(actions, (CancelAudio(reason="mute"), SetMuted(True)))
+        self.assertEqual(
+            self.controller.handle(self.transcript("Neko stop", 10.5)),
+            (CancelAudio(reason="voice-command"),),
+        )
         self.assertEqual(self.controller.handle(self.transcript("Neko Neko", 11.0)), ())
-        self.assertEqual(self.controller.handle(self.transcript("unmute", 12.0))[0], SetMuted(False))
+        self.assertEqual(self.controller.handle(self.transcript("unmute", 12.0)), ())
+        self.assertEqual(
+            self.controller.handle(self.transcript("Neko unmute", 13.0))[0],
+            SetMuted(False),
+        )
 
 
 class SocialTests(unittest.TestCase):

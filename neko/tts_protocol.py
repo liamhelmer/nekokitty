@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import re
 import socket
 import subprocess
+import threading
+from typing import Callable
 import wave
 from typing import Any, BinaryIO
 
@@ -13,6 +16,67 @@ from typing import Any, BinaryIO
 DEFAULT_SOCKET = Path("/run/neko/tts.sock")
 MAX_HEADER_BYTES = 64 * 1024
 MAX_AUDIO_BYTES = 32 * 1024 * 1024
+NEKO_NAME_RE = re.compile(r"\bneko\b", re.IGNORECASE)
+
+# These are deliberately limited to ordinary, unambiguous spoken contractions.
+# More aggressive slang (for example, rewriting every "going to" as "gonna")
+# belongs in the persona prompt: doing it mechanically can distort quotations,
+# titles, and factual language.
+_SPOKEN_CONTRACTIONS = (
+    (re.compile(r"\bI am\b", re.IGNORECASE), "I'm"),
+    (re.compile(r"\bI have\b", re.IGNORECASE), "I've"),
+    (re.compile(r"\bI will\b", re.IGNORECASE), "I'll"),
+    (re.compile(r"\bI would\b", re.IGNORECASE), "I'd"),
+    (re.compile(r"\byou are\b", re.IGNORECASE), "you're"),
+    (re.compile(r"\byou have\b", re.IGNORECASE), "you've"),
+    (re.compile(r"\byou will\b", re.IGNORECASE), "you'll"),
+    (re.compile(r"\bwe are\b", re.IGNORECASE), "we're"),
+    (re.compile(r"\bwe have\b", re.IGNORECASE), "we've"),
+    (re.compile(r"\bwe will\b", re.IGNORECASE), "we'll"),
+    (re.compile(r"\bthey are\b", re.IGNORECASE), "they're"),
+    (re.compile(r"\bit is\b", re.IGNORECASE), "it's"),
+    (re.compile(r"\bthat is\b", re.IGNORECASE), "that's"),
+    (re.compile(r"\bthere is\b", re.IGNORECASE), "there's"),
+    (re.compile(r"\bhere is\b", re.IGNORECASE), "here's"),
+    (re.compile(r"\bwhat is\b", re.IGNORECASE), "what's"),
+    (re.compile(r"\bwho is\b", re.IGNORECASE), "who's"),
+    (re.compile(r"\blet us\b", re.IGNORECASE), "let's"),
+    (re.compile(r"\bdo not\b", re.IGNORECASE), "don't"),
+    (re.compile(r"\bdoes not\b", re.IGNORECASE), "doesn't"),
+    (re.compile(r"\bdid not\b", re.IGNORECASE), "didn't"),
+    (re.compile(r"\bcannot\b|\bcan not\b", re.IGNORECASE), "can't"),
+    (re.compile(r"\bwill not\b", re.IGNORECASE), "won't"),
+    (re.compile(r"\bwould not\b", re.IGNORECASE), "wouldn't"),
+    (re.compile(r"\bshould not\b", re.IGNORECASE), "shouldn't"),
+    (re.compile(r"\bcould not\b", re.IGNORECASE), "couldn't"),
+    (re.compile(r"\bis not\b", re.IGNORECASE), "isn't"),
+    (re.compile(r"\bare not\b", re.IGNORECASE), "aren't"),
+    (re.compile(r"\bwas not\b", re.IGNORECASE), "wasn't"),
+    (re.compile(r"\bwere not\b", re.IGNORECASE), "weren't"),
+    (re.compile(r"\bhave not\b", re.IGNORECASE), "haven't"),
+    (re.compile(r"\bhas not\b", re.IGNORECASE), "hasn't"),
+    (re.compile(r"\bhad not\b", re.IGNORECASE), "hadn't"),
+)
+
+
+def _match_case(source: str, replacement: str) -> str:
+    if source.isupper():
+        return replacement.upper()
+    if source[:1].isupper() and not replacement.startswith("I"):
+        return replacement[:1].upper() + replacement[1:]
+    return replacement
+
+
+def prepare_tts_text(text: str) -> str:
+    """Apply speech-only rewrites without changing logs or LLM context."""
+
+    prepared = NEKO_NAME_RE.sub("Nekko", text)
+    for pattern, replacement in _SPOKEN_CONTRACTIONS:
+        prepared = pattern.sub(
+            lambda match, value=replacement: _match_case(match.group(0), value),
+            prepared,
+        )
+    return prepared
 
 
 def write_json(stream: BinaryIO, value: dict[str, Any]) -> None:
@@ -59,72 +123,180 @@ class TtsClient:
         *,
         output: Path | None = None,
         play: bool = False,
+        cancel_event: threading.Event | None = None,
+        on_first_pcm: Callable[[], None] | None = None,
     ) -> dict[str, Any]:
         if not text.strip():
             raise ValueError("TTS text must not be empty")
+        text = prepare_tts_text(text)
         if output is None and not play:
             raise ValueError("select output, playback, or both")
 
+        if cancel_event is not None and cancel_event.is_set():
+            return {"event": "cancelled", "cancelled": True}
+
         player: subprocess.Popen[bytes] | None = None
         wav_file: wave.Wave_write | None = None
+        client: socket.socket | None = None
+        state_lock = threading.Lock()
+        watcher_done = threading.Event()
+        watcher: threading.Thread | None = None
         if output is not None:
             output.parent.mkdir(parents=True, exist_ok=True)
             wav_file = wave.open(str(output), "wb")
-            wav_file.setnchannels(1)
-            wav_file.setsampwidth(2)
-            wav_file.setframerate(24_000)
-        if play:
-            player = subprocess.Popen(
-                [
-                    "/usr/bin/pw-cat",
-                    "--playback",
-                    "--rate=24000",
-                    "--channels=1",
-                    "--channel-map=MONO",
-                    "--format=s16",
-                    "-",
-                ],
-                stdin=subprocess.PIPE,
-            )
 
         result: dict[str, Any] | None = None
+        cancelled = False
+        terminal = False
+        first_pcm_delivered = False
+        sample_rate: int | None = None
+
+        def state() -> tuple[bool, bool]:
+            with state_lock:
+                return cancelled, terminal
+
+        def stop_player(candidate: subprocess.Popen[bytes] | None) -> None:
+            if candidate is None or candidate.poll() is not None:
+                return
+            candidate.terminate()
+            try:
+                candidate.wait(timeout=0.25)
+            except subprocess.TimeoutExpired:
+                candidate.kill()
+                candidate.wait(timeout=1)
+
+        def cancel_playback() -> None:
+            """Stop both queued audio and a blocked worker read on barge-in."""
+
+            nonlocal cancelled
+            assert cancel_event is not None
+            while not watcher_done.is_set():
+                if not cancel_event.wait(0.02):
+                    continue
+                with state_lock:
+                    if terminal:
+                        return
+                    cancelled = True
+                    candidate_player = player
+                    candidate_client = client
+                stop_player(candidate_player)
+                if candidate_client is not None:
+                    try:
+                        candidate_client.shutdown(socket.SHUT_RDWR)
+                    except OSError:
+                        pass
+                return
+
+        if cancel_event is not None:
+            watcher = threading.Thread(
+                target=cancel_playback,
+                name="neko-tts-cancel",
+                daemon=True,
+            )
+            watcher.start()
         try:
-            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as connected:
+                with state_lock:
+                    client = connected
+                    cancel_before_connect = cancelled
+                if cancel_before_connect:
+                    return {"event": "cancelled", "cancelled": True}
                 client.settimeout(self.timeout_s)
                 client.connect(str(self.socket_path))
+                if state()[0]:
+                    return {"event": "cancelled", "cancelled": True}
                 stream = client.makefile("rwb", buffering=0)
                 write_json(stream, {"text": text})
                 while True:
+                    if state()[0]:
+                        break
                     event = read_json(stream)
                     kind = event.get("event")
                     if kind == "audio":
+                        if sample_rate is None:
+                            raise RuntimeError("TTS worker sent audio before start")
                         pcm = read_exact(stream, int(event.get("bytes", -1)))
+                        if state()[0]:
+                            break
                         if wav_file is not None:
                             wav_file.writeframesraw(pcm)
                         if player is not None and player.stdin is not None:
                             player.stdin.write(pcm)
                             player.stdin.flush()
+                        if not first_pcm_delivered:
+                            first_pcm_delivered = True
+                            if on_first_pcm is not None:
+                                on_first_pcm()
                     elif kind == "complete":
                         result = event
                         break
                     elif kind == "error":
                         raise RuntimeError(str(event.get("message", "TTS worker failed")))
                     elif kind == "start":
-                        if event.get("sample_rate") != 24_000:
+                        announced_rate = event.get("sample_rate")
+                        if not isinstance(announced_rate, int) or not 8_000 <= announced_rate <= 48_000:
                             raise RuntimeError("TTS worker returned an unsupported sample rate")
                         if event.get("sample_format") != "s16le":
                             raise RuntimeError("TTS worker returned an unsupported sample format")
+                        sample_rate = announced_rate
+                        if wav_file is not None:
+                            wav_file.setnchannels(1)
+                            wav_file.setsampwidth(2)
+                            wav_file.setframerate(sample_rate)
+                        if play and player is None:
+                            player = subprocess.Popen(
+                                [
+                                    "/usr/bin/pw-cat",
+                                    "--playback",
+                                    f"--rate={sample_rate}",
+                                    "--channels=1",
+                                    "--channel-map=MONO",
+                                    "--format=s16",
+                                    "-",
+                                ],
+                                stdin=subprocess.PIPE,
+                            )
                     else:
                         raise RuntimeError(f"unknown TTS protocol event: {kind!r}")
+        except (BrokenPipeError, ConnectionError, EOFError, OSError):
+            if not state()[0]:
+                raise
         finally:
             if wav_file is not None:
                 wav_file.close()
             if player is not None:
-                if player.stdin is not None:
-                    player.stdin.close()
-                return_code = player.wait(timeout=self.timeout_s)
-                if return_code and result is not None:
+                with state_lock:
+                    if (
+                        cancel_event is not None
+                        and cancel_event.is_set()
+                        and not terminal
+                    ):
+                        cancelled = True
+                was_cancelled = state()[0]
+                if was_cancelled:
+                    stop_player(player)
+                elif player.stdin is not None:
+                    try:
+                        player.stdin.close()
+                    except BrokenPipeError:
+                        pass
+                if not was_cancelled:
+                    try:
+                        return_code = player.wait(timeout=self.timeout_s)
+                    except subprocess.TimeoutExpired:
+                        stop_player(player)
+                        raise RuntimeError("PipeWire playback did not stop")
+                else:
+                    return_code = player.returncode
+                if return_code and result is not None and not was_cancelled:
                     raise RuntimeError(f"PipeWire playback exited {return_code}")
+            with state_lock:
+                terminal = True
+            watcher_done.set()
+            if watcher is not None:
+                watcher.join(timeout=0.2)
+        if state()[0]:
+            return {"event": "cancelled", "cancelled": True}
         if result is None:
             raise RuntimeError("TTS worker returned no completion event")
         return result
