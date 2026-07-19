@@ -146,6 +146,18 @@ acknowledgement, then purr in that order.
 The fixed attended process reported online immediately and ready after 5.262
 seconds.
 
+Every finalized utterance now crosses `_handle_segment_safely()`. An unexpected
+request exception no longer terminates capture: Neko records only the phase and
+exception class, cancels partial speech/cat audio/Codex work, clears pending
+online and schedule state, keeps the listening loop alive, and says `Oops! I'm
+not sure what happened, but I wasn't able to do that. Maybe next time.` The same
+boundary wraps asynchronous online completion, where the original request is no
+longer on the stack. Failure while speaking the fallback is contained and
+reported without recursive retry. Fatal microphone/capture and startup failures
+remain supervisor-level faults rather than being mislabeled as request errors.
+The catch-all build was activated in the attended process and reported online
+immediately and ready after 5.330 seconds.
+
 ## Rollback
 
 Stop the attended assistant, revert `neko/online_jobs.py` and its integration in

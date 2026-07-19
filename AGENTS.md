@@ -158,6 +158,14 @@ accepted composition/search commands give a short spoken acknowledgement before
 the continuous work purr begins.
 The fixed attended process is active, online, and reported ready after 5.262
 seconds.
+Finalized requests and asynchronous online completions now have a catch-all
+exception boundary. Unexpected per-request failures cancel partial output and
+Codex work, clear pending tool state, keep listening, and speak `Oops! I'm not
+sure what happened, but I wasn't able to do that. Maybe next time.` Telemetry
+retains only phase and exception class, not the exception message. Startup and
+capture failures intentionally remain fatal for supervisor recovery. The
+catch-all build is active in the attended process; it reported online
+immediately and ready after 5.330 seconds.
 
 The owner accepts 16K as the hard context minimum. The enabled LFM server is
 explicitly `--ctx-size 16384` with quantized K/V cache; unlike the failed LiteRT
@@ -1266,3 +1274,8 @@ For every future model or service, add:
   launch. Renamed online telemetry to `job_kind`, confirmed cleanup left no
   child/story/queue artifact, and added immediate acceptance speech before the
   work purr plus an ordering regression.
+- 2026-07-19: Added a request-level exception boundary for finalized utterances
+  and asynchronous online completion. It cancels partial audio/background work,
+  clears pending tool state, speaks the owner-approved generic failure line, and
+  continues listening without exposing internal exception messages. Fatal
+  startup/capture faults remain outside this boundary.

@@ -97,6 +97,10 @@ PURR_WORD_RE = re.compile(
     r"\bp+u+r+(?:s|ed|ing|y|fect(?:ly)?)?\b",
     re.IGNORECASE,
 )
+REQUEST_FAILURE_REPLY = (
+    "Oops! I'm not sure what happened, but I wasn't able to do that. "
+    "Maybe next time."
+)
 
 
 def wake_is_in_prefix_window(speech_frames_seen: int) -> bool:
@@ -881,7 +885,62 @@ class VoiceAssistant:
                 result = self.online_results.get_nowait()
             except queue.Empty:
                 return
-            self._finish_online_job(result)
+            try:
+                self._finish_online_job(result)
+            except Exception as error:
+                self._recover_request_failure(error, phase="online_completion")
+
+    def _recover_request_failure(self, error: Exception, *, phase: str) -> None:
+        """Cancel partial work and audibly recover from an unexpected request error."""
+
+        try:
+            self._event(
+                "request_failed",
+                phase=phase,
+                error_type=type(error).__name__,
+            )
+        except Exception:
+            # Error reporting must never become a second fatal request error.
+            pass
+
+        self.cancel_speech.set()
+        self.cancel_cat_sound.set()
+        self.cancel_tail_purr.set()
+        self.cancel_work_purr.set()
+        try:
+            self.online_jobs.cancel()
+        except Exception:
+            pass
+        self.active_online_command = None
+        self.pending_schedule_query = None
+        self.pending_schedule_base_query = None
+        for stop_output in (
+            self._stop_thinking_cue_for_speech,
+            self._stop_tail_purr_for_neko_speech,
+            self._stop_work_purr,
+        ):
+            try:
+                stop_output()
+            except Exception:
+                pass
+        try:
+            self._speak(REQUEST_FAILURE_REPLY)
+            self.controller.extend_active_session(time.monotonic())
+        except Exception as fallback_error:
+            try:
+                self._event(
+                    "request_failure_reply_failed",
+                    error_type=type(fallback_error).__name__,
+                )
+            except Exception:
+                pass
+
+    def _handle_segment_safely(self, segment: SpeechSegment) -> bool:
+        try:
+            return self._handle_segment(segment)
+        except Exception as error:
+            self._recover_request_failure(error, phase="request")
+            return False
 
     def _start_thinking_cue(self, text: str) -> None:
         """Play a real acknowledgement while the model thinks, when approved.
@@ -1521,7 +1580,7 @@ class VoiceAssistant:
                     if self.audio.finished_event.is_set():
                         return 0
                     continue
-                if self._handle_segment(segment):
+                if self._handle_segment_safely(segment):
                     handled_dialogues += 1
                     if self.args.max_dialogues and handled_dialogues >= self.args.max_dialogues:
                         return 0

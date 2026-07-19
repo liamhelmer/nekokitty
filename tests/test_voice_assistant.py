@@ -11,7 +11,9 @@ from neko.event_schedule import ScheduleReply
 from neko.events import DialogueRequest
 from neko.story_library import RecordedStory, RecordedStorySection
 from scripts.neko_voice_assistant import ContinuousSpeechInput
+from scripts.neko_voice_assistant import SpeechSegment
 from scripts.neko_voice_assistant import VoiceAssistant
+from scripts.neko_voice_assistant import REQUEST_FAILURE_REPLY
 from scripts.neko_voice_assistant import canonicalize_wake_transcript
 from scripts.neko_voice_assistant import wake_is_in_prefix_window
 from neko.online_jobs import OFFLINE_REPLY, OnlineCommand
@@ -165,6 +167,71 @@ class VoiceAssistantInputTests(unittest.TestCase):
 
 
 class VoiceAssistantMixedAudioTests(unittest.TestCase):
+    def test_unexpected_request_error_is_caught_and_spoken(self) -> None:
+        assistant = VoiceAssistant.__new__(VoiceAssistant)
+        recovered: list[tuple[str, str]] = []
+        assistant._handle_segment = lambda _segment: (_ for _ in ()).throw(
+            RuntimeError("private detail")
+        )
+        assistant._recover_request_failure = lambda error, *, phase: recovered.append(
+            (type(error).__name__, phase)
+        )
+
+        self.assertFalse(
+            assistant._handle_segment_safely(
+                SpeechSegment((), 1.0, transcript="please do a thing")
+            )
+        )
+        self.assertEqual(recovered, [("RuntimeError", "request")])
+
+    def test_request_recovery_cancels_partial_work_and_uses_catch_all_reply(self) -> None:
+        class FakeJobs:
+            def __init__(self) -> None:
+                self.cancelled = False
+
+            def cancel(self) -> None:
+                self.cancelled = True
+
+        assistant = VoiceAssistant.__new__(VoiceAssistant)
+        assistant.cancel_speech = threading.Event()
+        assistant.cancel_cat_sound = threading.Event()
+        assistant.cancel_tail_purr = threading.Event()
+        assistant.cancel_work_purr = threading.Event()
+        assistant.online_jobs = FakeJobs()
+        assistant.active_online_command = OnlineCommand("compose_story", "cats")
+        assistant.pending_schedule_query = "pending"
+        assistant.pending_schedule_base_query = "base"
+        stopped: list[str] = []
+        assistant._stop_thinking_cue_for_speech = lambda: stopped.append("thinking")
+        assistant._stop_tail_purr_for_neko_speech = lambda: stopped.append("tail")
+        assistant._stop_work_purr = lambda: stopped.append("work")
+        spoken: list[str] = []
+        assistant._speak = lambda text: spoken.append(text) or True
+        assistant.controller = SimpleNamespace(extend_active_session=lambda _now: None)
+        events: list[tuple[str, dict[str, object]]] = []
+        assistant._event = lambda event, **values: events.append((event, values))
+
+        assistant._recover_request_failure(
+            RuntimeError("sensitive internal detail"),
+            phase="request",
+        )
+
+        self.assertTrue(assistant.cancel_speech.is_set())
+        self.assertTrue(assistant.cancel_cat_sound.is_set())
+        self.assertTrue(assistant.cancel_tail_purr.is_set())
+        self.assertTrue(assistant.cancel_work_purr.is_set())
+        self.assertTrue(assistant.online_jobs.cancelled)
+        self.assertIsNone(assistant.active_online_command)
+        self.assertIsNone(assistant.pending_schedule_query)
+        self.assertIsNone(assistant.pending_schedule_base_query)
+        self.assertEqual(stopped, ["thinking", "tail", "work"])
+        self.assertEqual(spoken, [REQUEST_FAILURE_REPLY])
+        self.assertEqual(
+            events,
+            [("request_failed", {"phase": "request", "error_type": "RuntimeError"})],
+        )
+        self.assertNotIn("sensitive internal detail", repr(events))
+
     def test_online_story_acknowledges_before_starting_work_purr(self) -> None:
         order: list[str] = []
 

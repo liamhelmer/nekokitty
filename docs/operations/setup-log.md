@@ -3299,3 +3299,22 @@ an exact ordering regression for job launch, collision-free event, acceptance
 speech, and purr start.
 The attended loop was restarted with the unchanged manual command; it reported
 online immediately and ready after 5.262 seconds.
+
+### 2026-07-19 request-level catch-all
+
+The owner required audible feedback whenever any individual request crashes.
+`_handle_segment_safely()` now catches unexpected `Exception` failures from a
+finalized request, while `_drain_online_results()` applies the same recovery to
+asynchronous completion. Recovery logs only phase and exception class, cancels
+partial speech, thinking/tail/work cat audio, and the Codex process group,
+clears active online plus pending schedule state, preserves the listening loop,
+and speaks: `Oops! I'm not sure what happened, but I wasn't able to do that.
+Maybe next time.` A failure in that fallback is contained without recursion.
+Startup and microphone-capture failures remain fatal so the future service
+supervisor can restart genuinely broken infrastructure.
+
+The targeted voice suite passes 23 tests, including unexpected-request capture,
+complete partial-work cleanup, exact fallback speech, non-disclosure of the
+exception message, and the existing online acceptance/purr ordering regression.
+The attended assistant was restarted with the catch-all and reported online
+immediately and ready after 5.330 seconds.
