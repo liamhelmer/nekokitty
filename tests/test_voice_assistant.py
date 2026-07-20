@@ -6,6 +6,7 @@ import random
 import threading
 import unittest
 
+from neko.audio_tagging import AudioTagResult
 from neko.cat_audio import CatAudioDenied, CatSoundSelection
 from neko.event_schedule import ScheduleReply
 from neko.events import DialogueRequest
@@ -167,6 +168,100 @@ class VoiceAssistantInputTests(unittest.TestCase):
 
 
 class VoiceAssistantMixedAudioTests(unittest.TestCase):
+    def test_empty_transcript_is_offered_to_meow_reflex(self) -> None:
+        assistant = VoiceAssistant.__new__(VoiceAssistant)
+        assistant.ignored_story_sequences = set()
+        assistant._event = lambda _kind, **_values: None
+        seen: list[SpeechSegment] = []
+        assistant._maybe_meow_back = lambda segment: seen.append(segment) or True
+        segment = SpeechSegment((0.1, 0.2), 10.0, sequence=7, transcript="")
+
+        self.assertTrue(assistant._handle_segment(segment))
+        self.assertEqual(seen, [segment])
+
+    def test_meow_reflex_selects_varied_reply_without_action_cooldown(self) -> None:
+        class FakeTagger:
+            def classify(self, _samples: object, **_values: object) -> AudioTagResult:
+                return AudioTagResult("Music", 0.7, 0.01)
+
+        class FakeCatalog:
+            def __init__(self) -> None:
+                self.calls: list[tuple[str, str, bool]] = []
+                self.marked: list[str] = []
+
+            def select(
+                self, action: str, output: str, **values: object
+            ) -> CatSoundSelection:
+                self.calls.append(
+                    (action, output, bool(values.get("enforce_cooldown")))
+                )
+                return CatSoundSelection(
+                    action,
+                    "meow_general.speaker.v1",
+                    Path("/tmp/meow.wav"),
+                    "speaker",
+                    -6.0,
+                    0.87,
+                    False,
+                )
+
+            def mark_played(self, selection: CatSoundSelection) -> None:
+                self.marked.append(selection.asset_id)
+
+        class FakePlayer:
+            def play(self, _selection: object, **values: object) -> bool:
+                callback = values.get("on_started")
+                assert callable(callback)
+                callback()
+                return True
+
+        assistant = VoiceAssistant.__new__(VoiceAssistant)
+        assistant.audio_tagger = FakeTagger()
+        assistant.args = SimpleNamespace(
+            meow_back_threshold=0.10,
+            cat_sound_output="speaker",
+            no_speak=False,
+        )
+        assistant.cat_sounds = FakeCatalog()
+        assistant.cat_sound_player = FakePlayer()
+        assistant.cancel_cat_sound = threading.Event()
+        assistant.speaking = threading.Event()
+        assistant.cat_sound_playing = threading.Event()
+        assistant._meow_back_output_windows = []
+        events: list[str] = []
+        assistant._event = lambda kind, **_values: events.append(kind)
+
+        self.assertTrue(
+            assistant._maybe_meow_back(
+                SpeechSegment((0.1,) * 1600, 10.0, sequence=2, transcript="")
+            )
+        )
+        self.assertEqual(
+            assistant.cat_sounds.calls,
+            [("meow_reply", "speaker", False)],
+        )
+        self.assertEqual(
+            assistant.cat_sounds.marked,
+            ["meow_general.speaker.v1"],
+        )
+        self.assertIn("meow_back_started", events)
+        self.assertIn("meow_back_complete", events)
+        self.assertFalse(assistant.speaking.is_set())
+
+    def test_meow_reflex_ignores_its_own_overlapping_output(self) -> None:
+        assistant = VoiceAssistant.__new__(VoiceAssistant)
+        assistant._meow_back_output_windows = [(5.0, 8.0)]
+        assistant.audio_tagger = object()
+        events: list[str] = []
+        assistant._event = lambda kind, **_values: events.append(kind)
+
+        self.assertFalse(
+            assistant._maybe_meow_back(
+                SpeechSegment((0.1,) * 16_000, 8.5, sequence=4, transcript="")
+            )
+        )
+        self.assertEqual(events, ["meow_back_self_audio_ignored"])
+
     def test_unexpected_request_error_is_caught_and_spoken(self) -> None:
         assistant = VoiceAssistant.__new__(VoiceAssistant)
         recovered: list[tuple[str, str]] = []

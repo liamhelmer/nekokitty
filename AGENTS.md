@@ -1301,3 +1301,11 @@ For every future model or service, add:
   a five-minute user timer, and a supervised voice unit that reloads only when
   the remembered remote revision changes. Secret-like paths and conflicted Git
   operations fail closed without destructive cleanup.
+- 2026-07-19: Added an offline human-meow reflex after empty ASR results. The
+  two-thread sherpa-onnx INT8 AudioSet tagger answers when `Meow > 10%` or the
+  top label is Music/Mantra, using a varied curated meow pool capped at ten
+  seconds. Recognizable speech wins, results never enter LLM context, repeated
+  later meows may receive new replies, and speaker-overlap suppression prevents
+  recursive self-meowing. The adult owner's explicitly authorized C922 fixture,
+  consent metadata, exact model hashes, tests, behavior limits, and rollback are
+  recorded in the linked plan and setup log; no child recording is retained.

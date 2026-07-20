@@ -42,6 +42,8 @@ recordings/
 captures/
 transcripts/
 *.wav
+# Explicitly owner-authorized public regression fixture; see adjacent metadata.
+!tests/fixtures/audio/human-meow-owner-20260719.wav
 *.flac
 *.mp3
 *.mp4

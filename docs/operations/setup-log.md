@@ -3408,3 +3408,58 @@ the worktree was clean. Both units remained enabled, `Linger=yes`, and the
 re-enabled timer's next activation was 11:53:59 PDT, five minutes after the
 11:48:59 baseline. This passes the requested pull/change/reload path without a
 reboot; a real cold boot remains a separate acceptance test.
+
+## 2026-07-19: offline human-meow reflex
+
+Downloaded the official sherpa-onnx small Zipformer AudioSet tagging release from
+`k2-fsa/sherpa-onnx`:
+
+```text
+https://github.com/k2-fsa/sherpa-onnx/releases/download/audio-tagging-models/sherpa-onnx-zipformer-small-audio-tagging-2024-04-15.tar.bz2
+```
+
+The archive SHA-256 is
+`07e2fafcdcbc461f2816188d9b0bbafced12584030cf67d5652e549ef256a2c6`.
+The deployed files are under
+`/home/neko/models/sherpa-onnx-zipformer-small-audio-tagging-2024-04-15`:
+
+- `model.int8.onnx`, 27,038,066 bytes, SHA-256
+  `69304b8a1b96bbe6b7d16c24079f0732c65faf3568a14cb82a8238c709afe76c`;
+- `class_labels_indices.csv`, SHA-256
+  `cdd1049833c4b86127c2773ac0d14a2754b6a6d0d1798002ed5c66e699708429`.
+
+The extracted release currently occupies 118 MiB and the retained download
+archive occupies 106 MiB. Only the 26 MiB INT8 graph and labels are loaded by the
+assistant; the FP32 graph, upstream test files, and archive are cold NVMe
+provenance/recovery artifacts and are not boot-resident.
+
+No Python package was installed: the pinned ASR environment already provides
+`sherpa_onnx 1.13.4` and its AudioTagging API. The upstream repository code is
+Apache-2.0; the release does not state a distinct weight licence in the extracted
+README, so do not redistribute the model weights without a separate review.
+AudioSet provenance is not permission to redistribute source recordings.
+
+Added `neko/audio_tagging.py` and integrated it after empty streaming-ASR results.
+The exact policy is `Meow > 0.10` or top label `Music`/`Mantra`; any nonempty
+transcript prevents the reply. It uses two CPU threads, returns all 527 labels,
+plays one weighted approved sound for at most ten seconds, permits later replies,
+and excludes Neko's overlapping speaker output. Results remain out of LLM
+history. Attended audio enables the pool; deployment audio remains disabled.
+
+The owner explicitly authorized committing the adult-owner calibration recording
+as `tests/fixtures/audio/human-meow-owner-20260719.wav`; adjacent JSON records its
+SHA-256, capture facts, limited project-test consent, twelve event scores, and the
+fact that no child voice is present. On that recording, five of twelve events
+exceed the strict Meow threshold and Music/Mantra add two candidates. The real
+integration slice passes with the installed INT8 model.
+
+Dependency-correct validation passed 173 tests in the ASR environment (ten
+TensorRT/NumPy skips by design), all three RF-DETR tests in its pinned environment,
+Python compileall, both JSON parses, and `git diff --check`. The supervised
+assistant restarted successfully with the existing PipeWire C922/Bluetooth
+routing. Ready reported 5.187 seconds ASR load, 1.328 seconds tagger load,
+`audio_tagger_loaded: true`, and online mode. Live owner-response acceptance is
+pending. The active service subsequently reported about 1.12 GiB current and
+1.12 GiB peak cgroup memory with zero restarts; this is an operational snapshot,
+not an isolated before/after tagger allocation. Full policy, limitation, and rollback details are in
+`docs/plan/2026-07-19-human-meow-reflex.md`.

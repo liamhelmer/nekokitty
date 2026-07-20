@@ -40,6 +40,31 @@
       "adult_auth_required": false,
       "child_facing_review": "pending"
     },
+    "meow_reply": {
+      "enabled": false,
+      "allowed_outputs": ["speaker"],
+      "candidates": [
+        {"asset_id": "meow_general.speaker.v1", "weight": 4},
+        {"asset_id": "meow_thank_you.speaker.v1", "weight": 2},
+        {"asset_id": "meow_attention_candidate_01.speaker.v1", "weight": 1},
+        {"asset_id": "meow_attention_candidate_02.speaker.v1", "weight": 1},
+        {"asset_id": "meow_attention_candidate_03.speaker.v1", "weight": 1},
+        {"asset_id": "meow_attention_candidate_04.speaker.v1", "weight": 1},
+        {"asset_id": "meow_attention_candidate_05.speaker.v1", "weight": 1},
+        {"asset_id": "meow_attention_candidate_06.speaker.v1", "weight": 1},
+        {"asset_id": "meow_attention_candidate_08.speaker.v1", "weight": 1},
+        {"asset_id": "meow_attention_candidate_09.speaker.v1", "weight": 1}
+      ],
+      "min_gain_db": -18.0,
+      "max_gain_db": 0.0,
+      "default_gain_db": -6.0,
+      "cooldown_seconds": 1.0,
+      "max_duration_seconds": 10.0,
+      "interruptible": false,
+      "autonomous_allowed": false,
+      "adult_auth_required": false,
+      "child_facing_review": "owner_approved_logic_hardware_pending"
+    },
     "meow_attention_candidate": {
       "enabled": false,
       "allowed_outputs": ["speaker"],

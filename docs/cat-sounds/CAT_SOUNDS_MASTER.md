@@ -1,6 +1,6 @@
 # Cat Sounds Master
 
-Last updated: 2026-07-16
+Last updated: 2026-07-19
 
 This is the maintained human catalog for Neko's cat recordings: what each sound
 communicates, when to use it, where to play it, and what work remains. Update
@@ -78,6 +78,15 @@ The first soundboard should expose semantic actions such as:
 - `purr_playful_affection` → item 24;
 - `purr_sleep` → cleaned item 5 or 16;
 - `novelty_trippy_cats` → item 8, manual-only.
+
+`meow_reply` is now an attended-only deterministic reflex pool for human meow
+imitations. It weights the neutral item-10 derivative most heavily, then the
+friendly item-14 derivative, with eight short item-21 attention excerpts as
+lower-weight variety. It bypasses the action cooldown only after an empty ASR
+result passes the offline audio-tagging rule, avoids the immediately previous
+asset, and never plays more than ten seconds. The physical runtime allowlist
+remains disabled pending speaker acceptance. See the
+[human-meow reflex plan](../plan/2026-07-19-human-meow-reflex.md).
 
 The processing queue is maintained separately so this catalog remains the
 stable description and usage reference.

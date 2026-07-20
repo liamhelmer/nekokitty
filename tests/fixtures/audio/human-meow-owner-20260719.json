@@ -1,0 +1,30 @@
+{
+  "asset": "human-meow-owner-20260719.wav",
+  "sha256": "958d09910a7f455d96e8220bff67414b995f93cc0c93dd4e9d5df50f98dca19f",
+  "speaker": "project owner",
+  "speaker_is_child": false,
+  "capture_date": "2026-07-19",
+  "capture_device": "Logitech C922 microphone",
+  "format": "PCM signed 16-bit little-endian, mono, 16000 Hz",
+  "duration_seconds": 45.0,
+  "purpose": "Regression fixture for the offline human-meow audio classifier and response policy.",
+  "consent": "The project owner explicitly authorized retaining this recording in the public project repository on 2026-07-19.",
+  "rights": "Included for this project's testing with the recorded speaker's consent. The speaker retains voice and personality rights; this recording is not granted as training data or as a general-purpose voice asset under the repository software license.",
+  "privacy": "This fixture contains the adult project owner's voice. It does not contain the owner's daughter or another child's voice.",
+  "notes": "The untrimmed fixture deliberately preserves headphone warm-up/cue audio and trailing silence so detector behavior remains reproducible. Some vocal peaks clip.",
+  "vad_events": [
+    {"start_seconds": 3.31, "meow_score": 0.278006},
+    {"start_seconds": 6.86, "meow_score": 0.134596},
+    {"start_seconds": 8.81, "meow_score": 0.000683, "top_label": "Music"},
+    {"start_seconds": 10.31, "meow_score": 0.001712},
+    {"start_seconds": 12.49, "meow_score": 0.000705, "top_label": "Mantra"},
+    {"start_seconds": 13.71, "meow_score": 0.033073},
+    {"start_seconds": 15.27, "meow_score": 0.414059, "top_label": "Meow"},
+    {"start_seconds": 17.10, "meow_score": 0.025929},
+    {"start_seconds": 19.63, "meow_score": 0.000637},
+    {"start_seconds": 21.07, "meow_score": 0.272826},
+    {"start_seconds": 24.11, "meow_score": 0.000211},
+    {"start_seconds": 26.35, "meow_score": 0.053719}
+  ],
+  "calibration_summary": "The strict Meow > 10% rule catches 5 of 12 VAD events (41.7%); the owner-approved Music and Mantra alternatives bring this fixture to 7 of 12 possible reflexes (58.3%). Misses are acceptable by design."
+}

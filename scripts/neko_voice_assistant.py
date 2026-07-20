@@ -26,6 +26,7 @@ from typing import Callable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from neko.behavior import BehaviorController, normalize_phrase  # noqa: E402
+from neko.audio_tagging import AudioTagger, should_meow_back  # noqa: E402
 from neko.events import (  # noqa: E402
     Acknowledge,
     CancelAudio,
@@ -82,6 +83,13 @@ DEFAULT_KWS_MODEL = Path(
 )
 DEFAULT_KEYWORDS = Path(__file__).resolve().parents[1] / "config/asr/neko-keywords.txt"
 DEFAULT_TTS_SOCKET = Path("/run/neko/tts.sock")
+DEFAULT_AUDIO_TAGGING_MODEL = Path(
+    "/home/neko/models/sherpa-onnx-zipformer-small-audio-tagging-2024-04-15/"
+    "model.int8.onnx"
+)
+DEFAULT_AUDIO_TAGGING_LABELS = DEFAULT_AUDIO_TAGGING_MODEL.with_name(
+    "class_labels_indices.csv"
+)
 ATTENDED_CAT_SOUND_ALLOWLIST = (
     Path(__file__).resolve().parents[1]
     / "config/cat-sounds/attended-headphone-allowlist.json"
@@ -499,6 +507,7 @@ class VoiceAssistant:
         self._tail_purr_thread: threading.Thread | None = None
         self._work_purr_thread: threading.Thread | None = None
         self._cue_rng = random.SystemRandom()
+        self._meow_back_output_windows: deque[tuple[float, float]] = deque(maxlen=8)
         self.story_library = StoryLibrary()
         self.event_schedule = EventSchedule()
         self.pending_schedule_query: str | None = None
@@ -539,6 +548,21 @@ class VoiceAssistant:
                 "body_transducer": args.cat_transducer_target,
             }
         )
+        tagger_load_started = time.monotonic()
+        self.audio_tagger: AudioTagger | None = None
+        self._audio_tagger_error_type: str | None = None
+        if args.meow_back_enabled:
+            try:
+                self.audio_tagger = AudioTagger(
+                    args.audio_tagging_model,
+                    args.audio_tagging_labels,
+                    num_threads=args.audio_tagging_threads,
+                )
+            except Exception as error:
+                # Conversation remains useful if this optional reflex cannot
+                # load. Log only the exception type; paths/details stay local.
+                self._audio_tagger_error_type = type(error).__name__
+        self.audio_tagger_load_seconds = time.monotonic() - tagger_load_started
         self.current_segment_sequence = 0
         self.current_audio_samples: tuple[float, ...] = ()
         self.current_vad_finalized_s = 0.0
@@ -581,6 +605,93 @@ class VoiceAssistant:
                 self._on_wake,
                 self._on_stop,
             )
+
+    def _maybe_meow_back(self, segment: SpeechSegment) -> bool:
+        """Answer a likely human meow without waking the LLM conversation."""
+
+        segment_end = segment.captured_at_s
+        segment_start = segment_end - len(segment.samples) / SAMPLE_RATE
+        if any(
+            segment_start <= output_end and segment_end >= output_start
+            for output_start, output_end in self._meow_back_output_windows
+        ):
+            self._event("meow_back_self_audio_ignored", sequence=segment.sequence)
+            return False
+        tagger = self.audio_tagger
+        if tagger is None:
+            return False
+        try:
+            result = tagger.classify(segment.samples, sample_rate=SAMPLE_RATE)
+        except Exception as error:
+            self._event("audio_tagging_error", error_type=type(error).__name__)
+            # Fail quiet after a runtime fault rather than repeatedly spending
+            # CPU and emitting errors for ambient VAD segments.
+            self.audio_tagger = None
+            return False
+        self._event(
+            "audio_tagging_result",
+            top_label=result.top_label,
+            top_score=round(result.top_score, 4),
+            meow_score=round(result.meow_score, 4),
+            audio_seconds=round(len(segment.samples) / SAMPLE_RATE, 3),
+        )
+        if not should_meow_back(
+            segment.transcript,
+            result,
+            meow_threshold=self.args.meow_back_threshold,
+        ):
+            return False
+        try:
+            selection = self.cat_sounds.select(
+                "meow_reply",
+                self.args.cat_sound_output,
+                autonomous=True,
+                # A new qualifying human vocalization may receive a new answer.
+                # Selection still avoids immediately repeating the same asset.
+                enforce_cooldown=False,
+            )
+        except CatAudioDenied as error:
+            self._event("cat_sound_fallback", action="meow_reply", reason=str(error))
+            return False
+        if selection.duration_seconds > 10.0:
+            self._event("meow_back_denied", reason="duration_limit")
+            return False
+        if self.args.no_speak:
+            self._event(
+                "meow_back_selected",
+                asset_id=selection.asset_id,
+                trigger=result.top_label,
+            )
+            return True
+        self.cancel_cat_sound.clear()
+        self.speaking.set()
+        self.cat_sound_playing.set()
+        output_started = time.monotonic()
+        try:
+            played = self.cat_sound_player.play(
+                selection,
+                cancel_event=self.cancel_cat_sound,
+                on_started=lambda: self._event(
+                    "meow_back_started",
+                    asset_id=selection.asset_id,
+                    trigger=result.top_label,
+                ),
+            )
+            if not played:
+                self._event("meow_back_interrupted", asset_id=selection.asset_id)
+                return False
+            self.cat_sounds.mark_played(selection)
+            self._event("meow_back_complete", asset_id=selection.asset_id)
+            return True
+        finally:
+            # VAD finalization trails the audible sound. Retaining the actual
+            # overlap interval plus a short tail prevents Neko's recorded meow
+            # from recursively triggering itself on an open speaker/microphone.
+            self._meow_back_output_windows.append(
+                (output_started - 0.1, time.monotonic() + 1.0)
+            )
+            self.cat_sound_playing.clear()
+            self.speaking.clear()
 
     def _event(self, kind: str, **values: object) -> None:
         print(json.dumps({"event": kind, **values}, ensure_ascii=False), flush=True)
@@ -1459,7 +1570,7 @@ class VoiceAssistant:
         text = segment.transcript
         if not text and not segment.wake_detected and not segment.sleep_detected and not segment.stop_detected:
             self._event("empty_transcript")
-            return False
+            return self._maybe_meow_back(segment)
         if (
             getattr(self, "active_online_command", None) is not None
             and not segment.wake_detected
@@ -1556,9 +1667,16 @@ class VoiceAssistant:
             raise RuntimeError("local LLM is not ready")
         self.online_monitor.start()
         self.audio.start()
+        if self._audio_tagger_error_type is not None:
+            self._event(
+                "audio_tagging_unavailable",
+                error_type=self._audio_tagger_error_type,
+            )
         self._event(
             "ready",
             asr_load_seconds=round(self.model_load_seconds, 3),
+            audio_tagger_loaded=self.audio_tagger is not None,
+            audio_tagger_load_seconds=round(self.audio_tagger_load_seconds, 3),
             device=self.args.device,
             media_retained=False,
             replay=bool(self.args.replay_wav),
@@ -1648,6 +1766,25 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--tts-socket", type=Path, default=DEFAULT_TTS_SOCKET)
     parser.add_argument(
+        "--audio-tagging-model",
+        type=Path,
+        default=DEFAULT_AUDIO_TAGGING_MODEL,
+    )
+    parser.add_argument(
+        "--audio-tagging-labels",
+        type=Path,
+        default=DEFAULT_AUDIO_TAGGING_LABELS,
+    )
+    parser.add_argument("--audio-tagging-threads", type=int, choices=(1, 2), default=2)
+    parser.add_argument("--meow-back-threshold", type=float, default=0.10)
+    parser.add_argument(
+        "--disable-meow-back",
+        dest="meow_back_enabled",
+        action="store_false",
+        help="disable the local empty-STT human-meow reflex",
+    )
+    parser.set_defaults(meow_back_enabled=True)
+    parser.add_argument(
         "--cat-sound-output",
         choices=("speaker", "body_transducer"),
         default="speaker",
@@ -1699,6 +1836,8 @@ def main() -> int:
         raise ValueError("thinking cue rate must be between zero and one")
     if not 0 <= args.response_cue_rate <= 1:
         raise ValueError("response cue rate must be between zero and one")
+    if not 0 <= args.meow_back_threshold <= 1:
+        raise ValueError("meow-back threshold must be between zero and one")
     if args.connectivity_interval <= 0 or args.online_job_timeout <= 120:
         raise ValueError("online intervals must be positive and jobs must allow over two minutes")
     if args.attended_cat_sounds and args.cat_sound_output != "speaker":
