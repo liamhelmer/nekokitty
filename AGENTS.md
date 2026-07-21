@@ -175,6 +175,17 @@ and Piper present, about 2,967,384 KiB remained available. Story mode will use
 retrieval, bounded sections, and summary state inside 16K rather than trying to
 place an entire library or indefinitely growing transcript in context.
 
+Four deterministic local maintenance commands now bypass LFM and conversation
+history. `tell me your IP address` spells the preferred route's IPv4 address;
+`are you online?` immediately repeats the shared two-packet connectivity probe
+and updates mode; `are you healthy?` checks the active LLM/TTS/voice/schedule/Git
+units plus current-boot error-priority journal records; and the narrowly matched
+`full reboot` speaks the approved power-nap line before requesting a complete
+Jetson reboot. The implementation adds no privilege policy and uses the owner's
+existing noninteractive local sudo. Host evidence still showed the July 14 boot
+during deployment, so a spoken full-host reboot remains an owner-initiated
+destructive acceptance test rather than a completed cold-boot result.
+
 CatMeows 1.0.2 is pinned externally as a 440-clip candidate library. No clip has
 been played or integrated: the 221 isolation-context calls are excluded by
 default, and the brushing/food calls need a human friendly/distress curation
@@ -356,6 +367,9 @@ Read these before changing the system:
 - [Online-only Codex commands](docs/plan/2026-07-19-online-codex-commands.md)
   — immediate ICMP mode, Luna search, Terra story composition, continuous work
   purr/status semantics, privacy boundary, validation, and rollback.
+- [Deterministic local maintenance commands](docs/plan/2026-07-21-deterministic-maintenance-commands.md)
+  — exact IP/online/health/reboot intents, service and journal health contract,
+  privilege boundary, validation, outstanding reboot acceptance, and rollback.
 - [Main auto-sync and assistant reload](docs/plan/2026-07-19-main-auto-sync.md)
   — direct-main decision, shared writer lock, five-minute commit/fetch/rebase/
   push timer, secret-path gate, supervised assistant reload, and rollback.

@@ -168,6 +168,16 @@ class VoiceAssistantInputTests(unittest.TestCase):
 
 
 class VoiceAssistantMixedAudioTests(unittest.TestCase):
+    def test_local_command_routes_before_online_or_llm_work(self) -> None:
+        assistant = VoiceAssistant.__new__(VoiceAssistant)
+        seen: list[str] = []
+        assistant._handle_local_command = lambda command: seen.append(command.kind) or True
+
+        self.assertTrue(
+            assistant._dialogue(DialogueRequest("are you healthy", "en"))
+        )
+        self.assertEqual(seen, ["health"])
+
     def test_empty_transcript_is_offered_to_meow_reflex(self) -> None:
         assistant = VoiceAssistant.__new__(VoiceAssistant)
         assistant.ignored_story_sequences = set()

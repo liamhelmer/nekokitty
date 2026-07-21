@@ -64,6 +64,14 @@ from neko.online_jobs import (  # noqa: E402
     OnlineJobResult,
     parse_online_command,
 )
+from neko.local_commands import (  # noqa: E402
+    LocalCommand,
+    check_services,
+    parse_local_command,
+    primary_ip_address,
+    request_reboot,
+    speakable_ip_address,
+)
 from neko.story_library import RecordedStory, StoryLibrary  # noqa: E402
 from neko.story_recording_rebuild import enqueue_story_rebuild  # noqa: E402
 from neko.tts_protocol import NEKO_NAME_RE, TtsClient  # noqa: E402
@@ -109,6 +117,8 @@ REQUEST_FAILURE_REPLY = (
     "Oops! I'm not sure what happened, but I wasn't able to do that. "
     "Maybe next time."
 )
+REBOOT_ACKNOWLEDGEMENT = "OK, going to have a quick power nap now!"
+REBOOT_FAILURE_REPLY = "Oops! I couldn't start my power nap. Please check me manually."
 
 
 def wake_is_in_prefix_window(speech_frames_seen: int) -> bool:
@@ -698,6 +708,61 @@ class VoiceAssistant:
 
     def _on_online_mode_change(self, online: bool) -> None:
         self._event("online_mode_changed", online=online, probe="ping_8.8.8.8_c2")
+
+    def _handle_local_command(self, command: LocalCommand) -> bool:
+        """Execute a bounded local command without consulting or retaining LLM state."""
+
+        self._stop_thinking_cue_for_speech()
+        self._stop_tail_purr_for_neko_speech()
+        if command.kind == "ip_address":
+            address = primary_ip_address()
+            answer = (
+                f"My IP address is {speakable_ip_address(address)}."
+                if address is not None
+                else "I couldn't find my IP address right now."
+            )
+            self._event("local_command", command="ip_address", available=address is not None)
+            completed = self._speak(answer, vad_finalized_s=self.current_vad_finalized_s)
+        elif command.kind == "online":
+            online = self.online_monitor.probe_once()
+            self._event("local_command", command="online", online=online)
+            answer = "Yep, I'm online!" if online else "Nope, I'm offline right now."
+            completed = self._speak(answer, vad_finalized_s=self.current_vad_finalized_s)
+        elif command.kind == "health":
+            report = check_services()
+            self._event(
+                "local_command",
+                command="health",
+                healthy=report.healthy,
+                problems=[
+                    {"unit": problem.unit, "issue": problem.issue}
+                    for problem in report.problems
+                ],
+            )
+            completed = self._speak(
+                report.spoken_text(),
+                vad_finalized_s=self.current_vad_finalized_s,
+            )
+        elif command.kind == "reboot":
+            self._event("local_command", command="reboot", phase="acknowledging")
+            completed = self._speak(
+                REBOOT_ACKNOWLEDGEMENT,
+                vad_finalized_s=self.current_vad_finalized_s,
+            )
+            if not completed:
+                self._event("reboot_cancelled_before_request")
+                return False
+            self._event("local_command", command="reboot", phase="requesting")
+            if not request_reboot():
+                self._event("reboot_request_failed")
+                self._speak(REBOOT_FAILURE_REPLY)
+                return False
+            return True
+        else:
+            raise ValueError(f"unsupported local command: {command.kind}")
+        if completed:
+            self.controller.extend_active_session(time.monotonic())
+        return completed
 
     def _on_speech_start(self) -> None:
         if self.spoken_turn_active.is_set():
@@ -1351,6 +1416,9 @@ class VoiceAssistant:
 
     def _dialogue(self, request: DialogueRequest) -> bool:
         started = time.monotonic()
+        local_command = parse_local_command(request.text)
+        if local_command is not None:
+            return self._handle_local_command(local_command)
         online_command = parse_online_command(request.text)
         if online_command is not None:
             return self._start_online_job(online_command)

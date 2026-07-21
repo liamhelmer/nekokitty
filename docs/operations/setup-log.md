@@ -3463,3 +3463,39 @@ pending. The active service subsequently reported about 1.12 GiB current and
 1.12 GiB peak cgroup memory with zero restarts; this is an operational snapshot,
 not an isolated before/after tagger allocation. Full policy, limitation, and rollback details are in
 `docs/plan/2026-07-19-human-meow-reflex.md`.
+
+## 2026-07-21: deterministic IP, online, health, and full-reboot commands
+
+Added `neko/local_commands.py`, standalone `scripts/neko_health_check.py`, and
+LLM-bypassing voice routing for the owner's four maintenance intents. No package,
+model, sudoers rule, PolicyKit rule, system unit, or secret was installed. The
+reboot path uses the already-present owner-controlled `NOPASSWD` sudo policy with
+fixed argv `/usr/bin/sudo -n /usr/bin/systemctl reboot`; it runs only after the
+approved spoken acknowledgement completes and was not invoked during automated
+validation.
+
+The health set is the enabled local LFM, Piper, Kiki, schedule-refresh timer,
+voice assistant, and Git-sync timer. The checker requires active/success state
+and scans only current-boot journal priority 0 through 3. Disabled lab profiles
+and the unrelated pre-existing dnsmasq/ISC DHCP failures are excluded. Output
+contains unit/problem classes, never journal message text. The Git-sync timer was
+stopped before source changes; the first checker run correctly reported only
+that timer inactive. It was restarted before final live validation.
+
+Validation commands:
+
+```text
+python3 -m unittest tests.test_local_commands
+/home/neko/.local/share/neko/venvs/asr/bin/python -m unittest tests.test_voice_assistant
+python3 -m unittest discover -s tests
+python3 -m compileall -q neko/local_commands.py scripts/neko_health_check.py scripts/neko_voice_assistant.py
+python3 scripts/neko_health_check.py
+git diff --check
+```
+
+The focused suites passed 7 and 27 tests. The complete repository suite passed
+184 tests with one designed dependency skip. Host `uptime -s` remained
+`2026-07-14 09:07:16`, proving the owner's observed event immediately before
+this work was not a full Jetson reboot. An owner-spoken full reboot plus
+post-boot capture/playback check remains pending. Architecture and rollback are
+in `docs/plan/2026-07-21-deterministic-maintenance-commands.md`.
