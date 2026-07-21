@@ -178,8 +178,9 @@ place an entire library or indefinitely growing transcript in context.
 Four deterministic local maintenance commands now bypass LFM and conversation
 history. `tell me your IP address` spells the preferred route's IPv4 address;
 `are you online?` immediately repeats the shared two-packet connectivity probe
-and updates mode; `are you healthy?` checks the active LLM/TTS/voice/schedule/Git
-units plus current-boot error-priority journal records; and the narrowly matched
+and updates mode; `are you healthy?` checks Docker, PipeWire, and the active
+LLM/TTS/voice/schedule/Git units plus current-boot error-priority journal records;
+and the narrowly matched
 `full reboot` speaks the approved power-nap line before requesting a complete
 Jetson reboot. The implementation adds no privilege policy and uses the owner's
 existing noninteractive local sudo. Host evidence still showed the July 14 boot

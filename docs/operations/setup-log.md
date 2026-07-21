@@ -3474,8 +3474,8 @@ fixed argv `/usr/bin/sudo -n /usr/bin/systemctl reboot`; it runs only after the
 approved spoken acknowledgement completes and was not invoked during automated
 validation.
 
-The health set is the enabled local LFM, Piper, Kiki, schedule-refresh timer,
-voice assistant, and Git-sync timer. The checker requires active/success state
+The health set is Docker, the enabled local LFM, Piper, Kiki, schedule-refresh
+timer, PipeWire, voice assistant, and Git-sync timer. The checker requires active/success state
 and scans only current-boot journal priority 0 through 3. Disabled lab profiles
 and the unrelated pre-existing dnsmasq/ISC DHCP failures are excluded. Output
 contains unit/problem classes, never journal message text. The Git-sync timer was

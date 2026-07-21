@@ -47,9 +47,10 @@ sudoers or PolicyKit privilege was installed.
 `scripts/neko_health_check.py` is a standalone JSON/exit-status wrapper around
 the same health logic used by voice. It checks these enabled essential units:
 
-- system: `neko-llm.service`, `neko-tts-fast.service`, `neko-tts.service`, and
-  `neko-what-if-refresh.timer`;
-- user: `neko-voice-assistant.service` and `neko-git-sync.timer`.
+- system: `docker.service`, `neko-llm.service`, `neko-tts-fast.service`,
+  `neko-tts.service`, and `neko-what-if-refresh.timer`;
+- user: `pipewire.service`, `neko-voice-assistant.service`, and
+  `neko-git-sync.timer`.
 
 For each unit it requires `ActiveState=active`, a successful unit result, and no
 journal entry at priorities emergency through error (`0..3`) during the current

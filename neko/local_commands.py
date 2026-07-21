@@ -62,10 +62,12 @@ class HealthReport:
 
 
 ESSENTIAL_SERVICES: tuple[ServiceCheck, ...] = (
+    ServiceCheck("docker.service", "model container runtime"),
     ServiceCheck("neko-llm.service", "local language service"),
     ServiceCheck("neko-tts-fast.service", "fast voice service"),
     ServiceCheck("neko-tts.service", "Kiki voice service"),
     ServiceCheck("neko-what-if-refresh.timer", "schedule refresh timer"),
+    ServiceCheck("pipewire.service", "audio service", user_unit=True),
     ServiceCheck("neko-voice-assistant.service", "voice assistant", user_unit=True),
     ServiceCheck("neko-git-sync.timer", "Git sync timer", user_unit=True),
 )
