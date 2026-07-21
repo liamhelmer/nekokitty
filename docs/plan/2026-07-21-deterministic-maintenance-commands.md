@@ -49,12 +49,12 @@ the same health logic used by voice. It checks these enabled essential units:
 
 - system: `docker.service`, `neko-llm.service`, `neko-tts-fast.service`,
   `neko-tts.service`, and `neko-what-if-refresh.timer`;
-- user: `pipewire.service`, `neko-voice-assistant.service`, and
-  `neko-git-sync.timer`.
+- user: `pipewire.service`, `neko-audio-policy.service`,
+  `neko-voice-assistant.service`, and `neko-git-sync.timer`.
 
 For each unit it requires `ActiveState=active`, a successful unit result, and no
-journal entry at priorities emergency through error (`0..3`) during the current
-boot. Only the unit and problem class are logged/spoken; journal message bodies
+journal entry at priorities emergency through error (`0..3`) since that unit's
+current active-run timestamp. Only the unit and problem class are logged/spoken; journal message bodies
 are never copied into telemetry or speech. The intentionally disabled Gemma and
 Audex laboratory profiles are excluded. The three pre-existing failed DHCP/DNS
 services are unrelated to Neko and are likewise excluded.

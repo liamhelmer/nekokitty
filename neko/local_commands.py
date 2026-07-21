@@ -68,6 +68,7 @@ ESSENTIAL_SERVICES: tuple[ServiceCheck, ...] = (
     ServiceCheck("neko-tts.service", "Kiki voice service"),
     ServiceCheck("neko-what-if-refresh.timer", "schedule refresh timer"),
     ServiceCheck("pipewire.service", "audio service", user_unit=True),
+    ServiceCheck("neko-audio-policy.service", "audio routing service", user_unit=True),
     ServiceCheck("neko-voice-assistant.service", "voice assistant", user_unit=True),
     ServiceCheck("neko-git-sync.timer", "Git sync timer", user_unit=True),
 )
@@ -141,7 +142,10 @@ def _systemctl_command(service: ServiceCheck) -> list[str]:
     command = ["/usr/bin/systemctl"]
     if service.user_unit:
         command.append("--user")
-    command.extend(["show", "--property=ActiveState", "--property=SubState", "--property=Result", service.unit])
+    command.extend([
+        "show", "--property=ActiveState", "--property=SubState",
+        "--property=Result", "--property=ActiveEnterTimestamp", service.unit,
+    ])
     return command
 
 
@@ -162,7 +166,7 @@ def check_services(
     since: str | None = None,
     run: Callable[..., subprocess.CompletedProcess[str]] = subprocess.run,
 ) -> HealthReport:
-    """Check essential unit state and error-or-higher entries from this boot."""
+    """Check essential state and errors from each unit's current active run."""
 
     problems: list[ServiceProblem] = []
     for service in services:
@@ -195,8 +199,12 @@ def check_services(
             problems.append(ServiceProblem(service.unit, service.label, "inactive"))
             continue
         try:
+            active_since = values.get("ActiveEnterTimestamp")
+            journal_since = since or (
+                active_since if active_since and active_since != "n/a" else None
+            )
             journal = run(
-                _journal_command(service, since),
+                _journal_command(service, journal_since),
                 stdin=subprocess.DEVNULL,
                 capture_output=True,
                 text=True,

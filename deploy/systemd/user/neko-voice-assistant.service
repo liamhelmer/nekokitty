@@ -1,7 +1,7 @@
 [Unit]
 Description=Neko attended voice assistant
-After=pipewire.service network.target
-Wants=pipewire.service
+After=neko-audio-policy.service network.target
+Wants=neko-audio-policy.service
 
 [Service]
 Type=simple

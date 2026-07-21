@@ -179,13 +179,26 @@ Four deterministic local maintenance commands now bypass LFM and conversation
 history. `tell me your IP address` spells the preferred route's IPv4 address;
 `are you online?` immediately repeats the shared two-packet connectivity probe
 and updates mode; `are you healthy?` checks Docker, PipeWire, and the active
-LLM/TTS/voice/schedule/Git units plus current-boot error-priority journal records;
+LLM/TTS/voice/schedule/Git units plus current-active-run error-priority journal records;
 and the narrowly matched
 `full reboot` speaks the approved power-nap line before requesting a complete
 Jetson reboot. The implementation adds no privilege policy and uses the owner's
 existing noninteractive local sudo. Host evidence still showed the July 14 boot
 during deployment, so a spoken full-host reboot remains an owner-initiated
 destructive acceptance test rather than a completed cold-boot result.
+
+The owner subsequently completed the real full reboot successfully: host boot
+time advanced to 2026-07-21 10:03 PDT and the supervised stack returned. The
+ReSpeaker initially had lit LEDs but no USB/ALSA/PipeWire presence; replacing its
+USB cable made the official Seeed `2886:0018` capture and playback interfaces
+appear. `neko-audio-policy.service` is now enabled and notify-ready ahead of the
+voice assistant. ReSpeaker's DSP-processed channel zero is the default mono
+microphone. ReSpeaker is the primary output; a connected Bluetooth headset is
+mirrored with it through `neko_mirror`, becomes the full input/output fallback
+when ReSpeaker disappears, and C922 is the last microphone fallback. Live mirror
+links and a reversible profile-off/profile-restore fallback test pass. Passenger
+speech, production AEC, physical unplug/reconnect, latency, volume, and cold-boot
+acceptance remain.
 
 CatMeows 1.0.2 is pinned externally as a 440-clip candidate library. No clip has
 been played or integrated: the 221 isolation-context calls are excluded by
@@ -256,8 +269,11 @@ Inventory was collected locally on 2026-07-12 in America/Vancouver.
   listing.
 - Bluetooth radio, USB hubs, Logitech Bolt receiver, Microsoft wireless receiver,
   I2C buses, and the storage devices listed above.
-- No dedicated stereo/depth camera, lidar, radar, ultrasonic sensor, microphone
-  array, or motor-controller serial endpoint was positively identified.
+- Seeed ReSpeaker 4 Mic Array v3.0 now enumerates as USB `2886:0018` and exposes
+  16 kHz capture plus playback through PipeWire. A replacement USB cable fixed
+  the earlier LEDs-on/no-data condition.
+- No dedicated stereo/depth camera, lidar, radar, ultrasonic sensor, or
+  motor-controller serial endpoint was positively identified.
 
 ### Baseline operational observations
 
@@ -371,6 +387,9 @@ Read these before changing the system:
 - [Deterministic local maintenance commands](docs/plan/2026-07-21-deterministic-maintenance-commands.md)
   — exact IP/online/health/reboot intents, service and journal health contract,
   privilege boundary, validation, outstanding reboot acceptance, and rollback.
+- [ReSpeaker-first audio routing](docs/plan/2026-07-21-respeaker-bluetooth-routing.md)
+  — USB cable diagnosis, processed-channel microphone, mirrored ReSpeaker/Ora
+  output, Bluetooth/C922 fallback, service deployment, tests, and rollback.
 - [Main auto-sync and assistant reload](docs/plan/2026-07-19-main-auto-sync.md)
   — direct-main decision, shared writer lock, five-minute commit/fetch/rebase/
   push timer, secret-path gate, supervised assistant reload, and rollback.
@@ -466,6 +485,10 @@ the smaller, proven LiteRT CPU resident.
   under `/home/neko/models/Nemotron-Labs-Audex-2B`; five major weight hashes are
   in the setup log. No Audex code has been executed or runtime installed.
 - No PATH file was changed; use absolute paths in scripts/systemd.
+- Ubuntu `pulseaudio-utils` `1:16.1+dfsg1-2ubuntu10.1` arm64 is installed solely
+  for `pactl` control of the existing PipeWire Pulse server. The enabled
+  `neko-audio-policy.service` creates a processed ReSpeaker mono source and a
+  ReSpeaker/Bluetooth mirror dynamically; it does not install or run PulseAudio.
 - Isolated sherpa-onnx 1.13.4 and Supertonic 1.3.1 environments plus their exact
   pinned model artifacts are installed on NVMe. Standalone multilingual
   benchmarks pass; neither is a service or boot dependency yet. Pipecat remains

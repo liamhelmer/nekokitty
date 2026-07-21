@@ -3476,7 +3476,8 @@ validation.
 
 The health set is Docker, the enabled local LFM, Piper, Kiki, schedule-refresh
 timer, PipeWire, voice assistant, and Git-sync timer. The checker requires active/success state
-and scans only current-boot journal priority 0 through 3. Disabled lab profiles
+and scans journal priority 0 through 3 since each unit's current active-run
+timestamp. Disabled lab profiles
 and the unrelated pre-existing dnsmasq/ISC DHCP failures are excluded. Output
 contains unit/problem classes, never journal message text. The Git-sync timer was
 stopped before source changes; the first checker run correctly reported only
@@ -3499,3 +3500,63 @@ The focused suites passed 7 and 27 tests. The complete repository suite passed
 this work was not a full Jetson reboot. An owner-spoken full reboot plus
 post-boot capture/playback check remains pending. Architecture and rollback are
 in `docs/plan/2026-07-21-deterministic-maintenance-commands.md`.
+
+## 2026-07-21: ReSpeaker primary, Bluetooth mirror and fallback
+
+The owner confirmed the deterministic full-reboot command worked. The current
+host boot advanced to `2026-07-21 10:03:04 PDT`; the prior July 14 uptime was
+therefore correctly identified as an assistant restart rather than this later
+successful host reboot.
+
+After boot, the ReSpeaker LEDs were lit but `lsusb`, the kernel log, ALSA, and
+PipeWire showed no Seeed device. Replacing its USB cable produced:
+
+```text
+2886:0018 Seeed Technology Co., Ltd. ReSpeaker 4 Mic Array (UAC1.0)
+```
+
+It exposes 16 kHz capture and playback. A four-second, media-free direct capture
+through `plughw:CARD=ArrayUAC10,DEV=0` passed with quiet-scene RMS blocks from
+approximately -70.5 to -57.1 dBFS. This verifies data capture only.
+
+Installed exactly one package:
+
+```text
+sudo apt-get update -qq
+sudo apt-get install -y --no-install-recommends pulseaudio-utils
+pulseaudio-utils 1:16.1+dfsg1-2ubuntu10.1 arm64
+```
+
+The package download was 72.0 kB and installed size about 545 kB. It adds
+`pactl`; no PulseAudio daemon was installed. Rollback is
+`sudo apt-get remove pulseaudio-utils`, provided no other local tool has adopted
+it. Do not run the unrelated suggested `apt autoremove` list without a separate
+review.
+
+Added `neko/audio_policy.py`, `scripts/neko_audio_policy.py`, and the enabled
+lingering user unit `neko-audio-policy.service`. The installed unit is an
+absolute symlink from `%h/.config/systemd/user` to the repository source. The
+voice unit now starts after the notify-ready policy. ReSpeaker matches by
+official USB ID or stable product text; Bluetooth matches generically without a
+committed address. The service polls every two seconds, creates
+`neko_respeaker_processed` from only channel zero/front-left with remix disabled,
+and creates `neko_mirror` when both output devices exist. Source changes restart
+the long-lived voice capture nonblockingly. C922 remains the last mic fallback.
+
+The first unit start failed before Python with `status=218/CAPABILITIES` because
+the lingering user manager could not apply the empty capability directives.
+Removing only those directives resolved it; no privilege was added. The final
+unit retains `NoNewPrivileges`, read-only home/system protection, AF_UNIX-only
+access, a 32-task bound, and mode-0077 creation mask.
+
+Validation passed six focused audio-policy tests and all 190 repository tests
+with one designed skip, compileall, `git diff --check`, and user-unit verification.
+Two quiet audible tests with Bluetooth pre-roll entered the mirror. Live links
+proved simultaneous fan-out to both ReSpeaker playback channels and the Ora mono
+playback channel. A reversible card-profile-off test moved output and input to
+Bluetooth and restarted voice PID 10707 as 10866. Profile restoration rebuilt
+the mirror/processed source and restarted voice as PID 10902; the replacement
+reported ready after 5.177 seconds. No microphone media was retained.
+
+Full architecture, limitations, acceptance gates, and rollback are in
+`docs/plan/2026-07-21-respeaker-bluetooth-routing.md`.
