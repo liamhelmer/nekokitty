@@ -1,6 +1,20 @@
-# ReSpeaker-first audio with Bluetooth mirror and fallback
+# Bluetooth-speaker/C922 audio with retained ReSpeaker fallback
 
-## Owner decision
+## Current decision (2026-07-22)
+
+The ReSpeaker and external amplifier exhibited severe electrical resonance in
+the cart power environment and cannot be used. Revision one therefore uses an
+`AR SEDONA` A2DP Bluetooth speaker for output and the Logitech C922 for capture.
+The implementation below remains available for controlled ReSpeaker bench
+diagnosis but is superseded operationally.
+
+Two identical speakers are paired, bonded, and trusted without committing their
+addresses. The confirmed primary is normally connected; the tested backup is
+normally disconnected. The active PipeWire route is the primary's 48 kHz stereo
+sink plus the C922 source. The existing policy supports this sink-only Bluetooth
+case by falling through to the webcam when the speaker has no capture source.
+
+## Previous owner decision and retained implementation
 
 The ReSpeaker USB array is Neko's primary microphone and primary speaker-output
 device. A connected Bluetooth headset is a backup. When both outputs are
@@ -84,6 +98,23 @@ input both changed to Bluetooth and the voice process restarted. Restoring the
 profile rebuilt the mirror, restored `neko_respeaker_processed`, and restarted
 voice capture again. No microphone media was retained.
 
+The 2026-07-22 pairing first selected an unrelated nearby fitness-device audio
+endpoint; it produced no audible test and its bond was removed. Pairing the
+correct `AR SEDONA` then exposed NVIDIA's R39 systemd drop-in, which launched
+BlueZ with `--noplugin=audio,a2dp,avrcp,sap`. Repository source
+`deploy/systemd/bluetooth.service.d/zz-neko-audio.conf` is installed below
+`/etc/systemd/system` and resets the command to:
+
+```text
+/usr/libexec/bluetooth/bluetoothd -d --noplugin=sap
+```
+
+The `zz-` ordering is required to override the vendor `nv-` file. After daemon
+reload and Bluetooth restart, A2DP connected, the policy selected Bluetooth
+output/C922 input, and the owner heard the primary two-tone test. The backup also
+connected and completed an explicit-sink tone test before the primary was
+restored; owner confirmation of that second tone is pending.
+
 Outstanding acceptance includes spoken ASR at passenger distance, AEC while the
 amplified speaker is active, mirror audibility/latency listening, volume and
 limiter tuning, actual USB unplug/replug, Bluetooth disconnect/reconnect, and a
@@ -96,3 +127,8 @@ voice unit's ordering change, and restart the voice assistant. Stopping the
 policy unloads its virtual source and sink. Set defaults manually with `wpctl` or
 `pactl`. Remove `pulseaudio-utils` only if no other local tooling depends on
 `pactl`; removing the package does not remove PipeWire Pulse.
+
+To restore NVIDIA's BlueZ policy, remove or rename only
+`/etc/systemd/system/bluetooth.service.d/zz-neko-audio.conf`, run
+`sudo systemctl daemon-reload`, and restart `bluetooth.service`. That rollback
+intentionally makes A2DP unavailable again.

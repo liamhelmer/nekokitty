@@ -3560,3 +3560,55 @@ reported ready after 5.177 seconds. No microphone media was retained.
 
 Full architecture, limitations, acceptance gates, and rollback are in
 `docs/plan/2026-07-21-respeaker-bluetooth-routing.md`.
+
+## 2026-07-22: AR SEDONA speakers and C922 replace ReSpeaker/amp
+
+The owner reported severe electrical resonance among the ReSpeaker/external amp
+and the cart's Jetson/battery/charger/converter environment. No electrical cause
+was inferred and no wiring was changed. Revision one now uses an A2DP Bluetooth
+speaker for output and the Logitech C922 for capture.
+
+Discovery initially found and bonded `FS-529B79-A`, an audio endpoint belonging
+to a nearby device whose companion advertised the Fitness Machine service. Its
+test was inaudible, so it was disconnected and removed. A rescan found the
+correct `AR SEDONA` Audio Sink. Pairing the first speaker succeeded, but A2DP
+initially returned `br-connection-profile-unavailable`. Inspection showed the
+NVIDIA R39 drop-in starting BlueZ as:
+
+```text
+/usr/libexec/bluetooth/bluetoothd -d --noplugin=audio,a2dp,avrcp,sap
+```
+
+Added `deploy/systemd/bluetooth.service.d/zz-neko-audio.conf` and installed it
+mode 0644 at `/etc/systemd/system/bluetooth.service.d/zz-neko-audio.conf`. It
+resets `ExecStart` to `/usr/libexec/bluetooth/bluetoothd -d --noplugin=sap`.
+The `zz-` name is intentional: an initial `neko-audio.conf` sorted before the
+vendor `nv-` file and was overridden, so that ineffective file was renamed with
+a non-`.conf` suffix. No package was installed.
+
+Commands used, with Bluetooth addresses omitted:
+
+```text
+bluetoothctl pairable on
+bluetoothctl --timeout 20 scan on
+bluetoothctl pair <speaker-address>
+bluetoothctl trust <speaker-address>
+sudo install -D -m 0644 deploy/systemd/bluetooth.service.d/zz-neko-audio.conf /etc/systemd/system/bluetooth.service.d/zz-neko-audio.conf
+sudo systemctl daemon-reload
+sudo systemctl restart bluetooth.service
+bluetoothctl connect <speaker-address>
+bluetoothctl pairable off
+```
+
+Both identical `AR SEDONA` speakers are paired, bonded, trusted, advertise A2DP,
+and reported 90% battery during setup. The primary is connected; the backup is
+normally disconnected. PipeWire exposes a 48 kHz stereo sink and the audio
+policy selects it with the C922 analog-stereo source. The owner heard a primary
+two-tone test with two seconds of silent Bluetooth pre-roll. The backup connected
+and completed an explicit-sink test before the primary was restored; owner
+audibility confirmation for that tone remains pending. Both the audio-policy and
+voice-assistant user services remained active.
+
+Rollback: rename or remove only the `/etc` `zz-neko-audio.conf`, daemon-reload,
+and restart Bluetooth to restore NVIDIA's audio-disabled command. Unpair either
+speaker separately with `bluetoothctl remove <speaker-address>`.

@@ -188,17 +188,20 @@ during deployment, so a spoken full-host reboot remains an owner-initiated
 destructive acceptance test rather than a completed cold-boot result.
 
 The owner subsequently completed the real full reboot successfully: host boot
-time advanced to 2026-07-21 10:03 PDT and the supervised stack returned. The
-ReSpeaker initially had lit LEDs but no USB/ALSA/PipeWire presence; replacing its
-USB cable made the official Seeed `2886:0018` capture and playback interfaces
-appear. `neko-audio-policy.service` is now enabled and notify-ready ahead of the
-voice assistant. ReSpeaker's DSP-processed channel zero is the default mono
-microphone. ReSpeaker is the primary output; a connected Bluetooth headset is
-mirrored with it through `neko_mirror`, becomes the full input/output fallback
-when ReSpeaker disappears, and C922 is the last microphone fallback. Live mirror
-links and a reversible profile-off/profile-restore fallback test pass. Passenger
-speech, production AEC, physical unplug/reconnect, latency, volume, and cold-boot
-acceptance remain.
+time advanced to 2026-07-21 10:03 PDT and the supervised stack returned. A later
+ReSpeaker/amp trial produced unacceptable electrical resonance involving the
+cart power environment, so neither is usable in revision one. The current audio
+decision is the Logitech C922 microphone plus the `AR SEDONA` A2DP Bluetooth
+speaker. On 2026-07-22 two identical speakers were paired, bonded, and trusted.
+The confirmed primary is connected and selected as default output; the tested
+backup is normally disconnected. The C922 remains the default input. NVIDIA's
+R39 BlueZ drop-in had disabled `audio,a2dp,avrcp`; the installed, repository-backed
+`zz-neko-audio.conf` restores those plugins while continuing to disable only SAP.
+The existing `neko-audio-policy.service` correctly entered its Bluetooth-output/
+webcam-input route. The prior ReSpeaker mirror remains implemented as a stopped
+fallback option, not the current hardware plan. The primary audible-tone test
+passed. Backup-tone owner confirmation, power-cycle reconnection, passenger
+speech, AEC/noise resilience, latency, volume, and cold-boot acceptance remain.
 
 CatMeows 1.0.2 is pinned externally as a 440-clip candidate library. No clip has
 been played or integrated: the 221 isolation-context calls are excluded by
@@ -264,6 +267,10 @@ Inventory was collected locally on 2026-07-12 in America/Vancouver.
   temporary duplex testing but not representative of final wired playback or
   high-quality A2DP latency. Its unique Bluetooth address is intentionally not
   recorded here.
+- Two identical `AR SEDONA` Bluetooth speakers are paired, bonded, and trusted.
+  The primary is connected over A2DP and PipeWire exposes it as a 48 kHz stereo
+  sink; the backup is normally disconnected. Neither unique address is
+  committed. The C922 is the microphone.
 - HDMI audio outputs on the Jetson and NVIDIA APE/ADMAIF endpoints. No dedicated
   USB speaker/DAC or body transducer output was identifiable from the initial ALSA
   listing.
@@ -489,6 +496,10 @@ the smaller, proven LiteRT CPU resident.
   for `pactl` control of the existing PipeWire Pulse server. The enabled
   `neko-audio-policy.service` creates a processed ReSpeaker mono source and a
   ReSpeaker/Bluetooth mirror dynamically; it does not install or run PulseAudio.
+- `/etc/systemd/system/bluetooth.service.d/zz-neko-audio.conf` overrides NVIDIA's
+  R39 `--noplugin=audio,a2dp,avrcp,sap` command with `--noplugin=sap`, restoring
+  Bluetooth speaker audio. Its source is under `deploy/systemd`; removing it and
+  restarting BlueZ restores the vendor behavior.
 - Isolated sherpa-onnx 1.13.4 and Supertonic 1.3.1 environments plus their exact
   pinned model artifacts are installed on NVMe. Standalone multilingual
   benchmarks pass; neither is a service or boot dependency yet. Pipecat remains
