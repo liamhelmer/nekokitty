@@ -3659,3 +3659,44 @@ Rollback is `systemctl --user disable --now
 neko-bluetooth-reconnect.service`, removal of only its user-unit symlink after a
 daemon reload, and optional deletion of the host-private environment file. This
 does not alter the two BlueZ bonds or the separate NVIDIA A2DP override.
+
+## 2026-07-23: story wake/stop fallback and reserved narration phrases
+
+During AR SEDONA story playback, the C922 continuously detected audio and
+produced output-time VAD segments, but repeated owner `Neko stop` attempts did
+not produce `stop_keyword_detected`. The logs instead showed non-wake segments;
+one Neko detection was rejected by the self-echo guard. The guard covered an
+entire pre-rendered section whenever its text contained Neko's name, so it could
+also reject a human wake word for many seconds.
+
+Added two deterministic, post-VAD fallbacks without removing the immediate KWS
+path. An exact addressed transcript consisting of an accepted Neko spelling,
+optional `please`, and `stop` becomes the global stop before ignored output is
+discarded. During stories, the stronger leading `Neko Neko` form overrides the
+single-name echo guard; if full-phrase KWS misses, two leading accepted ASR name
+spellings arm the same addressed interruption at segment finalization.
+
+Added a fail-closed story check for the acoustic command phrases `Neko stop`,
+`Neko stopped`, and `Neko Neko`. It runs before approved text can be selected or
+rendered. The current five-story library contains none. The online Codex story
+prompt explicitly forbids all three so future compositions must pass the same
+library validation.
+
+Validation:
+
+```text
+python3 -m unittest tests.test_voice_assistant tests.test_story_library tests.test_online_jobs
+python3 -m unittest discover -s tests
+python3 -m compileall -q neko scripts
+git diff --check
+systemctl --user restart neko-voice-assistant.service
+```
+
+The final focused suite passed 48 tests; the repository suite passed 199 with
+one designed skip. The live assistant restarted and reported ready after 5.228
+seconds. No audio was retained. Spoken `Neko stop` and `Neko Neko …` acceptance
+during a fresh story remain the final gate.
+
+Rollback is to revert the voice helper/callback/fallback changes, story-library
+reserved-phrase check, online prompt constraint, and associated tests/docs, then
+restart the voice unit. Reverting does not affect speaker pairing or routing.

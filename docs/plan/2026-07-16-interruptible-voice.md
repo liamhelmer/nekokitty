@@ -136,6 +136,30 @@ with quantized KV cache and will likely require sequential worker residency.
 
 ## Remaining gates
 
+### 2026-07-23 C922/Bluetooth story interruption correction
+
+Live story playback reached the C922 strongly enough to produce repeated VAD
+segments, but a spoken `Neko stop` did not produce the dedicated stop-KWS event.
+The old section-level self-echo guard also rejected any ordinary wake detection
+for the entire duration of a recorded section containing Neko's name.
+
+The dedicated stop KWS remains the immediate path. A narrow second path now
+examines the already-streamed ASR result before an output segment is discarded:
+only an accepted Neko spelling followed by optional `please` and exactly `stop`
+becomes the deterministic stop command. This excludes unaddressed `stop`,
+`Neko stopped`, and longer sentences.
+
+During story output, `Neko Neko …` is the strong addressed form. A full double-
+name KWS result overrides the single-name echo guard. If KWS misses, an ignored
+story segment whose ASR begins with two accepted Neko spellings is armed as an
+addressed interruption at finalization. Single-name story narration remains
+echo-suppressed.
+
+Story selection/building now fails closed if approved narration contains
+`Neko stop`, `Neko stopped`, or `Neko Neko`; all five current stories pass.
+The online composition prompt forbids the same phrases. Unit and complete-suite
+validation pass, but acoustic acceptance of both new fallbacks is still required.
+
 1. Run false-wake and missed-wake evaluation over multiple speakers, distances,
    azimuths, cabin noise, playback leakage, and both approved languages before
    freezing keyword score/threshold.

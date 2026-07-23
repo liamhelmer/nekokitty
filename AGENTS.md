@@ -108,7 +108,16 @@ same-buffer inline-WAV Gemma route remains diagnostic-only. `bye bye`,
 `goodbye`, and `good bye` close the session locally even when ASR returns no
 text. `Neko stop` has a dedicated KWS entry, cancels speech/cat audio immediately,
 and deterministically closes the session and clears both general and pending
-schedule context when its segment finalizes. A six-turn/2,400-character in-memory history is implemented. Negative,
+schedule context when its segment finalizes. The C922/Bluetooth story test exposed
+missed KWS under loud playback and an over-broad section-level self-echo guard.
+An exact addressed-stop ASR fallback now preserves `Neko stop` even when that
+segment was tentatively ignored during output. During stories, the stronger
+`Neko Neko …` form overrides a section containing Neko's name; finalized ASR
+provides the same double-address fallback if KWS misses. Approved story text now
+fails closed on the reserved acoustic triggers `Neko stop`, `Neko stopped`, and
+`Neko Neko`, and online composition is explicitly forbidden from generating
+them. The existing five-story library scans clean. Live spoken acceptance of
+both fallback paths remains. A six-turn/2,400-character in-memory history is implemented. Negative,
 wake, interruption, replacement-response, and sleep replay tests pass; the
 owner recordings stay mode-restricted outside Git and are not identified or
 hashed in public notes. The owner has now enabled this attended/headphone profile
