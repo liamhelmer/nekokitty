@@ -145,6 +145,21 @@ def canonicalize_wake_transcript(text: str) -> str:
     return f"Neko {remainder}".strip()
 
 
+def is_addressed_stop_transcript(text: str) -> bool:
+    """Recognize a narrow ASR fallback when the dedicated stop KWS misses."""
+
+    tokens = normalize_phrase(text).split()
+    removed = 0
+    while tokens and removed < 2 and tokens[0] in WAKE_ADDRESS_TOKENS:
+        tokens.pop(0)
+        removed += 1
+    if removed == 0:
+        return False
+    if tokens and tokens[0] == "please":
+        tokens.pop(0)
+    return tokens == ["stop"]
+
+
 @dataclass(frozen=True, slots=True)
 class SpeechSegment:
     samples: tuple[float, ...]
@@ -1629,6 +1644,26 @@ class VoiceAssistant:
         return completed
 
     def _handle_segment(self, segment: SpeechSegment) -> bool:
+        if (
+            not segment.stop_detected
+            and is_addressed_stop_transcript(segment.transcript)
+        ):
+            # Speaker echo can prevent the dedicated stop KWS from firing.
+            # Streaming ASR already covers every VAD segment, including output
+            # segments tentatively ignored before they are finalized.
+            self._on_stop()
+            segment = SpeechSegment(
+                samples=segment.samples,
+                captured_at_s=segment.captured_at_s,
+                wake_detected=segment.wake_detected,
+                sleep_detected=segment.sleep_detected,
+                stop_detected=True,
+                sequence=segment.sequence,
+                transcript=segment.transcript,
+                asr_steps=segment.asr_steps,
+                asr_finalize_seconds=segment.asr_finalize_seconds,
+            )
+            self._event("stop_transcript_fallback_detected")
         ignored_during_output = segment.sequence in self.ignored_story_sequences
         if ignored_during_output:
             self.ignored_story_sequences.discard(segment.sequence)
