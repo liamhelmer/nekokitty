@@ -49,8 +49,9 @@ the same health logic used by voice. It checks these enabled essential units:
 
 - system: `docker.service`, `neko-llm.service`, `neko-tts-fast.service`,
   `neko-tts.service`, and `neko-what-if-refresh.timer`;
-- user: `pipewire.service`, `neko-audio-policy.service`,
-  `neko-voice-assistant.service`, and `neko-git-sync.timer`.
+- user: `pipewire.service`, `neko-bluetooth-reconnect.service`,
+  `neko-audio-policy.service`, `neko-voice-assistant.service`, and
+  `neko-git-sync.timer`.
 
 For each unit it requires `ActiveState=active`, a successful unit result, and no
 journal entry at priorities emergency through error (`0..3`) since that unit's

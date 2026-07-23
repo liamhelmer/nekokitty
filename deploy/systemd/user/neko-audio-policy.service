@@ -1,7 +1,7 @@
 [Unit]
-Description=Neko ReSpeaker-first audio routing policy
-After=pipewire.service pipewire-pulse.service wireplumber.service
-Wants=pipewire.service pipewire-pulse.service wireplumber.service
+Description=Neko Bluetooth/C922 audio routing policy
+After=pipewire.service pipewire-pulse.service wireplumber.service neko-bluetooth-reconnect.service
+Wants=pipewire.service pipewire-pulse.service wireplumber.service neko-bluetooth-reconnect.service
 
 [Service]
 Type=notify

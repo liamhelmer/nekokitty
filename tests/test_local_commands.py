@@ -5,6 +5,7 @@ import subprocess
 import unittest
 
 from neko.local_commands import (
+    ESSENTIAL_SERVICES,
     HealthReport,
     ServiceCheck,
     ServiceProblem,
@@ -48,6 +49,12 @@ class LocalCommandParsingTests(unittest.TestCase):
 
 
 class LocalCommandOperationTests(unittest.TestCase):
+    def test_bluetooth_reconnect_is_an_essential_health_service(self) -> None:
+        self.assertIn(
+            "neko-bluetooth-reconnect.service",
+            {service.unit for service in ESSENTIAL_SERVICES},
+        )
+
     def test_primary_ip_uses_preferred_route_source(self) -> None:
         def fake_run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
             return completed(command, stdout=json.dumps([{"prefsrc": "192.168.4.21"}]))

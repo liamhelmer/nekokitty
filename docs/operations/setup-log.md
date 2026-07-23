@@ -3612,3 +3612,50 @@ voice-assistant user services remained active.
 Rollback: rename or remove only the `/etc` `zz-neko-audio.conf`, daemon-reload,
 and restart Bluetooth to restore NVIDIA's audio-disabled command. Unpair either
 speaker separately with `bluetoothctl remove <speaker-address>`.
+
+## 2026-07-23: persistent Bluetooth speaker reconnection
+
+The next real boot advanced host uptime to `2026-07-23 12:50:01 PDT`. Both AR
+SEDONA devices remained paired, bonded, and trusted, and BlueZ correctly retained
+the `/etc` A2DP override. Neither device was connected, however, so PipeWire had
+no Bluetooth card/sink and Neko's policy correctly fell back to internal output
+plus the C922 microphone. Trust does not itself guarantee an outbound BlueZ
+reconnection.
+
+Added `neko/bluetooth_reconnect.py`,
+`scripts/neko_bluetooth_reconnect.py`, and enabled the repository-linked
+lingering user unit `neko-bluetooth-reconnect.service`. A host-only ordered
+address list is stored at `~/.config/neko/bluetooth-speakers.env`, mode 0600.
+Neither addresses nor the file content are committed or logged. Every ten
+seconds the service preserves any configured connection; otherwise it attempts
+primary then backup. This also covers a speaker powered on after boot. The audio
+policy now wants and starts after the connector, and the deterministic health
+check includes it as an essential user service.
+
+Installation and validation:
+
+```text
+chmod 600 ~/.config/neko/bluetooth-speakers.env
+systemctl --user link /home/neko/repos/nekokitty/deploy/systemd/user/neko-bluetooth-reconnect.service
+systemctl --user daemon-reload
+systemctl --user enable --now neko-bluetooth-reconnect.service
+systemctl --user restart neko-audio-policy.service
+python3 -m unittest tests.test_bluetooth_reconnect tests.test_audio_policy
+systemd-analyze --user verify deploy/systemd/user/neko-bluetooth-reconnect.service deploy/systemd/user/neko-audio-policy.service
+```
+
+Ten focused tests passed before health integration. The service became
+notify-ready, selected slot one without logging its address, and PipeWire
+selected AR SEDONA output with C922 input. A deliberate `bluetoothctl disconnect`
+was followed by an automatic slot-one reconnect during the next poll; the same
+defaults returned and both voice/audio-policy services remained active.
+After adding the reconnect unit to health, the complete repository suite passed
+195 tests with one designed skip. Compileall, `git diff --check`, both user-unit
+verifications, and the live health script passed with
+`{"healthy": true, "problems": []}`. Restarting the final build removed inherited
+`NOTIFY_SOCKET` warnings from later `bluetoothctl` children.
+
+Rollback is `systemctl --user disable --now
+neko-bluetooth-reconnect.service`, removal of only its user-unit symlink after a
+daemon reload, and optional deletion of the host-private environment file. This
+does not alter the two BlueZ bonds or the separate NVIDIA A2DP override.

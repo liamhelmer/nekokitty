@@ -1,0 +1,28 @@
+[Unit]
+Description=Neko Bluetooth speaker reconnect policy
+After=pipewire.service pipewire-pulse.service wireplumber.service
+Wants=pipewire.service pipewire-pulse.service wireplumber.service
+
+[Service]
+Type=notify
+NotifyAccess=main
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=%h/.config/neko/bluetooth-speakers.env
+WorkingDirectory=%h/repos/nekokitty
+ExecStart=/usr/bin/python3 %h/repos/nekokitty/scripts/neko_bluetooth_reconnect.py
+Restart=always
+RestartSec=3
+TimeoutStartSec=30
+TimeoutStopSec=10
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+RestrictAddressFamilies=AF_UNIX
+LockPersonality=true
+RestrictSUIDSGID=true
+TasksMax=16
+UMask=0077
+
+[Install]
+WantedBy=default.target

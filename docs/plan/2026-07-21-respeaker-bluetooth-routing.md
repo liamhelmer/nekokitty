@@ -115,10 +115,38 @@ output/C922 input, and the owner heard the primary two-tone test. The backup als
 connected and completed an explicit-sink tone test before the primary was
 restored; owner confirmation of that second tone is pending.
 
+## Persistent reconnection
+
+The 2026-07-23 cold boot preserved both paired/bonded/trusted devices and the
+BlueZ A2DP override, but neither speaker connected. BlueZ does not guarantee
+outbound reconnection merely because a sink is trusted.
+
+`neko/bluetooth_reconnect.py` and
+`scripts/neko_bluetooth_reconnect.py` now run in the enabled lingering
+`neko-bluetooth-reconnect.service`. Every ten seconds the service:
+
+1. leaves either configured speaker connected if one is already working;
+2. otherwise tries the configured primary;
+3. tries the backup only when the primary is unavailable; and
+4. keeps polling so a speaker powered after boot can still connect.
+
+The ordered addresses are host configuration, not source:
+`~/.config/neko/bluetooth-speakers.env` is mode 0600 and contains the
+`NEKO_BLUETOOTH_SPEAKERS` value. The service never prints addresses. Telemetry
+contains only state and one-based preference slot. `NOTIFY_SOCKET` is removed
+from `bluetoothctl` child environments so only the main process can notify
+systemd. The audio policy wants and starts after this reconnect service, and
+Neko's health command treats it as essential.
+
+Four focused reconnect tests cover strict configuration parsing, connection
+state parsing, no replacement of a working backup, and primary-before-backup
+attempt order. A live forced disconnect reconnected slot one during the next
+poll and restored the AR SEDONA default sink while C922 remained the default
+source.
+
 Outstanding acceptance includes spoken ASR at passenger distance, AEC while the
-amplified speaker is active, mirror audibility/latency listening, volume and
-limiter tuning, actual USB unplug/replug, Bluetooth disconnect/reconnect, and a
-second cold boot with both devices present.
+speaker is active, volume/limiter tuning, speaker-off-at-boot then power-on,
+physical backup failover, and another cold boot.
 
 ## Rollback
 
@@ -127,6 +155,10 @@ voice unit's ordering change, and restart the voice assistant. Stopping the
 policy unloads its virtual source and sink. Set defaults manually with `wpctl` or
 `pactl`. Remove `pulseaudio-utils` only if no other local tooling depends on
 `pactl`; removing the package does not remove PipeWire Pulse.
+
+Disable `neko-bluetooth-reconnect.service` and remove only its user-unit symlink
+to stop automatic reconnect. The host-private environment file can then be
+removed separately; this does not unpair either speaker.
 
 To restore NVIDIA's BlueZ policy, remove or rename only
 `/etc/systemd/system/bluetooth.service.d/zz-neko-audio.conf`, run

@@ -68,6 +68,11 @@ ESSENTIAL_SERVICES: tuple[ServiceCheck, ...] = (
     ServiceCheck("neko-tts.service", "Kiki voice service"),
     ServiceCheck("neko-what-if-refresh.timer", "schedule refresh timer"),
     ServiceCheck("pipewire.service", "audio service", user_unit=True),
+    ServiceCheck(
+        "neko-bluetooth-reconnect.service",
+        "Bluetooth speaker service",
+        user_unit=True,
+    ),
     ServiceCheck("neko-audio-policy.service", "audio routing service", user_unit=True),
     ServiceCheck("neko-voice-assistant.service", "voice assistant", user_unit=True),
     ServiceCheck("neko-git-sync.timer", "Git sync timer", user_unit=True),
