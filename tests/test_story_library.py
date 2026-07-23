@@ -8,10 +8,24 @@ import re
 import tempfile
 import unittest
 
-from neko.story_library import DEFAULT_RECORDING_MANIFEST, StoryLibrary
+from neko.story_library import (
+    DEFAULT_RECORDING_MANIFEST,
+    StoryLibrary,
+    contains_forbidden_stop_phrase,
+)
 
 
 class StoryLibraryTests(unittest.TestCase):
+    def test_reserved_stop_phrases_are_rejected_and_library_is_clean(self) -> None:
+        self.assertTrue(contains_forbidden_stop_phrase("Neko stop!"))
+        self.assertTrue(contains_forbidden_stop_phrase("Nekko, stopped."))
+        self.assertTrue(contains_forbidden_stop_phrase("Neko Neko, listen!"))
+        self.assertFalse(contains_forbidden_stop_phrase("Neko kept going."))
+        self.assertFalse(contains_forbidden_stop_phrase("The cat stopped."))
+        for story in StoryLibrary().search("story", limit=1000):
+            with self.subTest(story=story.story_id):
+                self.assertFalse(contains_forbidden_stop_phrase(story.text))
+
     def test_returns_only_approved_local_story_text(self) -> None:
         stories = StoryLibrary().search("gummy worms otherworld")
         self.assertEqual(stories[0].story_id, "original.magic-girl-gummy-worm-moon")

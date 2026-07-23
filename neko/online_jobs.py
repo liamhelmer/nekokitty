@@ -263,7 +263,10 @@ class CodexOnlineJobRunner:
             "paragraph at or below 350 characters so the pinned renderer can process it. Include a title, tags, "
             "a concise summary, and three concise essentials in the manifest. Do not use copyrighted franchise "
             "characters unless the request explicitly names one already permitted by the owner. Validate the JSON "
-            "and story-library load. Do not run the audio renderer, commit, or push. In your final response, give "
+            "and story-library load. Never include the reserved phrases 'Neko stop', 'Neko stopped', or "
+            "'Neko Neko' anywhere in the story because playback could trigger an emergency command. "
+            "Do not run the audio renderer, commit, "
+            "or push. In your final response, give "
             "one to three plain sentences in Neko's own voice saying the title and what it is about, with no "
             "Markdown or paths. Cat-sound markers belong only in that final response, never in the story file."
         )

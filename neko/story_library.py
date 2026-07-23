@@ -13,6 +13,14 @@ from pathlib import Path
 STORY_SOUND_TARGET_WORDS = 75
 STORY_SOUND_MAXIMUM = 10
 WORD_RE = re.compile(r"\b[\w’'-]+\b")
+FORBIDDEN_STORY_STOP_RE = re.compile(
+    r"\bnekk?o\b\W+(?:stop|stopped)\b",
+    re.IGNORECASE,
+)
+FORBIDDEN_STORY_DOUBLE_WAKE_RE = re.compile(
+    r"\bnekk?o\b\W+\bnekk?o\b",
+    re.IGNORECASE,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -24,6 +32,15 @@ RECORDING_CUES = {None, "meow_general", "meow_thank_you"}
 QUERY_STOPWORDS = {
     "a", "an", "and", "another", "about", "me", "please", "story", "tell", "the",
 }
+
+
+def contains_forbidden_stop_phrase(text: str) -> bool:
+    """Reject narration that could acoustically trigger the global stop path."""
+
+    return (
+        FORBIDDEN_STORY_STOP_RE.search(text) is not None
+        or FORBIDDEN_STORY_DOUBLE_WAKE_RE.search(text) is not None
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -100,6 +117,10 @@ class StoryLibrary:
             except ValueError as error:
                 raise ValueError("story path escapes repository") from error
             text = path.read_text(encoding="utf-8")
+            if contains_forbidden_stop_phrase(text):
+                raise ValueError(
+                    f"approved story contains a reserved stop phrase: {entry['id']}"
+                )
             haystack = set(
                 re.findall(
                     r"[\w]+",

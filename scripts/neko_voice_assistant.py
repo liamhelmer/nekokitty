@@ -160,6 +160,13 @@ def is_addressed_stop_transcript(text: str) -> bool:
     return tokens == ["stop"]
 
 
+def is_double_addressed_transcript(text: str) -> bool:
+    tokens = normalize_phrase(text).split()
+    return len(tokens) >= 2 and all(
+        token in WAKE_ADDRESS_TOKENS for token in tokens[:2]
+    )
+
+
 @dataclass(frozen=True, slots=True)
 class SpeechSegment:
     samples: tuple[float, ...]
@@ -184,7 +191,7 @@ class ContinuousSpeechInput:
         recognizer: object,
         language: str,
         on_speech_start: Callable[[], None],
-        on_wake: Callable[[], bool | None],
+        on_wake: Callable[[str], bool | None],
         on_stop: Callable[[], None],
         *,
         queue_size: int = 8,
@@ -321,7 +328,7 @@ class ContinuousSpeechInput:
                 elif detected.startswith("SLEEP_"):
                     self._sleep_for_segment = True
                 elif wake_is_in_prefix_window(self._speech_frames_seen):
-                    accepted = self.on_wake()
+                    accepted = self.on_wake(detected)
                     if accepted is not False:
                         self._wake_for_segment = True
                 self.keyword_spotter.reset_stream(self.keyword_stream)
@@ -407,7 +414,7 @@ class ReplaySpeechInput(ContinuousSpeechInput):
         recognizer: object,
         language: str,
         on_speech_start: Callable[[], None],
-        on_wake: Callable[[], bool | None],
+        on_wake: Callable[[str], bool | None],
         on_stop: Callable[[], None],
         speaking: threading.Event,
     ) -> None:
@@ -791,8 +798,13 @@ class VoiceAssistant:
             self.cancel_speech.set()
             self._event("barge_in_detected")
 
-    def _on_wake(self) -> bool:
-        if self.spoken_turn_active.is_set() and self.self_wake_guard.is_set():
+    def _on_wake(self, keyword: str = "") -> bool:
+        strong_address = keyword.startswith(("NEKO_NEKO", "ASR_NEKO_NEKO"))
+        if (
+            self.spoken_turn_active.is_set()
+            and self.self_wake_guard.is_set()
+            and not strong_address
+        ):
             self._event("self_wake_echo_ignored")
             return False
         if self.spoken_turn_active.is_set():
@@ -1665,6 +1677,25 @@ class VoiceAssistant:
             )
             self._event("stop_transcript_fallback_detected")
         ignored_during_output = segment.sequence in self.ignored_story_sequences
+        if (
+            ignored_during_output
+            and not segment.wake_detected
+            and self.story_playing.is_set()
+            and is_double_addressed_transcript(segment.transcript)
+            and self._on_wake("ASR_NEKO_NEKO") is not False
+        ):
+            segment = SpeechSegment(
+                samples=segment.samples,
+                captured_at_s=segment.captured_at_s,
+                wake_detected=True,
+                sleep_detected=segment.sleep_detected,
+                stop_detected=segment.stop_detected,
+                sequence=segment.sequence,
+                transcript=segment.transcript,
+                asr_steps=segment.asr_steps,
+                asr_finalize_seconds=segment.asr_finalize_seconds,
+            )
+            self._event("wake_transcript_fallback_detected")
         if ignored_during_output:
             self.ignored_story_sequences.discard(segment.sequence)
             if not segment.wake_detected and not segment.sleep_detected and not segment.stop_detected:

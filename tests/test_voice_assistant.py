@@ -16,6 +16,8 @@ from scripts.neko_voice_assistant import SpeechSegment
 from scripts.neko_voice_assistant import VoiceAssistant
 from scripts.neko_voice_assistant import REQUEST_FAILURE_REPLY
 from scripts.neko_voice_assistant import canonicalize_wake_transcript
+from scripts.neko_voice_assistant import is_addressed_stop_transcript
+from scripts.neko_voice_assistant import is_double_addressed_transcript
 from scripts.neko_voice_assistant import wake_is_in_prefix_window
 from neko.online_jobs import OFFLINE_REPLY, OnlineCommand
 
@@ -129,7 +131,7 @@ class VoiceAssistantInputTests(unittest.TestCase):
             recognizer,
             "en",
             lambda: speech_starts.append(True),
-            lambda: None,
+            lambda _keyword: None,
             lambda: None,
         )
 
@@ -155,7 +157,7 @@ class VoiceAssistantInputTests(unittest.TestCase):
             FakeRecognizer(),
             "en",
             lambda: None,
-            lambda: None,
+            lambda _keyword: None,
             lambda: stops.append(True),
         )
 
@@ -168,6 +170,31 @@ class VoiceAssistantInputTests(unittest.TestCase):
 
 
 class VoiceAssistantMixedAudioTests(unittest.TestCase):
+    def test_addressed_stop_transcript_fallback_is_narrow(self) -> None:
+        for text in (
+            "Neko stop",
+            "Nekko, stop!",
+            "Nico please stop",
+            "Neko Neko stop",
+        ):
+            with self.subTest(text=text):
+                self.assertTrue(is_addressed_stop_transcript(text))
+        for text in (
+            "stop",
+            "please stop",
+            "Neko stopped the cart",
+            "Neko stop telling the story",
+            "Neko and Magic Girl never stop playing",
+        ):
+            with self.subTest(text=text):
+                self.assertFalse(is_addressed_stop_transcript(text))
+
+    def test_double_addressed_transcript_requires_two_leading_names(self) -> None:
+        self.assertTrue(is_double_addressed_transcript("Neko Neko tell me another"))
+        self.assertTrue(is_double_addressed_transcript("Neco Necho, what happened?"))
+        self.assertFalse(is_double_addressed_transcript("Neko tell me another"))
+        self.assertFalse(is_double_addressed_transcript("Please Neko Neko"))
+
     def test_local_command_routes_before_online_or_llm_work(self) -> None:
         assistant = VoiceAssistant.__new__(VoiceAssistant)
         seen: list[str] = []
@@ -541,6 +568,23 @@ class VoiceAssistantMixedAudioTests(unittest.TestCase):
         self.assertFalse(assistant._on_wake())
         self.assertFalse(assistant.cancel_speech.is_set())
         self.assertEqual(events, ["self_wake_echo_ignored"])
+
+    def test_double_neko_overrides_single_name_echo_guard(self) -> None:
+        assistant = VoiceAssistant.__new__(VoiceAssistant)
+        assistant.story_followup_pending = threading.Event()
+        assistant.story_interrupt_armed = threading.Event()
+        assistant.self_wake_guard = threading.Event()
+        assistant.self_wake_guard.set()
+        assistant.cancel_speech = threading.Event()
+        assistant.spoken_turn_active = threading.Event()
+        assistant.spoken_turn_active.set()
+        events: list[str] = []
+        assistant._event = lambda kind, **_values: events.append(kind)
+
+        self.assertTrue(assistant._on_wake("NEKO_NEKO"))
+        self.assertTrue(assistant.cancel_speech.is_set())
+        self.assertTrue(assistant.story_followup_pending.is_set())
+        self.assertIn("addressed_barge_in_armed", events)
 
     def test_cat_sound_alone_does_not_require_addressed_barge_in(self) -> None:
         assistant = VoiceAssistant.__new__(VoiceAssistant)
